@@ -8,7 +8,7 @@ setup(
     description='Tools for interacting with DHIS2 API in bulk',
     author='David Huser',
     author_email='dhuser@baosystems.com',
-    url='https://github.com/davidhuser/DHIS2-API-tools',
+    url='https://github.com/davidhuser/dhis2-pocket-knife',
     keywords='dhis2',
     install_requires=[
         "requests"
