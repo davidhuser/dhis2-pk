@@ -8,10 +8,8 @@ Tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 * `pip install dhis2-pocket-knife`
 
 ## Usage
-* Change directories with `cd` command where root of the directory is located
-* Run `screen -L python <file-name>.py` and the arguments as required
-* Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server
-* Writes to a logfile called `screenlog.0`
+* Run `<scriptname>.py > log.out` and the arguments as required. It should be callable from anywhere, no need to change directories
+* Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server. Test it with `--server=play.dhis2.org/demo --username=admin --password=district`
 
 ## Bulk sharing settings of objects
 
