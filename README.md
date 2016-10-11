@@ -1,4 +1,6 @@
-# DHIS2-API-tools
+# dhis2-pocket-knife
+
+Tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 
 ## Installation
 
