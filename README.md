@@ -85,7 +85,8 @@ Request/response debugging: set `debug_flag` in class `src.core.core.Logger` to 
 
 share-objects.py:
 
-- arguments: multiple userGroup names or UID instead
+- arguments: userGroups: multiple names as arguments
+- arguments: userGroups: UID as argument
 - arguments: support for omitting field filters (= apply for all objects)
 
 user-orgunits.py:
