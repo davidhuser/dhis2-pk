@@ -31,7 +31,7 @@ Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ..
 
 Example:
 
-`share-objects.py --server=play.dhis2.org/demo --object-type=dataElements --filter="name:like:Vaccine&code:^!like:CORE_DE" --usergroup_readwrite="Bo District Management" --usergroup_readonly="Bo District hospitals" --publicaccess=none --username=admin --password=district`
+`share-objects.py --server=play.dhis2.org/demo --object-type=dataElements --filter="name:^like:All&name:!like" --usergroup_readwrite="Africare HQ" --usergroup_readonly="Bo District M&E officers" --publicaccess=none --username=admin --password=district`
 
 ## Find users with a misconfigured Organisation Unit assignment
 
@@ -49,7 +49,7 @@ Returns all users of an Organisation Unit that are configured like below. Users 
 
 Example:
 
-`user-orgunits.py --server=play.dhis2.org/demo --orgunit=JdhagCUEMbj --username=admin --password=district`
+`user-orgunits.py --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --username=admin --password=district`
 
 ## Bulk deletion of metadata objects
 
@@ -69,8 +69,13 @@ Example:
 
 `delete-objects.py --server=play.dhis2.org/demo --uid_file="UIDs.txt" --username=admin --password=district`
 
----
-PyPI link: https://pypi.python.org/pypi/dhis2-pocket-knife
+(put the following in a file called UIDs.txt to test it):
+
+```
+FHD3wiSM7Sn
+iKGjnOOaPlE
+XTqOHygxDj5
+```
 
 ### Debugging
 
@@ -79,3 +84,6 @@ Request/response debugging: set `debug_flag` in Class src.core.Logger to `True`
 ### TODO
 
 - share-objects.py: support for multiple userGroup names, support for UIDs
+
+---
+PyPI link: https://pypi.python.org/pypi/dhis2-pocket-knife
