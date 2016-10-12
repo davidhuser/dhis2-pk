@@ -69,7 +69,7 @@ class Dhis(object):
 
 class Logger(object):
     # DEBUG TO LOG FILE FLAG
-    debug_flag = True
+    debug_flag = False
 
     def __init__(self):
         format = '%(levelname)s:%(asctime)s %(message)s'
