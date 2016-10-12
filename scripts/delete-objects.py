@@ -3,31 +3,37 @@
 """
 delete-objects
 ~~~~~~~~~~~~~~~~~
-This script deletes objects based on UIDs specified in a text file
+Deletes DHIS2 objects based on UIDs specified in a text file
 """
 
-import requests, logging, argparse
+import argparse
+
+import requests
+
+objects_types = ['categories', 'categoryOptionGroupSets', 'categoryOptionGroups', 'categoryOptionSets',
+                 'categoryOptions', 'charts', 'constants', 'dashboards', 'dataApprovalLevels',
+                 'dataElementGroupSets', 'dataElementGroups', 'dataElements', 'dataSets', 'documents',
+                 'eventCharts', 'eventReports', 'indicatorGroupSets', 'indicatorGroups', 'indicators',
+                 'interpretations', 'maps', 'option', 'optionSets', 'organisationUnitGroupSets',
+                 'organisationUnitGroups', 'programIndicators', 'programs', 'reportTables', 'reports',
+                 'sqlViews', 'trackedEntityAttributes', 'userRoles', 'validationRuleGroups']
 
 parser = argparse.ArgumentParser(description="Delete objects (edit UIDs in file)")
-parser.add_argument('--server', action='store', help='Server, e.g. play.dhis2.org/demo')
-parser.add_argument('--object_type', action='store', help='API endpoint, e.g. dataElements, ...')
-parser.add_argument('--uid_file', action='store', help='Text file with all UIDs to delete seperated by new lines')
-parser.add_argument('--username', action='store', help='DHIS2 username')
-parser.add_argument('--password', action='store', help='DHIS2 password')
+parser.add_argument('-s', '--server', action='store', help='Server, e.g. play.dhis2.org/demo')
+parser.add_argument('-t', '--object_type', action='store', help='API endpoint, e.g. dataElements, ...',
+                    choices=objects_types)
+parser.add_argument('-f', '--uid_file', action='store', help='Text file with all UIDs to delete seperated by new lines')
+parser.add_argument('-u', '--username', action='store', help='DHIS2 username')
+parser.add_argument('-p', '--password', action='store', help='DHIS2 password')
 args = parser.parse_args()
-
-logging.basicConfig(filename="delete.out", format='%(levelname)s:%(message)s', filemode='w', level=logging.INFO)
 
 with open(args.uid_file) as f:
     uids = f.read().splitlines()
-
-logging.info("Read UIDs: " + str(uids) + "\n")
 
 amount = str(len(uids))
 for uid in uids:
     req = requests.delete("https://" + args.server + "/api/" + args.object_type + "/" + uid,
                           auth=(args.username, args.password))
-    logging.info("(" + str(req.status_code) + ") - " + req.url)
     if not req.raise_for_status():
         msg = "(deleted) - " + str(uids.index(uid)) + " / " + amount
         print msg
