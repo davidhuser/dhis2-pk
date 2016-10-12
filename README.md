@@ -79,7 +79,7 @@ XTqOHygxDj5
 
 ### Debugging
 
-Request/response debugging: set `debug_flag` in Class src.core.Logger to `True`
+Request/response debugging: set `debug_flag` in class `src.core.core.Logger` to `True`
 
 ### TODO
 
