@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='dhis2-pocket-knife',
-    version='0.0.1',
+    version='0.1.0',
     description='Tools for interacting with DHIS2 API in bulk',
     author='David Huser',
     author_email='dhuser@baosystems.com',

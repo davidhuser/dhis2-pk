@@ -11,7 +11,10 @@ import json, requests, sys, logging, argparse
 
 class Dhis:
     def __init__(self, server, username, password):
-        self.server = "https://" + server
+        if "http://" not in server and "https://" not in server:
+            self.server = "https://" + server
+        else:
+            self.server = server
         self.auth = (username, password)
 
     def get_usergroup_uid(self, usergroup_name):
