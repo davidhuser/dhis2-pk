@@ -9,8 +9,8 @@ Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 
 ## Usage
 * Run `<scriptname>.py --argument1=<something>` and the arguments as required. It should be callable from anywhere, no need to change directories.
-* Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server. Test it with `--server=play.dhis2.org/demo --username=admin --password=district`
-* It logs to a log file called `dhis2-pocket-knife`
+* Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server.
+* Logs to a log file called `dhis2-pocket-knife`
 
 ## Bulk sharing settings of objects
 
