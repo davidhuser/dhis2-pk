@@ -72,10 +72,10 @@ Example:
 ---
 PyPI link: https://pypi.python.org/pypi/dhis2-pocket-knife
 
-# Debugging
+### Debugging
 
 Request/response debugging: set `debug_flag` in Class src.core.Logger to `True`
 
-## TODO
+### TODO
 
 - share-objects.py: support for multiple userGroup names, support for UIDs
