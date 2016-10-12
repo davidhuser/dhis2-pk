@@ -3,22 +3,26 @@
 """
 user-orgunits
 ~~~~~~~~~~~~~~~~~
-This script checks each user assigned to an organisation unit if he/she is assigned to both organisation unit
+Checks each user assigned to an organisation unit if he/she is assigned to both organisation unit
 and its sub-organisation units and prints them with their UID.
 """
 
-import requests, argparse, re
+import argparse
+import re
+
+import requests
 
 
 def valid_uid(uid):
+    "Check if string matches DHIS2 UID pattern"
     return re.compile("[A-Za-z][A-Za-z0-9]{10}").match(uid)
 
 
 parser = argparse.ArgumentParser(description="Return all users of orgunit who also have sub-orgunits assigned")
-parser.add_argument('--server', action='store', help='Server, e.g. play.dhis2.org/demo')
-parser.add_argument('--orgunit', action='store', help='Root orgunit UID to check its users')
-parser.add_argument('--username', action='store', help='DHIS2 username')
-parser.add_argument('--password', action='store', help='DHIS2 password')
+parser.add_argument('-s', '--server', action='store', help='Server, e.g. play.dhis2.org/demo')
+parser.add_argument('-o', '--orgunit', action='store', help='Root orgunit UID to check its users')
+parser.add_argument('-u', '--username', action='store', help='DHIS2 username')
+parser.add_argument('-p', '--password', action='store', help='DHIS2 password')
 args = parser.parse_args()
 
 if "http://" not in args.server and "https://" not in args.server:

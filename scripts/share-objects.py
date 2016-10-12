@@ -6,7 +6,12 @@ share-objects
 This script assigns sharing to shareable DHIS2 objects like userGroups and publicAccess.
 """
 
-import json, requests, sys, logging, argparse
+import argparse
+import json
+import logging
+import sys
+
+import requests
 
 
 class Dhis:
@@ -84,19 +89,20 @@ def main():
 
     # argument parsing
     parser = argparse.ArgumentParser(description="Share DHIS2 objects (dataElements, programs, ...) with userGroups")
-    parser.add_argument('--server', action='store', required=True, help='DHIS2 server, e.g. "play.dhis2.org/demo"')
-    parser.add_argument('--object_type', action='store', required=True, choices=objects_types,
+    parser.add_argument('-s', '--server', action='store', required=True,
+                        help='DHIS2 server, e.g. "play.dhis2.org/demo"')
+    parser.add_argument('-t', '--object_type', action='store', required=True, choices=objects_types,
                         help='DHIS2 objects to apply sharing')
-    parser.add_argument('--filter', action='store', required=True,
+    parser.add_argument('-f', '--filter', action='store', required=True,
                         help='Filter on object name according to DHIS2 field filter')
-    parser.add_argument('--usergroup_readwrite', action='store', required=False,
+    parser.add_argument('-w', '--usergroup_readwrite', action='store', required=False,
                         help='UserGroup Name with Read-Write rights')
-    parser.add_argument('--usergroup_readonly', action='store', required=False,
+    parser.add_argument('-r', '--usergroup_readonly', action='store', required=False,
                         help='UserGroup Name with Read-Only rights')
-    parser.add_argument('--publicaccess', action='store', required=True, choices=public_access.keys(),
+    parser.add_argument('-a', '--publicaccess', action='store', required=True, choices=public_access.keys(),
                         help='publicAccess (with login)')
-    parser.add_argument('--username', action='store', required=True, help='DHIS2 username')
-    parser.add_argument('--password', action='store', required=True, help='DHIS2 password')
+    parser.add_argument('-u', '--username', action='store', required=True, help='DHIS2 username')
+    parser.add_argument('-p', '--password', action='store', required=True, help='DHIS2 password')
     args = parser.parse_args()
 
     logging.basicConfig(filename="sharing.out", format='%(levelname)s:%(message)s', filemode='w', level=logging.INFO)
