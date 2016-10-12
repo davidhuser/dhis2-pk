@@ -22,7 +22,7 @@ Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ..
 |---|---|---|
 |`-s` / `--server`   |Server base, e.g. `play.dhis2.org/demo`   | yes  |
 |`-t` / `--object_type`   |Type of object, e.g. `dataElements`   |yes   |
-|`-f` / `--filter`   |Metadata object filter(s), e.g. `name:like:vaccine` - [Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)   |yes   |
+|`-f` / `--filter`   |Metadata object filter(s), e.g. `name:like:vaccine` - **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |yes   |
 |`-w` / `--usergroup_readwrite`  |Exact name of usergroup which should get *Read-Write* access   |no   |
 |`-r` / `--usergroup_readonly`   |Exact name of usergroup which should get *Read-Only* access   |no   |
 |`-a` / `--publicaccess` | Public access (with login), e.g. `readwrite`, `readonly`, `none`   |yes   |
@@ -83,7 +83,15 @@ Request/response debugging: set `debug_flag` in class `src.core.core.Logger` to 
 
 ### TODO
 
-- share-objects.py: support for multiple userGroup names, support for UIDs
+share-objects.py:
+
+- arguments: multiple userGroup names or UID instead
+- arguments: support for omitting field filters (= apply for all objects)
+
+user-orgunits.py:
+
+- validating "data analysis" org unit tree as well (=dataViewOrganisationUnits)
+
 
 ---
 PyPI link: https://pypi.python.org/pypi/dhis2-pocket-knife
