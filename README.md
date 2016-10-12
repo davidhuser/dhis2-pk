@@ -29,7 +29,8 @@ Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ..
 |`-u` / `--username`   |DHIS2 username   |yes   |
 |`-p` / `--password`   |DHIS2 password   |yes   |
 
-Full example:
+Example:
+
 `share-objects.py --server=play.dhis2.org/demo --object-type=dataElements --filter="name:like:Vaccine&code:^!like:CORE_DE" --usergroup_readwrite="Bo District Management" --usergroup_readonly="Bo District hospitals" --publicaccess=none --username=admin --password=district`
 
 ## Find users with a misconfigured Organisation Unit assignment
@@ -47,6 +48,7 @@ Returns all users of an Organisation Unit that are configured like below. Users 
 |`-p` / `--password`   |DHIS2 password   |
 
 Example:
+
 `user-orgunits.py --server=play.dhis2.org/demo --orgunit=JdhagCUEMbj --username=admin --password=district`
 
 ## Bulk deletion of metadata objects
@@ -63,7 +65,8 @@ Delete metadata objects based on a list of UIDs in a text file. Note: [baosystem
 |`-u` / `--username`   |DHIS2 username   |
 |`-p` / `--password`   |DHIS2 password   |
 
-Full example:
+Example:
+
 `delete-objects.py --server=play.dhis2.org/demo --uid_file="UIDs.txt" --username=admin --password=district`
 
 ---
