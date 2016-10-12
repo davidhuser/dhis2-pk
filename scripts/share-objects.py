@@ -33,7 +33,7 @@ class Dhis:
             'filter': 'name:like:' + usergroup_name
         }
 
-        print "Getting " + usergroup_name + " UID..."
+        print("Getting " + usergroup_name + " UID...")
         req = requests.get(url, params=params, auth=self.auth)
         response = req.json()
         if not req.raise_for_status() and len(response['userGroups']) == 1:
@@ -42,7 +42,7 @@ class Dhis:
             return uid
         else:
             msg = 'Failure in getting (only one) userGroup UID for URL ' + req.url
-            print msg
+            print(msg)
             logging.info(msg)
             sys.exit()
 
@@ -56,14 +56,14 @@ class Dhis:
             'filter': [objects_filter],
             'paging': False
         }
-        print "Getting " + objects + " with filter=" + objects_filter
+        print("Getting " + objects + " with filter=" + objects_filter)
         req = requests.get(url, params=params, auth=self.auth)
         data = req.json()
         if not req.raise_for_status():
             if len(data[objects]) > 0:
                 return data
             else:
-                print "No objects found. Wrong filter? URL used: " + req.url
+                print("No objects found. Wrong filter? URL used: " + req.url)
                 sys.exit()
 
     def share_object(self, payload, parameters):
@@ -120,7 +120,7 @@ def main():
     data = dhis.get_objects(args.object_type, args.filter)
 
     no_of_obj = len(data[args.object_type])
-    print "Fetched " + str(no_of_obj) + " " + args.object_type + " to apply sharing..."
+    print("Fetched " + str(no_of_obj) + " " + args.object_type + " to apply sharing...")
 
     counter = 1
     for obj in data[args.object_type]:
@@ -159,7 +159,7 @@ def main():
         # apply sharing
         dhis.share_object(payload, parameters)
 
-        print "(" + str(counter) + "/" + str(no_of_obj) + ") [OK] " + obj['name']
+        print("(" + str(counter) + "/" + str(no_of_obj) + ") [OK] " + obj['name'])
         counter += 1
 
 

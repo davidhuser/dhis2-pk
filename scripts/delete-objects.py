@@ -36,4 +36,4 @@ for uid in uids:
                           auth=(args.username, args.password))
     if not req.raise_for_status():
         msg = "(deleted) - " + str(uids.index(uid)) + " / " + amount
-        print msg
+        print(msg)

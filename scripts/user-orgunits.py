@@ -31,7 +31,7 @@ else:
     server = args.server
 
 if not valid_uid(args.orgunit):
-    raise argparse.ArgumentError
+    raise argparse.ArgumentError("not a DHIS2 UID")
 
 orgunit_root_uid = args.orgunit
 
@@ -59,7 +59,7 @@ no_of_users = len(orgunit_root['users'])
 descendant_uids = []
 for ou in resp2['organisationUnits']:
     descendant_uids.append(ou['id'])
-print "Checking " + str(no_of_users) + " users against sub-orgunit assignments of root orgunit " + orgunit_root['name']
+print("Checking " + str(no_of_users) + " users against sub-orgunit assignments of root orgunit " + orgunit_root['name'])
 
 # check each user of root orgunit
 # print user if: [has more than 1 orgunit associated] AND [any other user orgunit is descendant of root_orgunit]
@@ -80,4 +80,4 @@ for user in orgunit_root['users']:
                 problem = True
 
     if problem:
-        print single_user['name'] + " - UID: " + single_user['id']
+        print(single_user['name'] + " - UID: " + single_user['id'])
