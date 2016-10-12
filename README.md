@@ -18,14 +18,14 @@ Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 
 Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ...) based on metadata object filtering. This assumes structured object properties (e.g. all object names / codes have the same prefix or suffix).
 
-| argument  |description   |required?   |
+| argument  |description   |required   |
 |---|---|---|
-|`-s` / `--server`   |Server base, e.g. play.dhis2.org/demo   | yes  |
-|`-t` / `--object_type`   |Type of object, e.g. dataElements   |yes   |
-|`-f` / `--filter`   |Metadata object filter(s), e.g. name:like:vaccine - [Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)   |yes   |
-|`-w` / `--usergroup_readwrite`  |Name of usergroup which should get Read-Write access (needs to be exact)   |no   |
-|`-r` / `--usergroup_readonly`   |Name of usergroup which should get Read-Only access (needs to be exact)   |no   |
-|`-a` / `--publicaccess` | Public access (with login), e.g. readwrite, readonly, none   |yes   |
+|`-s` / `--server`   |Server base, e.g. `play.dhis2.org/demo`   | yes  |
+|`-t` / `--object_type`   |Type of object, e.g. `dataElements`   |yes   |
+|`-f` / `--filter`   |Metadata object filter(s), e.g. `name:like:vaccine` - [Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)   |yes   |
+|`-w` / `--usergroup_readwrite`  |Exact name of usergroup which should get *Read-Write* access   |no   |
+|`-r` / `--usergroup_readonly`   |Exact name of usergroup which should get *Read-Only* access   |no   |
+|`-a` / `--publicaccess` | Public access (with login), e.g. `readwrite`, `readonly`, `none`   |yes   |
 |`-u` / `--username`   |DHIS2 username   |yes   |
 |`-p` / `--password`   |DHIS2 password   |yes   |
 
@@ -42,7 +42,7 @@ Returns all users of an Organisation Unit that are configured like below. Users 
 
 |argument   |description   |
 |---|---|
-|`-s` / `--server`   |Server base, e.g. play.dhis2.org/demo   |
+|`-s` / `--server`   |Server base, e.g. `play.dhis2.org/demo`   |
 |`-o` / `--orgunit`   |Orgunit UID to check its users     |
 |`-u` / `--username`   |DHIS2 username   |
 |`-p` / `--password`   |DHIS2 password   |
@@ -59,8 +59,8 @@ Delete metadata objects based on a list of UIDs in a text file. Note: [baosystem
 
 |argument   |description   |
 |---|---|
-|`-s` / `--server`   |Server base, e.g. play.dhis2.org/demo   |
-|`-t` / `--object_type`   |Type of metadata object, e.g. dataElements   |
+|`-s` / `--server`   |Server base, e.g. `play.dhis2.org/demo`   |
+|`-t` / `--object_type`   |Type of metadata object, e.g. `dataElements`   |
 |`-i` / `--uid_file`   |Text file with UIDs split by newline/break     |
 |`-u` / `--username`   |DHIS2 username   |
 |`-p` / `--password`   |DHIS2 password   |
