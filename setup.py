@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='dhis2-pocket-knife',
-    version='0.1.0',
-    description='Tools for interacting with DHIS2 API in bulk',
+    version='0.2.0',
+    description='Command-line tools for interacting with DHIS2 API in bulk',
     author='David Huser',
     author_email='dhuser@baosystems.com',
     url='https://github.com/davidhuser/dhis2-pocket-knife',
@@ -14,8 +14,9 @@ setup(
         "requests"
     ],
     scripts=[
-        'scripts/delete-objects.py',
-        'scripts/share-objects.py',
-        'scripts/user-orgunits.py'
-    ]
+        'src/delete-objects.py',
+        'src/share-objects.py',
+        'src/user-orgunits.py'
+    ],
+    packages=find_packages()
 )

@@ -1,6 +1,6 @@
 # dhis2-pocket-knife
 
-Tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
+Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 
 ## Installation
 
@@ -8,10 +8,13 @@ Tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 * `pip install dhis2-pocket-knife`
 
 ## Usage
-* Run `<scriptname>.py > log.out` and the arguments as required. It should be callable from anywhere, no need to change directories
+* Run `<scriptname>.py --argument1=<something>` and the arguments as required. It should be callable from anywhere, no need to change directories.
 * Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server. Test it with `--server=play.dhis2.org/demo --username=admin --password=district`
+* It logs to a log file called `dhis2-pocket-knife`
 
 ## Bulk sharing settings of objects
+
+**Script name:** `share-objects.py`
 
 Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ...) based on metadata object filtering. This assumes structured object properties (e.g. all object names / codes have the same prefix or suffix).
 
@@ -31,6 +34,8 @@ Full example:
 
 ## Find users with a misconfigured Organisation Unit assignment
 
+**Script name:** `user-orgunits.py`
+
 Returns all users of an Organisation Unit that are configured like below. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
 ![issue](https://i.imgur.com/MXiALrL.png)
 
@@ -44,17 +49,30 @@ Returns all users of an Organisation Unit that are configured like below. Users 
 Example:
 `user-orgunits.py --server=play.dhis2.org/demo --orgunit=JdhagCUEMbj --username=admin --password=district`
 
-## Bulk deletion of objects
+## Bulk deletion of metadata objects
 
-Delete objects based on a list of UIDs in a text file. Note: [baosystems/dish2](https://github.com/baosystems/dish2) may be better capable of this.
+**Script name:** `delete-objects.py`
+
+Delete metadata objects based on a list of UIDs in a text file. Note: [baosystems/dish2](https://github.com/baosystems/dish2#remove-metadata-objects) may be an alternative.
 
 |argument   |description   |
 |---|---|
 |`-s` / `--server`   |server base, e.g. play.dhis2.org/demo   |
-|`-t` / `--object_type`   |type of object, e.g. dataElements   |
-|`-f` / `--uid_file`   |text file with UIDs split by newline/break     |
+|`-t` / `--object_type`   |type of metadata object, e.g. dataElements   |
+|`-i` / `--uid_file`   |text file with UIDs split by newline/break     |
 |`-u` / `--username`   |DHIS2 username   |
 |`-p` / `--password`   |DHIS2 password   |
 
 Full example:
 `delete-objects.py --server=play.dhis2.org/demo --uid_file="UIDs.txt" --username=admin --password=district`
+
+---
+PyPI link: https://pypi.python.org/pypi/dhis2-pocket-knife
+
+# Debugging
+
+Request/response debugging: set `debug_flag` in Class src.core.Logger to `True`
+
+## TODO
+
+- share-objects.py: support for multiple userGroup names, support for UIDs
