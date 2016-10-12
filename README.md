@@ -31,7 +31,7 @@ Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ..
 
 Example:
 
-`share-objects.py --server=play.dhis2.org/demo --object-type=dataElements --filter="name:^like:All&name:!like" --usergroup_readwrite="Africare HQ" --usergroup_readonly="Bo District M&E officers" --publicaccess=none --username=admin --password=district`
+`share-objects.py --server=play.dhis2.org/demo --object-type=dataElements --filter="name:^like:All&name:!like:cough" --usergroup_readwrite="Africare HQ" --usergroup_readonly="Bo District M&E officers" --publicaccess=none --username=admin --password=district`
 
 ## Find users with a misconfigured Organisation Unit assignment
 
