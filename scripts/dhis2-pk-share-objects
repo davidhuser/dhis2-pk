@@ -27,18 +27,17 @@ class Sharer(Dhis):
             'filter': 'name:like:' + usergroup_name
         }
 
-        print("Getting " + usergroup_name + " UID...")
+        print("Getting {} UID...".format(usergroup_name))
 
-        endpoint = "userGroups"
+        endpoint = 'userGroups'
         response = self.get(endpoint=endpoint, params=params)
 
         if len(response['userGroups']) == 1:
             uid = response['userGroups'][0]['id']
-            self.log.info(usergroup_name + " UID: " + uid)
+            self.log.info("{} UID: {}".format(usergroup_name, uid))
             return uid
         else:
-            msg = 'Failure in getting (only one) userGroup UID for filter "name:like:' + usergroup_name + '"'
-            self.log.info(msg)
+            self.log.info("Failure in getting (only one) userGroup UID for filter 'name:like:{}'".format(usergroup_name))
             sys.exit()
 
     def get_objects(self, objects, objects_filter):
@@ -49,14 +48,13 @@ class Sharer(Dhis):
             'filter': objects_filter,
             'paging': False
         }
-        print("Getting " + objects + " with filter=" + objects_filter)
+        print("Getting {} with filter {}".format(objects, objects_filter))
         response = self.get(endpoint=objects, params=params)
 
         if len(response[objects]) > 0:
             return response
         else:
-            msg = 'No objects found. Wrong filter?'
-            self.log.info(msg)
+            self.log.info('No objects found. Wrong filter?')
             sys.exit()
 
     def share_object(self, payload, parameters):
@@ -67,17 +65,17 @@ class Sharer(Dhis):
 # argument parsing
 parser = argparse.ArgumentParser(description="Share DHIS2 objects (dataElements, programs, ...) with userGroups")
 parser.add_argument('-s', '--server', action='store', required=True,
-                    help='DHIS2 server, e.g. "play.dhis2.org/demo"')
+                    help="DHIS2 server, e.g. 'play.dhis2.org/demo'")
 parser.add_argument('-t', '--object_type', action='store', required=True, choices=Dhis.objects_types,
-                    help='DHIS2 objects to apply sharing')
+                    help="DHIS2 objects to apply sharing")
 parser.add_argument('-f', '--filter', action='store', required=True,
-                    help='Filter on object name according to DHIS2 field filter')
+                    help="Filter on object name according to DHIS2 field filter")
 parser.add_argument('-w', '--usergroup_readwrite', action='store', required=False,
-                    help='UserGroup Name with Read-Write rights')
+                    help="UserGroup Name with Read-Write rights")
 parser.add_argument('-r', '--usergroup_readonly', action='store', required=False,
-                    help='UserGroup Name with Read-Only rights')
+                    help="UserGroup Name with Read-Only rights")
 parser.add_argument('-a', '--publicaccess', action='store', required=True, choices=Dhis.public_access.keys(),
-                    help='publicAccess (with login)')
+                    help="publicAccess (with login)")
 parser.add_argument('-u', '--username', action='store', required=True, help='DHIS2 username')
 parser.add_argument('-p', '--password', action='store', required=True, help='DHIS2 password')
 args = parser.parse_args()
@@ -96,29 +94,29 @@ data = dhis.get_objects(args.object_type, args.filter)
 
 no_of_obj = len(data[args.object_type])
 
-dhis.log.info("Fetched " + str(no_of_obj) + " " + args.object_type + " to apply sharing...")
+dhis.log.info("Fetched {} {} to apply sharing...".format(str(no_of_obj), args.object_type))
 
 counter = 1
 for obj in data[args.object_type]:
     payload = {
-        "meta": {
-            "allowPublicAccess": True,
-            "allowExternalAccess": False
+        'meta': {
+            'allowPublicAccess': True,
+            'allowExternalAccess': False
         },
-        "object": {
-            "id": obj['id'],
-            "name": obj['name'],
-            "publicAccess": Dhis.public_access[args.publicaccess],
-            "externalAccess": False,
-            "user": {},
-            "userGroupAccesses": [
+        'object': {
+            'id': obj['id'],
+            'name': obj['name'],
+            'publicAccess': Dhis.public_access[args.publicaccess],
+            'externalAccess': False,
+            'user': {},
+            'userGroupAccesses': [
                 {
-                    "id": readwrite_usergroup_uid,
-                    "access": Dhis.public_access["readwrite"]
+                    'id': readwrite_usergroup_uid,
+                    'access': Dhis.public_access['readwrite']
                 },
                 {
-                    "id": readonly_usergroup_uid,
-                    "access": Dhis.public_access["readonly"]
+                    'id': readonly_usergroup_uid,
+                    'access': Dhis.public_access['readonly']
                 }
             ]
         }
@@ -133,5 +131,5 @@ for obj in data[args.object_type]:
     # apply sharing
     dhis.share_object(payload, parameters)
 
-    dhis.log.info("(" + str(counter) + "/" + str(no_of_obj) + ") [OK] " + obj['name'])
+    dhis.log.info("({}/{}) [OK] {}".format(str(counter), str(no_of_obj), obj['name']))
     counter += 1
