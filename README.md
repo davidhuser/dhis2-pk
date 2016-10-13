@@ -40,7 +40,7 @@ Example:
 
 **Script name:** `user-orgunits.py`
 
-Returns all users of an Organisation Unit to a **csv file** that are configured like below. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
+Writes all users of an Organisation Unit who are configured like below to a **csv file**. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
 ![issue](https://i.imgur.com/MXiALrL.png)
 
 |argument              |description   |
