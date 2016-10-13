@@ -25,7 +25,7 @@ Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ..
 |---|---|---|
 |`-s` / `--server`               |Server base, e.g. `play.dhis2.org/demo`   | yes  |
 |`-t` / `--object_type`          |Type of object, e.g. `dataElements`   |yes   |
-|`-f` / `--filter`               |Metadata object filter(s), e.g. `name:like:vaccine` - **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |yes   |
+|`-f` / `--filter`               |Metadata object filter(s) in single quotes (`'xx'`), e.g. `-f='name:like:vaccine'` - **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |yes   |
 |`-w` / `--usergroup_readwrite`  |Exact name of usergroup which should get *Read-Write* access to obj.   |no   |
 |`-r` / `--usergroup_readonly`   |Exact name of usergroup which should get *Read-Only* access to obj.   |no   |
 |`-a` / `--publicaccess`         |Public access (with login), e.g. `readwrite`, `readonly`, `none`   |yes   |
@@ -34,7 +34,9 @@ Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ..
 
 Example:
 
-`share-objects.py --server=play.dhis2.org/demo --object-type=dataElements --filter="name:^like:All&name:!like:cough" --usergroup_readwrite="Africare HQ" --usergroup_readonly="Bo District M&E officers" --publicaccess=none --username=admin --password=district`
+```
+share-objects.py --server=play.dhis2.org/demo --object_type=dataElements --filter='name:^like:All&name:!like:cough' --usergroup_readwrite='Africare HQ' --usergroup_readonly='Bo District M&E officers' --publicaccess=none --username=admin --password=district
+```
 
 ## Find users with a misconfigured Organisation Unit assignment
 
@@ -52,7 +54,9 @@ Writes all users of an Organisation Unit who are configured like below to a **cs
 
 Example:
 
-`user-orgunits.py --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --username=admin --password=district`
+```
+user-orgunits.py --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --username=admin --password=district
+```
 
 ## Bulk deletion of metadata objects
 
@@ -70,7 +74,9 @@ Delete metadata objects based on a list of UIDs in a text file. Note: [baosystem
 
 Example:
 
-`delete-objects.py --server=play.dhis2.org/demo --uid_file="UIDs.txt" --username=admin --password=district`
+```
+delete-objects.py --server=play.dhis2.org/demo --uid_file='UIDs.txt' --username=admin --password=district
+```
 
 (put the following in a file called UIDs.txt to test it):
 
@@ -79,6 +85,8 @@ FHD3wiSM7Sn
 iKGjnOOaPlE
 XTqOHygxDj5
 ```
+
+---
 
 ### Debugging
 

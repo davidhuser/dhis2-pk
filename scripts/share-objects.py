@@ -46,7 +46,7 @@ class Sharer(Dhis):
 
         params = {
             'fields': 'id,name,code',
-            'filter': [objects_filter],
+            'filter': objects_filter,
             'paging': False
         }
         print("Getting " + objects + " with filter=" + objects_filter)
