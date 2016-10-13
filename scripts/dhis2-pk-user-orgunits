@@ -71,7 +71,7 @@ dhis.log.info("Checking users against sub-orgunit assignments of root orgunit {}
 users_export = []
 counter = 0
 for user in root_orgunit['users']:
-    problem = False
+    conflict = False
     counter += 1
     user_uid = user['id']
 
@@ -89,16 +89,19 @@ for user in root_orgunit['users']:
             xrange
         except NameError:
             xrange = range
-        # find conflicting sub-orgunits
-        for i in xrange(len(user_orgunits)):
-            user_orgunit_uid = user_orgunits[i]['id']
-            if user_orgunit_uid != orgunit_root_uid and user_orgunit_uid in sub_uids:
-                problem = True
+        # find conflicting sub-orgunits and only proceed if a conflict has not been found yet
+            for i in xrange(len(user_orgunits)):
+                if not conflict:
+                    user_orgunit_uid = user_orgunits[i]['id']
+                    if user_orgunit_uid != orgunit_root_uid and user_orgunit_uid in sub_uids:
+                        conflict = True
+                        users_export.append(user)
+                        msg = "Conflicting user found: {} - UID: {}".format(user['name'], user_uid)
+                        dhis.log.info(msg)
+                        break
+    if conflict:
+        break
 
-    if problem:
-        users_export.append(user)
-        msg = "Conflicting user found: {} - UID: {}".format(user['name'], user_uid)
-        dhis.log.info(msg)
 
 # write conflicting users to CSV file
 if users_export:
