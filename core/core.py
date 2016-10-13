@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import logging
-import requests
 import json
+import logging
 import sys
+
+import requests
 
 
 class Dhis(object):
@@ -23,17 +24,17 @@ class Dhis(object):
         'readwrite': 'rw------'
     }
 
-    def __init__(self, server, username, password, debug):
+    def __init__(self, server, username, password, debug_flag):
         if "http://" not in server and "https://" not in server:
             self.server = "https://" + server
         else:
             self.server = server
         self.auth = (username, password)
-        self.log = Logger(debug)
+        self.log = Logger(debug_flag)
 
     def get(self, endpoint, params):
         url = self.server + "/api/" + endpoint + ".json"
-        self.log.debug(url + " - parameters: " + json.dumps(params))
+        self.log.debug("{} - parameters: {}".format(url, json.dumps(params)))
 
         req = requests.get(url, params=params, auth=self.auth)
 
@@ -46,23 +47,23 @@ class Dhis(object):
 
     def post(self, endpoint, params, payload):
         url = self.server + "/api/" + endpoint
-        self.log.debug(url + " - parameters: " + json.dumps(params) + " - payload " + json.dumps(payload))
+        self.log.debug("{} - parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
 
         req = requests.post(url, params=params, json=payload, auth=self.auth)
 
         if req.status_code != 200:
-            msg = "[" + str(req.status_code) + "] " + req.url
+            msg = "[{}] {}".format(str(req.status_code), req.url)
             print(msg)
             self.log.info(msg)
             self.log.debug(req.text)
             sys.exit()
 
     def delete(self, endpoint, uid):
-        url = self.server + "/api/" + endpoint + "/" + uid
+        url = "{}/api/{}/{}".format(self.server, endpoint, uid)
 
         req = requests.delete(url, auth=self.auth)
 
-        msg = "[" + str(req.status_code) + "] " + req.url
+        msg = "[{}] {}".format(str(req.status_code), req.url)
         print(msg)
         self.log.info(msg)
         if req.status_code != 200 or req.status_code != 204:
@@ -73,23 +74,21 @@ class Dhis(object):
 
 class Logger(object):
     """Core class for Logging to file"""
-    debug_flag = False
 
-    def __init__(self, debug):
+    def __init__(self, debug_flag):
         format = '%(levelname)s:%(asctime)s %(message)s'
         datefmt = '%Y-%m-%d-%H:%M:%S'
         filename = 'dhis2-pk.log'
-        self.debug = debug
+        self.debug_flag = debug_flag
 
         # only log 'requests' library's warning messages (including errors)
         logging.getLogger("requests").setLevel(logging.WARNING)
         logging.getLogger("urllib3").setLevel(logging.WARNING)
 
-        if self.debug:
+        if self.debug_flag:
             logging.basicConfig(filename=filename, level=logging.DEBUG, format=format,
                                 datefmt=datefmt)
             logging.debug("***** START *****")
-
         else:
             logging.basicConfig(filename=filename, level=logging.INFO, format=format,
                                 datefmt=datefmt)
