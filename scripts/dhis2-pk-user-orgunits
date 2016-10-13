@@ -91,14 +91,12 @@ for user in root_orgunit['users']:
             xrange = range
         # find conflicting sub-orgunits and only proceed if a conflict has not been found yet
             for i in xrange(len(user_orgunits)):
-                if not conflict:
-                    user_orgunit_uid = user_orgunits[i]['id']
-                    if user_orgunit_uid != orgunit_root_uid and user_orgunit_uid in sub_uids:
-                        conflict = True
-                        break
+                user_orgunit_uid = user_orgunits[i]['id']
+                if user_orgunit_uid != orgunit_root_uid and user_orgunit_uid in sub_uids:
+                    conflict = True
+                    break
             else:
                 continue
-            break
 
     if conflict:
         users_export.append(user)
