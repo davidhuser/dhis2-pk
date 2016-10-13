@@ -32,11 +32,24 @@ class Dhis(object):
         self.auth = (username, password)
         self.log = Logger(debug_flag)
 
+        # test connection first
+        try:
+            req = requests.get("{}/api/me".format(self.server), auth=self.auth)
+        except requests.RequestException as e:
+            self.log.info(e)
+            sys.exit("Check dhis2-pk.log or use debug argument -d")
+
+
     def get(self, endpoint, params):
-        url = self.server + "/api/" + endpoint + ".json"
+        url = "{}/api/{}.json".format(self.server, endpoint)
         self.log.debug("{} - parameters: {}".format(url, json.dumps(params)))
 
-        req = requests.get(url, params=params, auth=self.auth)
+        try:
+            req = requests.get(url, params=params, auth=self.auth)
+        except requests.RequestException as e:
+            self.log.info(e)
+            sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
+
         self.log.debug(req.url)
 
         if req.status_code == 200:
@@ -44,18 +57,22 @@ class Dhis(object):
             return req.json()
         else:
             self.log.info(req.text)
-            sys.exit()
+            sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
 
     def post(self, endpoint, params, payload):
         url = self.server + "/api/" + endpoint
         self.log.debug("{} - parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
 
-        req = requests.post(url, params=params, json=payload, auth=self.auth)
+        try:
+            req = requests.post(url, params=params, json=payload, auth=self.auth)
+        except requests.RequestException as e:
+            self.log.info(e)
+            sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
+
         self.log.debug(req.url)
 
         if req.status_code != 200:
             msg = "[{}] {}".format(str(req.status_code), req.url)
-            print(msg)
             self.log.info(msg)
             self.log.debug(req.text)
             sys.exit()
@@ -63,13 +80,15 @@ class Dhis(object):
     def delete(self, endpoint, uid):
         url = "{}/api/{}/{}".format(self.server, endpoint, uid)
 
-        req = requests.delete(url, auth=self.auth)
+        try:
+            req = requests.delete(url, auth=self.auth)
+        except requests.RequestException as e:
+            self.log.info(e)
+            sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
 
         msg = "[{}] {}".format(str(req.status_code), req.url)
-        print(msg)
         self.log.info(msg)
         if req.status_code != 200 or req.status_code != 204:
-            print(req.text)
             self.log.info(req.text)
             sys.exit()
 
@@ -90,11 +109,11 @@ class Logger(object):
         if self.debug_flag:
             logging.basicConfig(filename=filename, level=logging.DEBUG, format=format,
                                 datefmt=datefmt)
-            logging.debug("***** START *****")
         else:
             logging.basicConfig(filename=filename, level=logging.INFO, format=format,
                                 datefmt=datefmt)
-            logging.info("***** START *****")
+
+        logging.info("***** START *****")
 
     def info(self, text):
         print(text)

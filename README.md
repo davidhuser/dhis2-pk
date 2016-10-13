@@ -37,7 +37,7 @@ Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, pro
 Example (try it out against DHIS2 demo instance):
 
 ```
-dhis2-pk-share-objects --server=play.dhis2.org/demo --object_type=dataElements --filter='name:^like:All&name:!like:cough' --usergroup_readwrite='Africare HQ' --usergroup_readonly='Bo District M&E officers' --publicaccess=none --username=admin --password=district
+dhis2-pk-share-objects --server=play.dhis2.org/demo --object_type=dataElements --filter='name:^like:All&name:!like:cough' --usergroup_readwrite='Africare HQ' --usergroup_readonly='Bo District M&E officers' --publicaccess=readwrite --username=admin --password=district
 ```
 
 ## Find users with a misconfigured Organisation Unit assignment
@@ -79,7 +79,7 @@ Delete metadata objects based on a list of UIDs in a text file. Note: [baosystem
 Example:
 
 ```
-dhis2-pk-delete-objects --server=play.dhis2.org/demo --uid_file='UIDs.txt' --username=admin --password=district
+dhis2-pk-delete-objects --server=play.dhis2.org/demo --uid_file='UIDs.txt' --object_type=dataElements --username=admin --password=district
 ```
 
 (put the following in a file called UIDs.txt to test it):

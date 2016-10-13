@@ -106,7 +106,7 @@ if users_export:
     for u in users_export:
         del u['organisationUnits']
 
-    file_name = '{}-user-orgunits-conflicts.csv'.format(root_orgunit['id'])
+    file_name = '{}_{}-user-orgunits-conflicts.csv'.format(root_orgunit['name'], root_orgunit['id'])
     with open(file_name, 'w') as csv_file:
         # use the keys of first user as csv headers
         fieldnames = list(users_export[0].keys())
@@ -115,6 +115,6 @@ if users_export:
         writer.writeheader()
         writer.writerows(users_export)
 
-    dhis.log.info("Found and exported {} {} users to {}".format(str(len(users_export)), root_orgunit['name'], file_name))
+    dhis.log.info("Found and exported {} users to {}".format(str(len(users_export)), file_name))
 else:
     dhis.log.info("No conflicts found.")

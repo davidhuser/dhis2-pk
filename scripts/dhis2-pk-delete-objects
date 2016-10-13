@@ -33,11 +33,9 @@ dhis.log.debug("Received UIDs: \n {}".format('\n'.join(uids)))
 
 for uid in uids:
     msg1 = "Deleting {}".format(uid)
-    print(msg1)
     dhis.log.info(msg1)
 
     dhis.delete(endpoint=args.object_type, uid=uid)
 
     msg2 = "(deleted) - {} / {}".format(str(uids.index(uid)), amount)
-    print(msg2)
     dhis.log.info(msg2)
