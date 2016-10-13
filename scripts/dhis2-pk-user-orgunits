@@ -95,13 +95,15 @@ for user in root_orgunit['users']:
                     user_orgunit_uid = user_orgunits[i]['id']
                     if user_orgunit_uid != orgunit_root_uid and user_orgunit_uid in sub_uids:
                         conflict = True
-                        users_export.append(user)
-                        msg = "Conflicting user found: {} - UID: {}".format(user['name'], user_uid)
-                        dhis.log.info(msg)
                         break
-    if conflict:
-        break
+            else:
+                continue
+            break
 
+    if conflict:
+        users_export.append(user)
+        msg = "Conflicting user found: {} - UID: {}".format(user['name'], user_uid)
+        dhis.log.info(msg)
 
 # write conflicting users to CSV file
 if users_export:
