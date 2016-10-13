@@ -37,6 +37,7 @@ class Dhis(object):
         self.log.debug("{} - parameters: {}".format(url, json.dumps(params)))
 
         req = requests.get(url, params=params, auth=self.auth)
+        self.log.debug(req.url)
 
         if req.status_code == 200:
             self.log.debug(req.text)
@@ -50,6 +51,7 @@ class Dhis(object):
         self.log.debug("{} - parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
 
         req = requests.post(url, params=params, json=payload, auth=self.auth)
+        self.log.debug(req.url)
 
         if req.status_code != 200:
             msg = "[{}] {}".format(str(req.status_code), req.url)
