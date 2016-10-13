@@ -78,7 +78,7 @@ parser.add_argument('-a', '--publicaccess', action='store', required=True, choic
                     help="publicAccess (with login)")
 parser.add_argument('-u', '--username', action='store', required=True, help='DHIS2 username')
 parser.add_argument('-p', '--password', action='store', required=True, help='DHIS2 password')
-parser.add_argument('-d', '--debug', action='store', required=False, help="Writes more info in log file")
+parser.add_argument('-d', '--debug', action='store_true', default=False, required=False, help="Writes more info in log file")
 args = parser.parse_args()
 
 # init DHIS

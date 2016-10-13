@@ -25,7 +25,7 @@ parser.add_argument('-s', '--server', action='store', help="Server, e.g. play.dh
 parser.add_argument('-o', '--orgunit', action='store', help="Root orgunit UID to check its users", required=True)
 parser.add_argument('-u', '--username', action='store', help="DHIS2 username", required=True)
 parser.add_argument('-p', '--password', action='store', help="DHIS2 password", required=True)
-parser.add_argument('-d', '--debug', action='store', required=False, help="Writes more info in log file")
+parser.add_argument('-d', '--debug', action='store_true', default=False, required=False, help="Writes more info in log file")
 
 args = parser.parse_args()
 
