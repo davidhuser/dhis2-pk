@@ -90,11 +90,11 @@ readwrite_usergroup_uid = dhis.get_usergroup_uid(args.usergroup_readwrite)
 # get UID of usergroup with RO access
 readonly_usergroup_uid = dhis.get_usergroup_uid(args.usergroup_readonly)
 
-# split for multiple filters, returns a list
-splitted_filter = args.filter.split('&')
+# split arguments for multiple filters
+filter_list = args.filter.split('&')
 
 # pull objects for which to apply sharing
-data = dhis.get_objects(args.object_type, args.filter)
+data = dhis.get_objects(args.object_type, filter_list)
 
 no_of_obj = len(data[args.object_type])
 
