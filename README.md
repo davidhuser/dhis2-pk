@@ -24,11 +24,11 @@ Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ..
 | argument                       |description   |required   |
 |---|---|---|
 |`-s` / `--server`               |Server base, e.g. `play.dhis2.org/demo`   |**yes**  |
-|`-t` / `--object_type`          |Type of object, e.g. `dataElements`   |yes   |
-|`-f` / `--filter`               |Metadata object filter(s) in single quotes (`'xx'`), e.g. `-f='name:like:vaccine'` - **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |yes   |
-|`-w` / `--usergroup_readwrite`  |Exact name of usergroup which should get *Read-Write* access to obj.   |no   |
-|`-r` / `--usergroup_readonly`   |Exact name of usergroup which should get *Read-Only* access to obj.   |no   |
-|`-a` / `--publicaccess`         |Public access (with login), e.g. `readwrite`, `readonly`, `none`   |**yes**   |
+|`-t` / `--object_type`          |Type of object, e.g. `dataElements`   |**yes**   |
+|`-f` / `--filter`               |Metadata object filter(s) in single quotes (`'xx'`): `-f='name:like:vaccine'` - **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |yes   |
+|`-w` / `--usergroup_readwrite`  |Exact name of usergroup which should get *Read-Write* access to objects   |no   |
+|`-r` / `--usergroup_readonly`   |Exact name of usergroup which should get *Read-Only* access to objects   |no   |
+|`-a` / `--publicaccess`         |Public access (with login), one of: `readwrite`, `readonly`, `none`   |**yes**   |
 |`-u` / `--username`             |DHIS2 username   |**yes**   |
 |`-p` / `--password`             |DHIS2 password   |**yes**   |
 |`-d` / `--debug`                |Log more info to log file   |no |
@@ -92,9 +92,6 @@ XTqOHygxDj5
 
 ---
 
-### Debugging
-
-Request/response debugging: set `debug_flag` in class `src.core.core.Logger` to `True`
 
 ### TODO
 
@@ -109,7 +106,6 @@ share-objects.py:
 user-orgunits.py:
 
 - validating "data analysis" org unit tree as well (=dataViewOrganisationUnits)
-
 
 ---
 PyPI link: https://pypi.python.org/pypi/dhis2-pocket-knife
