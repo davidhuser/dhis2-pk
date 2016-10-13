@@ -15,8 +15,8 @@ from core.core import Dhis
 class Sharer(Dhis):
     """Inherited from core Dhis class to extend functionalities"""
 
-    def __init__(self, server, username, password):
-        Dhis.__init__(self, server, username, password)
+    def __init__(self, server, username, password, debug):
+        Dhis.__init__(self, server, username, password, debug)
 
     def get_usergroup_uid(self, usergroup_name):
         """Get UID of userGroup based on userGroup.name"""
@@ -78,10 +78,11 @@ parser.add_argument('-a', '--publicaccess', action='store', required=True, choic
                     help="publicAccess (with login)")
 parser.add_argument('-u', '--username', action='store', required=True, help='DHIS2 username')
 parser.add_argument('-p', '--password', action='store', required=True, help='DHIS2 password')
+parser.add_argument('-d', '--debug', action='store', required=False, help="Writes more info in log file")
 args = parser.parse_args()
 
 # init DHIS
-dhis = Sharer(args.server, args.username, args.password)
+dhis = Sharer(server=args.server, username=args.username, password=args.password, debug=args.debug)
 
 # get UID of usergroup with RW access
 readwrite_usergroup_uid = dhis.get_usergroup_uid(args.usergroup_readwrite)

@@ -23,13 +23,13 @@ class Dhis(object):
         'readwrite': 'rw------'
     }
 
-    def __init__(self, server, username, password):
+    def __init__(self, server, username, password, debug):
         if "http://" not in server and "https://" not in server:
             self.server = "https://" + server
         else:
             self.server = server
         self.auth = (username, password)
-        self.log = Logger()
+        self.log = Logger(debug)
 
     def get(self, endpoint, params):
         url = self.server + "/api/" + endpoint + ".json"
@@ -72,27 +72,28 @@ class Dhis(object):
 
 
 class Logger(object):
-    # DEBUG TO LOG FILE FLAG
+    """Core class for Logging to file"""
     debug_flag = False
 
-    def __init__(self):
+    def __init__(self, debug):
         format = '%(levelname)s:%(asctime)s %(message)s'
         datefmt = '%Y-%m-%d-%H:%M:%S'
         filename = 'dhis2-pk.log'
+        self.debug = debug
 
         # only log 'requests' library's warning messages (including errors)
         logging.getLogger("requests").setLevel(logging.WARNING)
         logging.getLogger("urllib3").setLevel(logging.WARNING)
 
-        if Logger.debug_flag:
+        if self.debug:
             logging.basicConfig(filename=filename, level=logging.DEBUG, format=format,
                                 datefmt=datefmt)
-            logging.debug("********************************")
+            logging.debug("***** START *****")
 
         else:
             logging.basicConfig(filename=filename, level=logging.INFO, format=format,
                                 datefmt=datefmt)
-            logging.info("********************************")
+            logging.info("***** START *****")
 
     def info(self, text):
         print(text)

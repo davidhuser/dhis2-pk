@@ -23,16 +23,18 @@ Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ..
 
 | argument                       |description   |required   |
 |---|---|---|
-|`-s` / `--server`               |Server base, e.g. `play.dhis2.org/demo`   | yes  |
+|`-s` / `--server`               |Server base, e.g. `play.dhis2.org/demo`   |**yes**  |
 |`-t` / `--object_type`          |Type of object, e.g. `dataElements`   |yes   |
 |`-f` / `--filter`               |Metadata object filter(s) in single quotes (`'xx'`), e.g. `-f='name:like:vaccine'` - **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |yes   |
 |`-w` / `--usergroup_readwrite`  |Exact name of usergroup which should get *Read-Write* access to obj.   |no   |
 |`-r` / `--usergroup_readonly`   |Exact name of usergroup which should get *Read-Only* access to obj.   |no   |
-|`-a` / `--publicaccess`         |Public access (with login), e.g. `readwrite`, `readonly`, `none`   |yes   |
-|`-u` / `--username`             |DHIS2 username   |yes   |
-|`-p` / `--password`             |DHIS2 password   |yes   |
+|`-a` / `--publicaccess`         |Public access (with login), e.g. `readwrite`, `readonly`, `none`   |**yes**   |
+|`-u` / `--username`             |DHIS2 username   |**yes**   |
+|`-p` / `--password`             |DHIS2 password   |**yes**   |
+|`-d` / `--debug`                |Log more info to log file   |no
 
-Example:
+
+Example (try it out against DHIS2 demo instance):
 
 ```
 dhis2-pk-share-objects --server=play.dhis2.org/demo --object_type=dataElements --filter='name:^like:All&name:!like:cough' --usergroup_readwrite='Africare HQ' --usergroup_readonly='Bo District M&E officers' --publicaccess=none --username=admin --password=district
@@ -45,12 +47,13 @@ dhis2-pk-share-objects --server=play.dhis2.org/demo --object_type=dataElements -
 Writes all users of an Organisation Unit who are configured like below to a **csv file**. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
 ![issue](https://i.imgur.com/MXiALrL.png)
 
-|argument              |description   |
+|argument              |description   |required?
 |---|---|
-|`-s` / `--server`     |Server base, e.g. `play.dhis2.org/demo`   |
-|`-o` / `--orgunit`    |Orgunit UID to check its users     |
-|`-u` / `--username`   |DHIS2 username   |
-|`-p` / `--password`   |DHIS2 password   |
+|`-s` / `--server`     |Server base, e.g. `play.dhis2.org/demo`   |**yes**
+|`-o` / `--orgunit`    |Orgunit UID to check its users     |**yes**
+|`-u` / `--username`   |DHIS2 username   |**yes**
+|`-p` / `--password`   |DHIS2 password   |**yes**
+|`-d` / `--debug`         |Log more info to log file   |no
 
 Example:
 
@@ -64,13 +67,14 @@ dhis2-pk-user-orgunits --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --user
 
 Delete metadata objects based on a list of UIDs in a text file. Note: [baosystems/dish2](https://github.com/baosystems/dish2#remove-metadata-objects) may be an alternative.
 
-|argument   |description   |
+|argument   |description   |required?
 |---|---|
-|`-s` / `--server`        |Server base, e.g. `play.dhis2.org/demo`   |
-|`-t` / `--object_type`   |Type of metadata object, e.g. `dataElements`   |
-|`-i` / `--uid_file`      |Text file with UIDs split by newline/break     |
-|`-u` / `--username`      |DHIS2 username   |
-|`-p` / `--password`      |DHIS2 password   |
+|`-s` / `--server`        |Server base, e.g. `play.dhis2.org/demo`   |**yes**
+|`-t` / `--object_type`   |Type of metadata object, e.g. `dataElements`   |**yes**
+|`-i` / `--uid_file`      |Text file with UIDs split by newline/break     |**yes**
+|`-u` / `--username`      |DHIS2 username   |**yes**
+|`-p` / `--password`      |DHIS2 password   |**yes**
+|`-d` / `--debug`         |Log more info to log file   |**yes**
 
 Example:
 
@@ -94,7 +98,7 @@ Request/response debugging: set `debug_flag` in class `src.core.core.Logger` to 
 
 ### TODO
 
-- debug flag as optional argument
+~~- debug flag as optional argument~~
 
 share-objects.py:
 
