@@ -23,7 +23,7 @@ parser.add_argument('-d', '--debug', action='store_true', default=False, require
 
 args = parser.parse_args()
 
-dhis = Dhis(server=args.server, username=args.username, password=args.password, debug=args.debug)
+dhis = Dhis(server=args.server, username=args.username, password=args.password, debug_flag=args.debug)
 
 with open(args.uid_file) as f:
     uids = f.read().splitlines()
