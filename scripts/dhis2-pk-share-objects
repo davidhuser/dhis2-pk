@@ -3,7 +3,7 @@
 """
 share-objects
 ~~~~~~~~~~~~~~~~~
-This script assigns sharing to shareable DHIS2 objects like userGroups and publicAccess.
+Assigns sharing to shareable DHIS2 objects like userGroups and publicAccess by  calling the /api/sharing endpoint.
 """
 
 import argparse

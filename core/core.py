@@ -32,7 +32,6 @@ class Dhis(object):
         self.auth = (username, password)
         self.log = Logger(debug_flag)
 
-
     def get(self, endpoint, params):
         url = "{}/api/{}.json".format(self.server, endpoint)
         self.log.debug("{} - parameters: {}".format(url, json.dumps(params)))

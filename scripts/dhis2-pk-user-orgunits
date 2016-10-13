@@ -25,7 +25,8 @@ parser.add_argument('-s', '--server', action='store', help="Server, e.g. play.dh
 parser.add_argument('-o', '--orgunit', action='store', help="Root orgunit UID to check its users", required=True)
 parser.add_argument('-u', '--username', action='store', help="DHIS2 username", required=True)
 parser.add_argument('-p', '--password', action='store', help="DHIS2 password", required=True)
-parser.add_argument('-d', '--debug', action='store_true', default=False, required=False, help="Writes more info in log file")
+parser.add_argument('-d', '--debug', action='store_true', default=False, required=False,
+                    help="Writes more info in log file")
 
 args = parser.parse_args()
 
@@ -38,7 +39,7 @@ if not valid_uid(args.orgunit):
 orgunit_root_uid = args.orgunit
 
 # get root orgunit
-endpoint1 = 'organisationUnits/' + orgunit_root_uid
+endpoint1 = 'organisationUnits/{}'.format(orgunit_root_uid)
 params1 = {
     'fields': 'id,name,path,users'
 }
@@ -66,34 +67,34 @@ sub_uids = list(ou['id'] for ou in resp2['organisationUnits'])
 
 dhis.log.info("Checking users against sub-orgunit assignments of root orgunit {}".format(root_orgunit['name']))
 
+# Python2 & 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
+
 # check each user of root orgunit
 # log user if: [has more than 1 orgunit associated] AND [any other user orgunit is a sub-orgunit of root orgunit]
 users_export = []
 counter = 0
 for user in root_orgunit['users']:
-    conflict = False
     counter += 1
     user_uid = user['id']
 
-    endpoint3 = "users/" + user_uid
+    endpoint3 = 'users/{}'.format(user_uid)
     params3 = {
         'fields': 'id,name,organisationUnits,lastUpdated'
     }
     user = dhis.get(endpoint=endpoint3, params=params3)
 
     print("({}/{}) {} ...".format(str(counter), str(no_of_users), user_uid))
+
     user_orgunits = user['organisationUnits']
     if len(user_orgunits) > 1:
-        # Python2 & 3 compatibility
-        try:
-            xrange
-        except NameError:
-            xrange = range
-        # find conflicting sub-orgunits and only proceed if a conflict has not been found yet
-        for i in xrange(len(user_orgunits)):
-            user_orgunit_uid = user_orgunits[i]['id']
+        # find conflicting sub-orgunits and only proceed if a conflict has not been found yet, otherwise break
+        for x in xrange(len(user_orgunits)):
+            user_orgunit_uid = user_orgunits[x]['id']
             if user_orgunit_uid != orgunit_root_uid and user_orgunit_uid in sub_uids:
-                conflict = True
                 users_export.append(user)
                 msg = "Conflicting user found: {} - UID: {}".format(user['name'], user_uid)
                 dhis.log.info(msg)
