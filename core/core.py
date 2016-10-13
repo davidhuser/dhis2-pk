@@ -32,13 +32,6 @@ class Dhis(object):
         self.auth = (username, password)
         self.log = Logger(debug_flag)
 
-        # test connection first
-        try:
-            req = requests.get("{}/api/me".format(self.server), auth=self.auth)
-        except requests.RequestException as e:
-            self.log.info(e)
-            sys.exit("Check dhis2-pk.log or use debug argument -d")
-
 
     def get(self, endpoint, params):
         url = "{}/api/{}.json".format(self.server, endpoint)
@@ -60,7 +53,7 @@ class Dhis(object):
             sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
 
     def post(self, endpoint, params, payload):
-        url = self.server + "/api/" + endpoint
+        url = "{}/api/{}".format(self.server, endpoint)
         self.log.debug("{} - parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
 
         try:
