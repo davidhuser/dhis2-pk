@@ -8,16 +8,16 @@ Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 * `pip install dhis2-pocket-knife`
 
 ## Usage
-* In a terminal, run `<scriptname>.py --argument=<something>` and the arguments as required. It should be callable from anywhere, no need to change directories.
-* Get help on using arguments: `<scriptname>.py --help`
+* In a terminal, run `dhis2-pk-<scriptname> --argument=<something>` and the arguments as required. It should be callable from anywhere, no need to change directories.
+* Get help on using arguments: `dhis2-pk-<scriptname> --help`
 * Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server.
-* Logs to a log file called `dhis2-pocket-knife.log`
+* Logs to a log file called `dhis2-pk.log`
 
 ---
 
 ## Bulk sharing settings of objects
 
-**Script name:** `share-objects.py`
+**Script name:** `dhis2-pk-share-objects`
 
 Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ...) based on metadata object filtering. This assumes structured object properties (e.g. all object names / codes have the same prefix or suffix).
 
@@ -35,12 +35,12 @@ Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ..
 Example:
 
 ```
-share-objects.py --server=play.dhis2.org/demo --object_type=dataElements --filter='name:^like:All&name:!like:cough' --usergroup_readwrite='Africare HQ' --usergroup_readonly='Bo District M&E officers' --publicaccess=none --username=admin --password=district
+dhis2-pk-share-objects --server=play.dhis2.org/demo --object_type=dataElements --filter='name:^like:All&name:!like:cough' --usergroup_readwrite='Africare HQ' --usergroup_readonly='Bo District M&E officers' --publicaccess=none --username=admin --password=district
 ```
 
 ## Find users with a misconfigured Organisation Unit assignment
 
-**Script name:** `user-orgunits.py`
+**Script name:** `dhis2-pk-user-orgunits`
 
 Writes all users of an Organisation Unit who are configured like below to a **csv file**. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
 ![issue](https://i.imgur.com/MXiALrL.png)
@@ -55,12 +55,12 @@ Writes all users of an Organisation Unit who are configured like below to a **cs
 Example:
 
 ```
-user-orgunits.py --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --username=admin --password=district
+dhis2-pk-user-orgunits --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --username=admin --password=district
 ```
 
 ## Bulk deletion of metadata objects
 
-**Script name:** `delete-objects.py`
+**Script name:** `dhis2-pk-delete-objects`
 
 Delete metadata objects based on a list of UIDs in a text file. Note: [baosystems/dish2](https://github.com/baosystems/dish2#remove-metadata-objects) may be an alternative.
 
@@ -75,7 +75,7 @@ Delete metadata objects based on a list of UIDs in a text file. Note: [baosystem
 Example:
 
 ```
-delete-objects.py --server=play.dhis2.org/demo --uid_file='UIDs.txt' --username=admin --password=district
+dhis2-pk-delete-objects --server=play.dhis2.org/demo --uid_file='UIDs.txt' --username=admin --password=district
 ```
 
 (put the following in a file called UIDs.txt to test it):

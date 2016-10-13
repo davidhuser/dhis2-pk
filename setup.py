@@ -14,9 +14,9 @@ setup(
         "requests"
     ],
     scripts=[
-        'scripts/delete-objects.py',
-        'scripts/share-objects.py',
-        'scripts/user-orgunits.py'
+        'scripts/dhis2-pk-delete-objects',
+        'scripts/dhis2-pk-share-objects',
+        'scripts/dhis2-pk-user-orgunits'
     ],
     packages=find_packages()
 )

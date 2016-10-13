@@ -78,7 +78,7 @@ class Logger(object):
     def __init__(self):
         format = '%(levelname)s:%(asctime)s %(message)s'
         datefmt = '%Y-%m-%d-%H:%M:%S'
-        filename = 'dhis2-pocket-knife.log'
+        filename = 'dhis2-pk.log'
 
         # only log 'requests' library's warning messages (including errors)
         logging.getLogger("requests").setLevel(logging.WARNING)
