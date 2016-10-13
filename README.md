@@ -19,13 +19,13 @@ Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 
 **Script name:** `dhis2-pk-share-objects`
 
-Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ...) based on metadata object filtering. This assumes structured object properties (e.g. all object names / codes have the same prefix or suffix).
+Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, programs, ...) based on metadata object filtering. This assumes structured object properties (e.g. all object names / codes have the same prefix or suffix).
 
 | argument                       |description   |required   |
 |---|---|---|
 |`-s` / `--server`               |Server base, e.g. `play.dhis2.org/demo`   |**yes**  |
 |`-t` / `--object_type`          |Type of object, e.g. `dataElements`   |**yes**   |
-|`-f` / `--filter`               |Metadata object filter(s) in single quotes (`'xx'`): `-f='name:like:vaccine'` - **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |yes   |
+|`-f` / `--filter`               |Object filter(s) in single quotes (`'xx'`): `-f='name:like:vaccine'` **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |yes   |
 |`-w` / `--usergroup_readwrite`  |Exact name of usergroup which should get *Read-Write* access to objects   |no   |
 |`-r` / `--usergroup_readonly`   |Exact name of usergroup which should get *Read-Only* access to objects   |no   |
 |`-a` / `--publicaccess`         |Public access (with login), one of: `readwrite`, `readonly`, `none`   |**yes**   |
@@ -74,7 +74,7 @@ Delete metadata objects based on a list of UIDs in a text file. Note: [baosystem
 |`-i` / `--uid_file`      |Text file with UIDs split by newline/break     |**yes** |
 |`-u` / `--username`      |DHIS2 username   |**yes** | 
 |`-p` / `--password`      |DHIS2 password   |**yes** |
-|`-d` / `--debug`         |Log more info to log file   |**yes** |
+|`-d` / `--debug`         |Log more info to log file   |no |
 
 Example:
 
