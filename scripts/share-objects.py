@@ -9,7 +9,7 @@ This script assigns sharing to shareable DHIS2 objects like userGroups and publi
 import argparse
 import sys
 
-from src.core.core import Dhis
+from core.core import Dhis
 
 
 class Sharer(Dhis):
@@ -38,12 +38,11 @@ class Sharer(Dhis):
             return uid
         else:
             msg = 'Failure in getting (only one) userGroup UID for filter "name:like:' + usergroup_name + '"'
-            print(msg)
             self.log.info(msg)
             sys.exit()
 
     def get_objects(self, objects, objects_filter):
-        """Returns DHIS2 filtered objects"""
+        """Returns filtered DHIS2 objects"""
 
         params = {
             'fields': 'id,name,code',
@@ -58,7 +57,6 @@ class Sharer(Dhis):
         else:
             msg = 'No objects found. Wrong filter?'
             self.log.info(msg)
-            print(msg)
             sys.exit()
 
     def share_object(self, payload, parameters):
@@ -98,9 +96,7 @@ data = dhis.get_objects(args.object_type, args.filter)
 
 no_of_obj = len(data[args.object_type])
 
-msg1 = "Fetched " + str(no_of_obj) + " " + args.object_type + " to apply sharing..."
-print(msg1)
-dhis.log.info(msg1)
+dhis.log.info("Fetched " + str(no_of_obj) + " " + args.object_type + " to apply sharing...")
 
 counter = 1
 for obj in data[args.object_type]:
@@ -137,7 +133,5 @@ for obj in data[args.object_type]:
     # apply sharing
     dhis.share_object(payload, parameters)
 
-    msg2 = "(" + str(counter) + "/" + str(no_of_obj) + ") [OK] " + obj['name']
-    print(msg2)
-    dhis.log.info(msg2)
+    dhis.log.info("(" + str(counter) + "/" + str(no_of_obj) + ") [OK] " + obj['name'])
     counter += 1

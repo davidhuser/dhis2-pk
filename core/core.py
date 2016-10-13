@@ -3,6 +3,7 @@
 import logging
 import requests
 import json
+import sys
 
 
 class Dhis(object):
@@ -41,6 +42,7 @@ class Dhis(object):
             return req.json()
         else:
             self.log.info(req.text)
+            sys.exit()
 
     def post(self, endpoint, params, payload):
         url = self.server + "/api/" + endpoint
@@ -53,6 +55,7 @@ class Dhis(object):
             print(msg)
             self.log.info(msg)
             self.log.debug(req.text)
+            sys.exit()
 
     def delete(self, endpoint, uid):
         url = self.server + "/api/" + endpoint + "/" + uid
@@ -65,6 +68,7 @@ class Dhis(object):
         if req.status_code != 200 or req.status_code != 204:
             print(req.text)
             self.log.info(req.text)
+            sys.exit()
 
 
 class Logger(object):
@@ -91,6 +95,7 @@ class Logger(object):
             logging.info("********************************")
 
     def info(self, text):
+        print(text)
         logging.info(text)
 
     def debug(self, text):

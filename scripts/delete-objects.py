@@ -9,7 +9,7 @@ Deletes DHIS2 objects based on UIDs specified in a text file
 import argparse
 import os
 
-from src.core.core import Dhis, Logger
+from core.core import Dhis
 
 parser = argparse.ArgumentParser(description="Delete objects (edit UIDs in file)")
 parser.add_argument('-s', '--server', action='store', help='Server, e.g. play.dhis2.org/demo', required=True)

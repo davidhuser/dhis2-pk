@@ -4,13 +4,16 @@ Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 
 ## Installation
 
-* *pip python package manager* must be installed (check [installation instructions](https://pip.pypa.io/en/stable/installing))
+* *pip* (python package manager) must be installed (check [installation instructions](https://pip.pypa.io/en/stable/installing))
 * `pip install dhis2-pocket-knife`
 
 ## Usage
-* In a terminal, run `<scriptname>.py --argument1=<something>` and the arguments as required. It should be callable from anywhere, no need to change directories.
+* In a terminal, run `<scriptname>.py --argument=<something>` and the arguments as required. It should be callable from anywhere, no need to change directories.
+* Get help on using arguments: `<scriptname>.py --help`
 * Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server.
 * Logs to a log file called `dhis2-pocket-knife.log`
+
+---
 
 ## Bulk sharing settings of objects
 
@@ -18,16 +21,16 @@ Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 
 Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ...) based on metadata object filtering. This assumes structured object properties (e.g. all object names / codes have the same prefix or suffix).
 
-| argument  |description   |required   |
+| argument                       |description   |required   |
 |---|---|---|
-|`-s` / `--server`   |Server base, e.g. `play.dhis2.org/demo`   | yes  |
-|`-t` / `--object_type`   |Type of object, e.g. `dataElements`   |yes   |
-|`-f` / `--filter`   |Metadata object filter(s), e.g. `name:like:vaccine` - **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |yes   |
-|`-w` / `--usergroup_readwrite`  |Exact name of usergroup which should get *Read-Write* access   |no   |
-|`-r` / `--usergroup_readonly`   |Exact name of usergroup which should get *Read-Only* access   |no   |
-|`-a` / `--publicaccess` | Public access (with login), e.g. `readwrite`, `readonly`, `none`   |yes   |
-|`-u` / `--username`   |DHIS2 username   |yes   |
-|`-p` / `--password`   |DHIS2 password   |yes   |
+|`-s` / `--server`               |Server base, e.g. `play.dhis2.org/demo`   | yes  |
+|`-t` / `--object_type`          |Type of object, e.g. `dataElements`   |yes   |
+|`-f` / `--filter`               |Metadata object filter(s), e.g. `name:like:vaccine` - **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |yes   |
+|`-w` / `--usergroup_readwrite`  |Exact name of usergroup which should get *Read-Write* access to obj.   |no   |
+|`-r` / `--usergroup_readonly`   |Exact name of usergroup which should get *Read-Only* access to obj.   |no   |
+|`-a` / `--publicaccess`         |Public access (with login), e.g. `readwrite`, `readonly`, `none`   |yes   |
+|`-u` / `--username`             |DHIS2 username   |yes   |
+|`-p` / `--password`             |DHIS2 password   |yes   |
 
 Example:
 
@@ -37,13 +40,13 @@ Example:
 
 **Script name:** `user-orgunits.py`
 
-Returns all users of an Organisation Unit that are configured like below. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
+Returns all users of an Organisation Unit to a **csv file** that are configured like below. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
 ![issue](https://i.imgur.com/MXiALrL.png)
 
-|argument   |description   |
+|argument              |description   |
 |---|---|
-|`-s` / `--server`   |Server base, e.g. `play.dhis2.org/demo`   |
-|`-o` / `--orgunit`   |Orgunit UID to check its users     |
+|`-s` / `--server`     |Server base, e.g. `play.dhis2.org/demo`   |
+|`-o` / `--orgunit`    |Orgunit UID to check its users     |
 |`-u` / `--username`   |DHIS2 username   |
 |`-p` / `--password`   |DHIS2 password   |
 
@@ -59,11 +62,11 @@ Delete metadata objects based on a list of UIDs in a text file. Note: [baosystem
 
 |argument   |description   |
 |---|---|
-|`-s` / `--server`   |Server base, e.g. `play.dhis2.org/demo`   |
+|`-s` / `--server`        |Server base, e.g. `play.dhis2.org/demo`   |
 |`-t` / `--object_type`   |Type of metadata object, e.g. `dataElements`   |
-|`-i` / `--uid_file`   |Text file with UIDs split by newline/break     |
-|`-u` / `--username`   |DHIS2 username   |
-|`-p` / `--password`   |DHIS2 password   |
+|`-i` / `--uid_file`      |Text file with UIDs split by newline/break     |
+|`-u` / `--username`      |DHIS2 username   |
+|`-p` / `--password`      |DHIS2 password   |
 
 Example:
 
@@ -82,6 +85,8 @@ XTqOHygxDj5
 Request/response debugging: set `debug_flag` in class `src.core.core.Logger` to `True`
 
 ### TODO
+
+- debug flag as optional argument
 
 share-objects.py:
 
