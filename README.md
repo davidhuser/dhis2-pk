@@ -31,7 +31,7 @@ Apply sharing settings for DHIS2 objects (dataElements, indicators, programs, ..
 |`-a` / `--publicaccess`         |Public access (with login), e.g. `readwrite`, `readonly`, `none`   |**yes**   |
 |`-u` / `--username`             |DHIS2 username   |**yes**   |
 |`-p` / `--password`             |DHIS2 password   |**yes**   |
-|`-d` / `--debug`                |Log more info to log file   |no
+|`-d` / `--debug`                |Log more info to log file   |no |
 
 
 Example (try it out against DHIS2 demo instance):
@@ -47,13 +47,13 @@ dhis2-pk-share-objects --server=play.dhis2.org/demo --object_type=dataElements -
 Writes all users of an Organisation Unit who are configured like below to a **csv file**. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
 ![issue](https://i.imgur.com/MXiALrL.png)
 
-|argument              |description   |required?
-|---|---|
-|`-s` / `--server`     |Server base, e.g. `play.dhis2.org/demo`   |**yes**
-|`-o` / `--orgunit`    |Orgunit UID to check its users     |**yes**
-|`-u` / `--username`   |DHIS2 username   |**yes**
-|`-p` / `--password`   |DHIS2 password   |**yes**
-|`-d` / `--debug`         |Log more info to log file   |no
+|argument              |description   |required|
+|---|---|---|
+|`-s` / `--server`     |Server base, e.g. `play.dhis2.org/demo`   |**yes**|
+|`-o` / `--orgunit`    |Orgunit UID to check its users     |**yes**|
+|`-u` / `--username`   |DHIS2 username   |**yes**|
+|`-p` / `--password`   |DHIS2 password   |**yes**|
+|`-d` / `--debug`      |Log more info to log file   |no|
 
 Example:
 
@@ -67,14 +67,14 @@ dhis2-pk-user-orgunits --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --user
 
 Delete metadata objects based on a list of UIDs in a text file. Note: [baosystems/dish2](https://github.com/baosystems/dish2#remove-metadata-objects) may be an alternative.
 
-|argument   |description   |required?
-|---|---|
-|`-s` / `--server`        |Server base, e.g. `play.dhis2.org/demo`   |**yes**
-|`-t` / `--object_type`   |Type of metadata object, e.g. `dataElements`   |**yes**
-|`-i` / `--uid_file`      |Text file with UIDs split by newline/break     |**yes**
-|`-u` / `--username`      |DHIS2 username   |**yes**
-|`-p` / `--password`      |DHIS2 password   |**yes**
-|`-d` / `--debug`         |Log more info to log file   |**yes**
+|argument   |description   |required |
+|---|---|---|
+|`-s` / `--server`        |Server base, e.g. `play.dhis2.org/demo`   |**yes** |
+|`-t` / `--object_type`   |Type of metadata object, e.g. `dataElements`   |**yes** |
+|`-i` / `--uid_file`      |Text file with UIDs split by newline/break     |**yes** |
+|`-u` / `--username`      |DHIS2 username   |**yes** | 
+|`-p` / `--password`      |DHIS2 password   |**yes** |
+|`-d` / `--debug`         |Log more info to log file   |**yes** |
 
 Example:
 
