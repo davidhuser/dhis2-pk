@@ -135,5 +135,5 @@ for obj in data[args.object_type]:
     # apply sharing
     dhis.share_object(payload, parameters)
 
-    dhis.log.info("({}/{}) [OK] {}".format(str(counter), str(no_of_obj), obj['name']))
+    dhis.log.info("({}/{}) [OK] {} {}".format(str(counter), str(no_of_obj), obj['id'], obj['code']))
     counter += 1
