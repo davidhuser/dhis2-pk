@@ -10,7 +10,7 @@ Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 * `pip install dhis2-pocket-knife`
 
 ## Usage
-* In a terminal, run `dhis2-pk-<scriptname> --argument=<something>` and the arguments as required. It should be callable from anywhere, no need to change directories.
+* In a terminal: `dhis2-pk-<scriptname> --argument=<something>` and the arguments as required.
 * Get help on using arguments: `dhis2-pk-<scriptname> --help`
 * Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server.
 * Logs to a log file called `dhis2-pk.log`
