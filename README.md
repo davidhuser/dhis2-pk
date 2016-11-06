@@ -2,8 +2,6 @@
 
 Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
 
-![screenshot](https://i.imgur.com/Hi5lSpM.png)
-
 ## Installation
 
 * *pip* (python package manager) must be installed (check [installation instructions](https://pip.pypa.io/en/stable/installing))
