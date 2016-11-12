@@ -11,7 +11,7 @@ setup(
     url='https://github.com/davidhuser/dhis2-pocket-knife',
     keywords='dhis2',
     install_requires=[
-        "requests"
+        "requests>=2.4.2"
     ],
     scripts=[
         'scripts/dhis2-pk-delete-objects',
