@@ -135,5 +135,10 @@ for obj in data[args.object_type]:
     # apply sharing
     dhis.share_object(payload, parameters)
 
-    dhis.log.info("({}/{}) [OK] {} {}".format(str(counter), str(no_of_obj), obj['id'], obj['code']))
+    if args.object_type == 'dataElements':
+        descriptor = obj['code']
+    else:
+        descriptor = obj['name']
+
+    dhis.log.info("({}/{}) [OK] {} {}".format(str(counter), str(no_of_obj), obj['id'], descriptor))
     counter += 1
