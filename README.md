@@ -55,8 +55,46 @@ Writes all users of an Organisation Unit who are configured like below to a **cs
 |`-p` / `--password`   |DHIS2 password   |**yes**|
 |`-d` / `--debug`      |Log more info to log file   |no|
 
-Example:
+Shareable objects:
+- userAuthorityGroups
+- userGroups
+- sqlViews
+- constants
+- optionSets
+- optionGroups
+- optionGroupSets
+- legendSets
+- organisationUnitGroupSet
+- organisationUnitGroupSets
+- categoryOptions
+- categoryOptionGroupSet
+- categoryOptionGroupSets
+- dataElementCategories
+- dataElementCategoryCombos
+- dataElements
+- dataElementGroups
+- dataElementGroupSets
+- indicators
+- indicatorGroups
+- indicatorsGroupSets
+- dataSets
+- dataApprovalLevels
+- dataApprovalLevelWorkflows
+- validationRuleGroups
+- interpretations
+- trackedEntityAttributes
+- programs
+- eventCharts
+- eventReports
+- programIndicators
+- maps
+- documents
+- reports
+- charts
+- reportTables
+- dashboards
 
+Example:
 ```
 dhis2-pk-user-orgunits --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --username=admin --password=district
 ```
