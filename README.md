@@ -34,7 +34,7 @@ Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, pro
 |`-d` / `--debug`                |Log more info to log file   |no |
 
 
-Shareable objects:
+### Shareable objects:
 - userAuthorityGroups
 - userGroups
 - sqlViews
