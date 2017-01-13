@@ -9,14 +9,47 @@ import requests
 
 class Dhis(object):
     """Core class for accessing DHIS2 web API"""
-
-    objects_types = ['categories', 'categoryOptionGroupSets', 'categoryOptionGroups', 'categoryOptionSets',
-                     'categoryOptions', 'charts', 'constants', 'dashboards', 'dataApprovalLevels',
-                     'dataElementGroupSets', 'dataElementGroups', 'dataElements', 'dataSets', 'documents',
-                     'eventCharts', 'eventReports', 'indicatorGroupSets', 'indicatorGroups', 'indicators',
-                     'interpretations', 'maps', 'option', 'optionSets', 'organisationUnitGroupSets',
-                     'organisationUnitGroups', 'programIndicators', 'programs', 'reportTables', 'reports',
-                     'sqlViews', 'trackedEntityAttributes', 'userRoles', 'validationRuleGroups']
+    
+    # https://play.dhis2.org/demo/api/schemas.csv?fields=klass,shareable
+    objects_types = [
+		"userAuthorityGroups",
+		"userGroups",
+		"sqlViews",
+		"constants",
+		"optionSets",
+		"optionGroups",
+		"optionGroupSets",
+		"legendSets",
+		"organisationUnitGroupSet",
+		"organisationUnitGroupSets",
+		"categoryOptions",
+		"categoryOptionGroupSet",
+		"categoryOptionGroupSets",
+		"dataElementCategories",
+		"dataElementCategoryCombos",
+		"dataElements",
+		"dataElementGroups",
+		"dataElementGroupSets",
+		"indicators",
+		"indicatorGroups",
+		"indicatorsGroupSets",
+		"dataSets",
+		"dataApprovalLevels",
+		"dataApprovalLevelWorkflows",
+		"validationRuleGroups",
+		"interpretations",
+		"trackedEntityAttributes",
+		"programs",
+		"eventCharts",
+		"eventReports",
+		"programIndicators",
+		"maps",
+		"documents",
+		"reports",
+		"charts",
+		"reportTables",
+		"dashboards"
+    ]
 
     public_access = {
         'none': '--------',
