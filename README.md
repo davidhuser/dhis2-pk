@@ -34,27 +34,6 @@ Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, pro
 |`-d` / `--debug`                |Log more info to log file   |no |
 
 
-Example (try it out against DHIS2 demo instance):
-
-```
-dhis2-pk-share-objects --server=play.dhis2.org/demo --object_type=dataElements --filter='name:^like:All&name:!like:cough' --usergroup_readwrite='Africare HQ' --usergroup_readonly='Bo District M&E officers' --publicaccess=readwrite --username=admin --password=district
-```
-
-## Find users with a misconfigured Organisation Unit assignment
-
-**Script name:** `dhis2-pk-user-orgunits`
-
-Writes all users of an Organisation Unit who are configured like below to a **csv file**. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
-![issue](https://i.imgur.com/MXiALrL.png)
-
-|argument              |description   |required|
-|---|---|---|
-|`-s` / `--server`     |Server base, e.g. `play.dhis2.org/demo`   |**yes**|
-|`-o` / `--orgunit`    |Orgunit UID to check its users     |**yes**|
-|`-u` / `--username`   |DHIS2 username   |**yes**|
-|`-p` / `--password`   |DHIS2 password   |**yes**|
-|`-d` / `--debug`      |Log more info to log file   |no|
-
 Shareable objects:
 - userAuthorityGroups
 - userGroups
@@ -93,6 +72,27 @@ Shareable objects:
 - charts
 - reportTables
 - dashboards
+
+Example (try it out against DHIS2 demo instance):
+
+```
+dhis2-pk-share-objects --server=play.dhis2.org/demo --object_type=dataElements --filter='name:^like:All&name:!like:cough' --usergroup_readwrite='Africare HQ' --usergroup_readonly='Bo District M&E officers' --publicaccess=readwrite --username=admin --password=district
+```
+
+## Find users with a misconfigured Organisation Unit assignment
+
+**Script name:** `dhis2-pk-user-orgunits`
+
+Writes all users of an Organisation Unit who are configured like below to a **csv file**. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
+![issue](https://i.imgur.com/MXiALrL.png)
+
+|argument              |description   |required|
+|---|---|---|
+|`-s` / `--server`     |Server base, e.g. `play.dhis2.org/demo`   |**yes**|
+|`-o` / `--orgunit`    |Orgunit UID to check its users     |**yes**|
+|`-u` / `--username`   |DHIS2 username   |**yes**|
+|`-p` / `--password`   |DHIS2 password   |**yes**|
+|`-d` / `--debug`      |Log more info to log file   |no|
 
 Example:
 ```
