@@ -48,8 +48,8 @@ Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, pro
 - categoryOptions
 - categoryOptionGroupSet
 - categoryOptionGroupSets
-- dataElementCategories
-- dataElementCategoryCombos
+- categories
+- categoryCombos
 - dataElements
 - dataElementGroups
 - dataElementGroupSets
