@@ -126,8 +126,12 @@ for obj in data[args.object_type]:
         }
     }
     # strip name to match API (e.g. dataElements -> dataElement)
+    if args.object_type == 'categories':
+        o_type = 'category'
+    else:
+        o_type = args.object_type[:-1]
     parameters = {
-        'type': args.object_type[:-1],
+        'type': o_type,
         'preheatCache': False,
         'id': obj['id']
     }
