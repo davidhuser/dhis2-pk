@@ -24,7 +24,7 @@ Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, pro
 | argument                       |description   |required   |
 |---|---|---|
 |`-s` / `--server`               |Server base, e.g. `play.dhis2.org/demo`   |**yes**  |
-|`-t` / `--object_type`          |Type of object, e.g. `dataElements` - see ![list](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#shareable-objects)   |**yes**   |
+|`-t` / `--object_type`          |Type of object, e.g. `dataElements` - see [list](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#shareable-objects)   |**yes**   |
 |`-f` / `--filter`               |Object filter(s) in single quotes (`'xx'`): `-f='name:like:vaccine'` **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |**yes**   |
 |`-w` / `--usergroup_readwrite`  |Exact name of usergroup which should get *Read-Write* access to objects   |no   |
 |`-r` / `--usergroup_readonly`   |Exact name of usergroup which should get *Read-Only* access to objects   |no   |
