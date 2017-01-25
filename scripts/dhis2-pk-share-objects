@@ -27,12 +27,12 @@ class Sharer(Dhis):
             'filter': 'name:like:' + usergroup_name
         }
 
-        print("Getting {} UID...".format(usergroup_name))
+        print("Getting userGroup UIDs for {}...".format(usergroup_name))
 
         endpoint = 'userGroups'
         response = self.get(endpoint=endpoint, params=params)
 
-        if len(response['userGroups']) == 0:
+        if len(response['userGroups']) > 0:
             uids = [i['id'] for i in response['userGroups']]
             self.log.info("{} UIDs: {}".format(usergroup_name, ', '.join(uids)))
             return uids
