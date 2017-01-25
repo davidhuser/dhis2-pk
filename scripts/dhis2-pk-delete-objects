@@ -7,7 +7,6 @@ Deletes DHIS2 objects based on UIDs specified in a text file
 """
 
 import argparse
-import os
 
 from core.core import Dhis
 

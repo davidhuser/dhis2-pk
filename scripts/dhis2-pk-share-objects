@@ -18,7 +18,7 @@ class Sharer(Dhis):
     def __init__(self, server, username, password, debug_flag):
         Dhis.__init__(self, server, username, password, debug_flag)
 
-    def get_usergroup_uid(self, usergroup_name):
+    def get_usergroup_uids(self, usergroup_name):
         """Get UID of userGroup based on userGroup.name"""
 
         params = {
@@ -32,12 +32,12 @@ class Sharer(Dhis):
         endpoint = 'userGroups'
         response = self.get(endpoint=endpoint, params=params)
 
-        if len(response['userGroups']) == 1:
-            uid = response['userGroups'][0]['id']
-            self.log.info("{} UID: {}".format(usergroup_name, uid))
-            return uid
+        if len(response['userGroups']) == 0:
+            uids = [i['id'] for i in response['userGroups']]
+            self.log.info("{} UIDs: {}".format(usergroup_name, ', '.join(uids)))
+            return uids
         else:
-            self.log.info("Failure in getting (only one) userGroup UID for filter 'name:like:{}'".format(usergroup_name))
+            self.log.info("Failure in getting userGroup UIDs for filter 'name:like:{}'".format(usergroup_name))
             sys.exit()
 
     def get_objects(self, objects, objects_filter):
@@ -71,9 +71,9 @@ parser.add_argument('-t', '--object_type', action='store', required=True, choice
 parser.add_argument('-f', '--filter', action='store', required=True,
                     help="Filter on object name according to DHIS2 field filter")
 parser.add_argument('-w', '--usergroup_readwrite', action='store', required=False,
-                    help="UserGroup Name with Read-Write rights")
+                    help="UserGroup name filter with Read-Write rights (filter=name:like:)")
 parser.add_argument('-r', '--usergroup_readonly', action='store', required=False,
-                    help="UserGroup Name with Read-Only rights")
+                    help="UserGroup name filter with Read-Only rights (filter=name:like:)")
 parser.add_argument('-a', '--publicaccess', action='store', required=True, choices=Dhis.public_access.keys(),
                     help="publicAccess (with login)")
 parser.add_argument('-u', '--username', action='store', required=True, help='DHIS2 username')
@@ -85,10 +85,10 @@ args = parser.parse_args()
 dhis = Sharer(server=args.server, username=args.username, password=args.password, debug_flag=args.debug)
 
 # get UID of usergroup with RW access
-readwrite_usergroup_uid = dhis.get_usergroup_uid(args.usergroup_readwrite)
+readwrite_usergroup_uids = dhis.get_usergroup_uids(args.usergroup_readwrite)
 
 # get UID of usergroup with RO access
-readonly_usergroup_uid = dhis.get_usergroup_uid(args.usergroup_readonly)
+readonly_usergroup_uids = dhis.get_usergroup_uids(args.usergroup_readonly)
 
 # split arguments for multiple filters
 filter_list = args.filter.split('&')
@@ -99,6 +99,21 @@ data = dhis.get_objects(args.object_type, filter_list)
 no_of_obj = len(data[args.object_type])
 
 dhis.log.info("Fetched {} {} to apply sharing...".format(str(no_of_obj), args.object_type))
+
+user_group_accesses = []
+for ug in readwrite_usergroup_uids:
+    acc = {
+        'id': ug,
+        'access': Dhis.public_access['readwrite']
+    }
+    user_group_accesses.append(acc)
+
+for ug in readonly_usergroup_uids:
+    acc = {
+        'id': ug,
+        'access': Dhis.public_access['readonly']
+    }
+    user_group_accesses.append(acc)
 
 counter = 1
 for obj in data[args.object_type]:
@@ -113,16 +128,7 @@ for obj in data[args.object_type]:
             'publicAccess': Dhis.public_access[args.publicaccess],
             'externalAccess': False,
             'user': {},
-            'userGroupAccesses': [
-                {
-                    'id': readwrite_usergroup_uid,
-                    'access': Dhis.public_access['readwrite']
-                },
-                {
-                    'id': readonly_usergroup_uid,
-                    'access': Dhis.public_access['readonly']
-                }
-            ]
+            'userGroupAccesses': user_group_accesses
         }
     }
     # strip name to match API (e.g. dataElements -> dataElement)

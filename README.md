@@ -26,8 +26,8 @@ Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, pro
 |`-s` / `--server`               |Server base, e.g. `play.dhis2.org/demo`   |**yes**  |
 |`-t` / `--object_type`          |Type of object, e.g. `dataElements` - see [list](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#shareable-objects)   |**yes**   |
 |`-f` / `--filter`               |Object filter(s) in single quotes (`'xx'`): `-f='name:like:vaccine'` **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |**yes**   |
-|`-w` / `--usergroup_readwrite`  |Exact name of usergroup which should get *Read-Write* access to objects   |no   |
-|`-r` / `--usergroup_readonly`   |Exact name of usergroup which should get *Read-Only* access to objects   |no   |
+|`-w` / `--usergroup_readwrite`  |Name filter of usergroup which should get *Read-Write* access to objects   |no   |
+|`-r` / `--usergroup_readonly`   |Name filter of usergroup which should get *Read-Only* access to objects   |no   |
 |`-a` / `--publicaccess`         |Public access (with login), one of: `readwrite`, `readonly`, `none`   |**yes**   |
 |`-u` / `--username`             |DHIS2 username   |**yes**   |
 |`-p` / `--password`             |DHIS2 password   |**yes**   |
