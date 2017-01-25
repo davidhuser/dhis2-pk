@@ -133,8 +133,8 @@ XTqOHygxDj5
 
 ### TODO
 
-~~- debug flag as optional argument (DONE)~~
-~~- arguments: userGroups: multiple userGroups for sharing (DONE)~~
+- ~~debug flag as optional argument (DONE)~~
+- ~~arguments: userGroups: multiple userGroups for sharing (DONE)~~
 
 
 share-objects.py:
