@@ -133,12 +133,12 @@ XTqOHygxDj5
 
 ### TODO
 
-~~- debug flag as optional argument~~
+~~- debug flag as optional argument (DONE)~~
+~~- arguments: userGroups: multiple userGroups for sharing (DONE)~~
+
 
 share-objects.py:
 
-- arguments: userGroups: multiple names as arguments
-- arguments: userGroups: UID as argument
 - arguments: support for omitting field filters (= apply for all objects)
 
 user-orgunits.py:
