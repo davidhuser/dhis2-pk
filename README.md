@@ -18,7 +18,7 @@ Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk,
 
 **Script name:** `dhis2-pk-share-objects`
 
-Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, programs, ...) based on **[metadata object filtering.](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)** (for both shareable objects and userGroups).
+Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, programs, ...) based on **[metadata object filtering](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)** (for both shareable objects and userGroups).
 
 ```
 dhis2-pk-share-objects --help
