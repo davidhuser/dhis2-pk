@@ -8,7 +8,7 @@ Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk,
 * `pip install dhis2-pocket-knife`
 
 ## Usage
-* Get help on using arguments: `dhis2-pk-<scriptname> --help`
+* Get help on using arguments, e.g.`dhis2-pk-share-objects --help`
 * Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server.
 * Logs to a file: `dhis2-pk.log`
 
@@ -18,21 +18,43 @@ Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk,
 
 **Script name:** `dhis2-pk-share-objects`
 
-Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, programs, ...) based on metadata object filtering. This assumes structured object properties (e.g. all object names / codes have the same prefix or suffix).
+Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, programs, ...) based on **[metadata object filtering.](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**
+- for both shareable objects and userGroups.
 
-| argument|description   |required   |
-|---|---|---|
-|`-s` |Server base URL, e.g. `play.dhis2.org/demo`   |**yes**  |
-|`-t` |Type of object, e.g. `dataElements` - see [list](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#shareable-objects)   |**yes**   |
-|`-f` |Object filter(s) in single quotes (`'xx'`): `-f='name:like:vaccine'` **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |**yes**   |
-|`-w` |Filter(s) of usergroup which should get *Read-Write* access to objects (multiple filters: concatenated with `&`), e.g. `-w='name:$ilike:UG1&id:!eq:aBc123XyZ0u'`  |no   |
-|`-r` |Filter(s) of usergroup which should get *Read-Only* access to objects (multiple filters: concatenated with `&`), e.g. ` -r='id:eq:aBc123XyZ0u'`  |no   |
-|`-a` |Public access (with login), one of: `readwrite`, `readonly`, `none`   |**yes**   |
-|`-v` |DHIS2 API version, e.g. `-v=24`   |no   |
-|`-u` |DHIS2 username e.g.`-u=admin`|**yes**   |
-|`-p` |DHIS2 password e.g. `-p=district`|**yes**   |
-|`-d` |Log more info to log file |no |
+```
+dhis2-pk-share-objects --help
+usage: dhis2-pk-share-objects [-h] -s -t -f [-w] [-r] -a [-v] -u -p -d
 
+PURPOSE: Share DHIS2 objects (dataElements, programs, ...) with userGroups
+
+optional arguments:
+  -h, --help            show this help message and exit
+  
+  -s SERVER             DHIS2 server URL, e.g. 'play.dhis2.org/demo'
+  
+  -t {see shareable types below in this README}
+                        DHIS2 object type to apply sharing, e.g. -t=sqlViews
+                        
+  -f FILTER             Filter on objects with DHIS2 field filter, e.g.
+                        -f='name:like:ABC'
+                        
+  -w USERGROUP_READWRITE
+                        UserGroup filter for Read-Write access, concat. with
+                        '&' e.g. -w='name:$ilike:UG1&id:!eq:aBc123XyZ0u'
+                        
+  -r USERGROUP_READONLY
+                        UserGroup filter for Read-Only access, concat. with
+                        '&' e.g. -r='id:eq:aBc123XyZ0u'
+                        
+  -a {readwrite,none,readonly}
+                        publicAccess (with login), e.g. -a=readwrite
+                        
+  -v API_VERSION        DHIS2 API version e.g. -v=24
+  -u USERNAME           DHIS2 username, e.g. -u=admin
+  -p PASSWORD           DHIS2 password, e.g. -p=district
+  -d                    Debug flag - writes more info to log file, e.g. -d
+
+```
 
 ### Shareable objects:
 - userAuthorityGroups
@@ -73,7 +95,7 @@ Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, pro
 - reportTables
 - dashboards
 
-Example (try it out against DHIS2 demo instance):
+### Example (try it out against DHIS2 demo instance):
 
 ```
 dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All&name:!like:cough' -w='name:like:Africare HQ' -r='Bo District M&E officers' -a=readwrite -u=admin -p=district -v=24 -d
@@ -94,41 +116,11 @@ Writes all users of an Organisation Unit who are configured like below to a **cs
 |`-p` / `--password`   |DHIS2 password   |**yes**|
 |`-d` / `--debug`      |Log more info to log file   |no|
 
-Example:
+### Example:
 ```
 dhis2-pk-user-orgunits --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --username=admin --password=district
 ```
 
-## Bulk deletion of metadata objects
-
-**Script name:** `dhis2-pk-delete-objects`
-
-Delete metadata objects based on a list of UIDs in a text file. Note: [baosystems/dish2](https://github.com/baosystems/dish2#remove-metadata-objects) may be an alternative.
-
-|argument   |description   |required |
-|---|---|---|
-|`-s` / `--server`        |Server base, e.g. `play.dhis2.org/demo`   |**yes** |
-|`-t` / `--object_type`   |Type of metadata object, e.g. `dataElements`   |**yes** |
-|`-i` / `--uid_file`      |Text file with UIDs split by newline/break     |**yes** |
-|`-u` / `--username`      |DHIS2 username   |**yes** | 
-|`-p` / `--password`      |DHIS2 password   |**yes** |
-|`-d` / `--debug`         |Log more info to log file   |no |
-
-Example:
-
-```
-dhis2-pk-delete-objects --server=play.dhis2.org/demo --uid_file='UIDs.txt' --object_type=dataElements --username=admin --password=district
-```
-
-(put the following in a file called UIDs.txt to test it):
-
-```
-FHD3wiSM7Sn
-iKGjnOOaPlE
-XTqOHygxDj5
-```
-
----
 
 
 ### done

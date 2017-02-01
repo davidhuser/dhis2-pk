@@ -21,11 +21,11 @@ def valid_uid(uid):
 
 
 parser = argparse.ArgumentParser(description="Print all users of an orgunit who also have sub-orgunits assigned")
-parser.add_argument('-s', '--server', action='store', help="Server, e.g. play.dhis2.org/demo", required=True)
-parser.add_argument('-o', '--orgunit', action='store', help="Root orgunit UID to check its users", required=True)
-parser.add_argument('-u', '--username', action='store', help="DHIS2 username", required=True)
-parser.add_argument('-p', '--password', action='store', help="DHIS2 password", required=True)
-parser.add_argument('-d', '--debug', action='store_true', default=False, required=False,
+parser.add_argument('-s', dest='server', action='store', help="Server, e.g. play.dhis2.org/demo", required=True)
+parser.add_argument('-o', dest='orgunit', action='store', help="Root orgunit UID to check its users", required=True)
+parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
+parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
+parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
                     help="Writes more info in log file")
 
 args = parser.parse_args()
