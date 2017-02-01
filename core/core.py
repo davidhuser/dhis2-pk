@@ -57,16 +57,21 @@ class Dhis(object):
         'readwrite': 'rw------'
     }
 
-    def __init__(self, server, username, password, debug_flag):
-        if "http://" not in server and "https://" not in server:
+    def __init__(self, server, username, password, api_version, debug_flag):
+        if not server.startswith('https://'):
             self.server = "https://" + server
         else:
             self.server = server
         self.auth = (username, password)
+        self.api_version = api_version
         self.log = Logger(debug_flag)
 
     def get(self, endpoint, params):
-        url = "{}/api/{}.json".format(self.server, endpoint)
+        if self.api_version:
+            url = "{}/api/{}/{}.json".format(self.server, self.api_version, endpoint)
+        else:
+            url = "{}/api/{}.json".format(self.server, endpoint)
+
         self.log.debug("{} - parameters: {}".format(url, json.dumps(params)))
 
         try:
@@ -85,7 +90,11 @@ class Dhis(object):
             sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
 
     def post(self, endpoint, params, payload):
-        url = "{}/api/{}".format(self.server, endpoint)
+        if self.api_version:
+            url = "{}/api/{}/{}".format(self.server, self.api_version, endpoint)
+        else:
+            url = "{}/api/{}".format(self.server, endpoint)
+
         self.log.debug("{} - parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
 
         try:
@@ -103,8 +112,10 @@ class Dhis(object):
             sys.exit()
 
     def delete(self, endpoint, uid):
-        url = "{}/api/{}/{}".format(self.server, endpoint, uid)
-
+        if self.api_version:
+            url = "{}/api/{}/{}/{}".format(self.server, self.api_version, endpoint, uid)
+        else:
+            url = "{}/api/{}/{}".format(self.server, endpoint, uid)
         try:
             req = requests.delete(url, auth=self.auth)
         except requests.RequestException as e:

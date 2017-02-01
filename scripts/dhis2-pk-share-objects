@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 """
 share-objects
 ~~~~~~~~~~~~~~~~~
@@ -9,35 +11,38 @@ Assigns sharing to shareable DHIS2 objects like userGroups and publicAccess by  
 import argparse
 import sys
 
+from six import iteritems
+
 from core.core import Dhis
 
 
 class Sharer(Dhis):
     """Inherited from core Dhis class to extend functionalities"""
 
-    def __init__(self, server, username, password, debug_flag):
-        Dhis.__init__(self, server, username, password, debug_flag)
+    def __init__(self, server, username, password, api_version, debug_flag):
+        Dhis.__init__(self, server, username, password, api_version, debug_flag)
 
-    def get_usergroup_uids(self, usergroup_name):
-        """Get UID of userGroup based on userGroup.name"""
-
+    def get_usergroup_uids(self, filter_list, type):
+        """Get UID(s) of userGroup(s) based on object filter"""
         params = {
             'fields': 'id,name',
             'paging': False,
-            'filter': 'name:like:' + usergroup_name
+            'filter': filter_list
         }
 
-        print("Getting userGroup UIDs for {}...".format(usergroup_name))
+        print(("\n--- GET userGroup(s) for filter {} ({})".format(filter_list, type)))
 
         endpoint = 'userGroups'
         response = self.get(endpoint=endpoint, params=params)
 
         if len(response['userGroups']) > 0:
-            uids = [i['id'] for i in response['userGroups']]
-            self.log.info("{} UIDs: {}".format(usergroup_name, ', '.join(uids)))
-            return uids
+            # zip it into a dict { id: name, id:name }
+            ugmap = {ug['id']: ug['name'] for ug in response['userGroups']}
+            for (key, value) in iteritems(ugmap):
+                self.log.info("{} - {}".format(key, value))
+            return ugmap.keys()
         else:
-            self.log.info("Failure in getting userGroup UIDs for filter 'name:like:{}'".format(usergroup_name))
+            self.log.info("*** No userGroup(s) found. Wrong filter?")
             sys.exit()
 
     def get_objects(self, objects, objects_filter):
@@ -48,13 +53,13 @@ class Sharer(Dhis):
             'filter': objects_filter,
             'paging': False
         }
-        print("Getting {} with filter {}".format(objects, objects_filter))
+        print("\n--- GET {} with filter(s) {}".format(objects, objects_filter))
         response = self.get(endpoint=objects, params=params)
 
         if len(response[objects]) > 0:
             return response
         else:
-            self.log.info('No objects found. Wrong filter?')
+            self.log.info('*** No objects found. Wrong filter?')
             sys.exit()
 
     def share_object(self, payload, parameters):
@@ -63,42 +68,50 @@ class Sharer(Dhis):
 
 
 # argument parsing
-parser = argparse.ArgumentParser(description="Share DHIS2 objects (dataElements, programs, ...) with userGroups")
-parser.add_argument('-s', '--server', action='store', required=True,
-                    help="DHIS2 server, e.g. 'play.dhis2.org/demo'")
-parser.add_argument('-t', '--object_type', action='store', required=True, choices=Dhis.objects_types,
-                    help="DHIS2 objects to apply sharing")
-parser.add_argument('-f', '--filter', action='store', required=True,
-                    help="Filter on object name according to DHIS2 field filter")
-parser.add_argument('-w', '--usergroup_readwrite', action='store', required=False,
-                    help="UserGroup name filter with Read-Write rights (filter=name:like:)")
-parser.add_argument('-r', '--usergroup_readonly', action='store', required=False,
-                    help="UserGroup name filter with Read-Only rights (filter=name:like:)")
-parser.add_argument('-a', '--publicaccess', action='store', required=True, choices=Dhis.public_access.keys(),
-                    help="publicAccess (with login)")
-parser.add_argument('-u', '--username', action='store', required=True, help='DHIS2 username')
-parser.add_argument('-p', '--password', action='store', required=True, help='DHIS2 password')
-parser.add_argument('-d', '--debug', action='store_true', default=False, required=False, help="Writes more info in log file")
+parser = argparse.ArgumentParser(usage='%(prog)s [-h] -s -t -f [-w] [-r] -a [-v] -u -p -d',
+                                 description="PURPOSE: Share DHIS2 objects (dataElements, programs, ...) with userGroups")
+parser.add_argument('-s', dest='server', action='store', required=True,
+                    help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'")
+parser.add_argument('-t', dest='object_type', action='store', required=True, choices=Dhis.objects_types,
+                    help="DHIS2 object type to apply sharing, e.g. -t=sqlViews")
+parser.add_argument('-f', dest='filter', action='store', required=True,
+                    help="Filter on objects with DHIS2 field filter, e.g. -f='name:like:ABC'")
+parser.add_argument('-w', dest='usergroup_readwrite', action='store', required=False,
+                    help="UserGroup filter for Read-Write access, concat. with '&' e.g. -w='name:$ilike:UG1&id:!eq:aBc123XyZ0u'")
+parser.add_argument('-r', dest='usergroup_readonly', action='store', required=False,
+                    help="UserGroup filter for Read-Only access, concat. with '&' e.g. -r='id:eq:aBc123XyZ0u'")
+parser.add_argument('-a', dest='publicaccess',action='store', required=True, choices=Dhis.public_access.keys(),
+                    help="publicAccess (with login), e.g. -a=readwrite")
+parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
+                    help='DHIS2 API version e.g. -v=24')
+parser.add_argument('-u', dest='username', action='store', required=True, help='DHIS2 username, e.g. -u=admin')
+parser.add_argument('-p', dest='password', action='store', required=True, help='DHIS2 password, e.g. -p=district')
+parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
+                    help="Debug flag - writes more info to log file, e.g. -d")
 args = parser.parse_args()
 
 # init DHIS
-dhis = Sharer(server=args.server, username=args.username, password=args.password, debug_flag=args.debug)
+dhis = Sharer(server=args.server, username=args.username, password=args.password, api_version=args.api_version,
+              debug_flag=args.debug)
 
-# get UID of usergroup with RW access
-readwrite_usergroup_uids = dhis.get_usergroup_uids(args.usergroup_readwrite)
+# split filter of arguments into list
+rw_ug_filter_list = args.usergroup_readwrite.split('&')
+# get UIDs of usergroups with RW access
+readwrite_usergroup_uids = dhis.get_usergroup_uids(rw_ug_filter_list, 'readwrite')
 
-# get UID of usergroup with RO access
-readonly_usergroup_uids = dhis.get_usergroup_uids(args.usergroup_readonly)
+ro_ug_filter_list = args.usergroup_readonly.split('&')
+# get UID(s) of usergroups with RO access
+readonly_usergroup_uids = dhis.get_usergroup_uids(ro_ug_filter_list, 'readonly')
 
-# split arguments for multiple filters
-filter_list = args.filter.split('&')
+# split arguments for multiple filters for to-be-shared objects
+object_filter_list = args.filter.split('&')
 
 # pull objects for which to apply sharing
-data = dhis.get_objects(args.object_type, filter_list)
+data = dhis.get_objects(args.object_type, object_filter_list)
 
 no_of_obj = len(data[args.object_type])
 
-dhis.log.info("Fetched {} {} to apply sharing...".format(str(no_of_obj), args.object_type))
+dhis.log.info("Fetched {} {} to apply sharing settings...\n".format(no_of_obj, args.object_type))
 
 user_group_accesses = []
 for ug in readwrite_usergroup_uids:
@@ -118,13 +131,7 @@ for ug in readonly_usergroup_uids:
 counter = 1
 for obj in data[args.object_type]:
     payload = {
-        'meta': {
-            'allowPublicAccess': True,
-            'allowExternalAccess': False
-        },
         'object': {
-            'id': obj['id'],
-            'name': obj['name'],
             'publicAccess': Dhis.public_access[args.publicaccess],
             'externalAccess': False,
             'user': {},

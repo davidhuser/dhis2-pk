@@ -1,37 +1,37 @@
 # dhis2-pocket-knife
 
-Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk.
+Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk, e.g. mass sharing of objects with userGroups
 
 ## Installation
 
-* *pip* (python package manager) must be installed (check [installation instructions](https://pip.pypa.io/en/stable/installing))
+* [pip](https://pip.pypa.io/en/stable/installing) (python package manager) must be installed
 * `pip install dhis2-pocket-knife`
 
 ## Usage
-* In a terminal: `dhis2-pk-<scriptname> --argument=<something>` and the arguments as required.
 * Get help on using arguments: `dhis2-pk-<scriptname> --help`
 * Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server.
-* Logs to a log file called `dhis2-pk.log`
+* Logs to a file: `dhis2-pk.log`
 
 ---
 
-## Bulk sharing settings of objects
+## Mass sharing of objects with userGroups through filtering
 
 **Script name:** `dhis2-pk-share-objects`
 
 Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, programs, ...) based on metadata object filtering. This assumes structured object properties (e.g. all object names / codes have the same prefix or suffix).
 
-| argument                       |description   |required   |
+| argument|description   |required   |
 |---|---|---|
-|`-s` / `--server`               |Server base, e.g. `play.dhis2.org/demo`   |**yes**  |
-|`-t` / `--object_type`          |Type of object, e.g. `dataElements` - see [list](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#shareable-objects)   |**yes**   |
-|`-f` / `--filter`               |Object filter(s) in single quotes (`'xx'`): `-f='name:like:vaccine'` **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |**yes**   |
-|`-w` / `--usergroup_readwrite`  |Name filter of usergroup which should get *Read-Write* access to objects   |no   |
-|`-r` / `--usergroup_readonly`   |Name filter of usergroup which should get *Read-Only* access to objects   |no   |
-|`-a` / `--publicaccess`         |Public access (with login), one of: `readwrite`, `readonly`, `none`   |**yes**   |
-|`-u` / `--username`             |DHIS2 username   |**yes**   |
-|`-p` / `--password`             |DHIS2 password   |**yes**   |
-|`-d` / `--debug`                |Log more info to log file   |no |
+|`-s` |Server base URL, e.g. `play.dhis2.org/demo`   |**yes**  |
+|`-t` |Type of object, e.g. `dataElements` - see [list](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#shareable-objects)   |**yes**   |
+|`-f` |Object filter(s) in single quotes (`'xx'`): `-f='name:like:vaccine'` **[Docs](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**   |**yes**   |
+|`-w` |Filter(s) of usergroup which should get *Read-Write* access to objects (multiple filters: concatenated with `&`), e.g. `-w='name:$ilike:UG1&id:!eq:aBc123XyZ0u'`  |no   |
+|`-r` |Filter(s) of usergroup which should get *Read-Only* access to objects (multiple filters: concatenated with `&`), e.g. ` -r='id:eq:aBc123XyZ0u'`  |no   |
+|`-a` |Public access (with login), one of: `readwrite`, `readonly`, `none`   |**yes**   |
+|`-v` |DHIS2 API version, e.g. `-v=24`   |no   |
+|`-u` |DHIS2 username e.g.`-u=admin`|**yes**   |
+|`-p` |DHIS2 password e.g. `-p=district`|**yes**   |
+|`-d` |Log more info to log file |no |
 
 
 ### Shareable objects:
@@ -76,7 +76,7 @@ Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, pro
 Example (try it out against DHIS2 demo instance):
 
 ```
-dhis2-pk-share-objects --server=play.dhis2.org/demo --object_type=dataElements --filter='name:^like:All&name:!like:cough' --usergroup_readwrite='Africare HQ' --usergroup_readonly='Bo District M&E officers' --publicaccess=readwrite --username=admin --password=district
+dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All&name:!like:cough' -w='name:like:Africare HQ' -r='Bo District M&E officers' -a=readwrite -u=admin -p=district -v=24 -d
 ```
 
 ## Find users with a misconfigured Organisation Unit assignment
@@ -131,21 +131,13 @@ XTqOHygxDj5
 ---
 
 
-### TODO
+### done
 
 - ~~debug flag as optional argument (DONE)~~
-- ~~arguments: userGroups: multiple userGroups for sharing (DONE)~~
+- ~~arguments: userGroups: multiple filters for userGroups (DONE)~~
+- ~~API version (optional argument) (DONE)~~
+- ~~better help text for sharing `-h`~~
 
-
-share-objects.py:
-
-- arguments: support for omitting field filters (= apply for all objects)
-
-user-orgunits.py:
-
-- validating "data analysis" org unit tree as well (=dataViewOrganisationUnits)
-
-Tests
 
 ---
 PyPI link: https://pypi.python.org/pypi/dhis2-pocket-knife
