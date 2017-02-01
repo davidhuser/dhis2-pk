@@ -98,7 +98,7 @@ arguments:
 ### Example (try it out against DHIS2 demo instance):
 
 ```
-dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All&name:!like:cough' -w='name:like:Africare HQ' -r='Bo District M&E officers' -a=readwrite -u=admin -p=district -v=24 -d
+dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District M&E officers' -a=readwrite -u=admin -p=district -v=24 -d
 ```
 
 ## Find users with a misconfigured Organisation Unit assignment
@@ -125,11 +125,13 @@ dhis2-pk-user-orgunits --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --user
 
 ### done
 
-- ~~debug flag as optional argument (DONE)~~
-- ~~arguments: userGroups: multiple filters for userGroups (DONE)~~
-- ~~API version (optional argument) (DONE)~~
+- ~~debug flag as optional argument~~
+- ~~arguments: userGroups: multiple filters for userGroups~~
+- ~~API version (optional argument)~~
 - ~~better help text for sharing `-h`~~
 
+### todo
+- better handling of `&` in filters
 
 ---
 PyPI link: https://pypi.python.org/pypi/dhis2-pocket-knife
