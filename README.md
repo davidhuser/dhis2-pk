@@ -18,19 +18,18 @@ Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk,
 
 **Script name:** `dhis2-pk-share-objects`
 
-Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, programs, ...) based on **[metadata object filtering.](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)**
-- for both shareable objects and userGroups.
+Apply sharing settings for DHIS2 metadata objects (dataElements, indicators, programs, ...) based on **[metadata object filtering.](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)** (for both shareable objects and userGroups).
 
 ```
 dhis2-pk-share-objects --help
-usage: dhis2-pk-share-objects [-h] -s -t -f [-w] [-r] -a [-v] -u -p -d
+usage: dhis2-pk-share-objects [-h] -s -t -f [-w] [-r] -a [-v] -u -p [-d]
 
 PURPOSE: Share DHIS2 objects (dataElements, programs, ...) with userGroups
 
-optional arguments:
+arguments:
   -h, --help            show this help message and exit
   
-  -s SERVER             DHIS2 server URL, e.g. 'play.dhis2.org/demo'
+  -s SERVER             DHIS2 server URL, e.g. -s='play.dhis2.org/demo'
   
   -t {see shareable types below in this README}
                         DHIS2 object type to apply sharing, e.g. -t=sqlViews
@@ -40,19 +39,20 @@ optional arguments:
                         
   -w USERGROUP_READWRITE
                         UserGroup filter for Read-Write access, concat. with
-                        '&' e.g. -w='name:$ilike:UG1&id:!eq:aBc123XyZ0u'
+                        '&', e.g. -w='name:$ilike:UG1&id:!eq:aBc123XyZ0u'
                         
   -r USERGROUP_READONLY
                         UserGroup filter for Read-Only access, concat. with
-                        '&' e.g. -r='id:eq:aBc123XyZ0u'
+                        '&', e.g. -r='id:eq:aBc123XyZ0u'
                         
   -a {readwrite,none,readonly}
                         publicAccess (with login), e.g. -a=readwrite
                         
   -v API_VERSION        DHIS2 API version e.g. -v=24
+                        (if omitted, <URL>/api/endpoint will be used)
   -u USERNAME           DHIS2 username, e.g. -u=admin
   -p PASSWORD           DHIS2 password, e.g. -p=district
-  -d                    Debug flag - writes more info to log file, e.g. -d
+  -d                    Debug flag - writes more info to log file
 
 ```
 
