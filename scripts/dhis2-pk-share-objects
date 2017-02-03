@@ -80,7 +80,7 @@ parser.add_argument('-w', dest='usergroup_readwrite', action='store', required=F
                     help="UserGroup filter for Read-Write access, concat. with '&' e.g. -w='name:$ilike:UG1&id:!eq:aBc123XyZ0u'")
 parser.add_argument('-r', dest='usergroup_readonly', action='store', required=False,
                     help="UserGroup filter for Read-Only access, concat. with '&' e.g. -r='id:eq:aBc123XyZ0u'")
-parser.add_argument('-a', dest='publicaccess',action='store', required=True, choices=Dhis.public_access.keys(),
+parser.add_argument('-a', dest='publicaccess', action='store', required=True, choices=Dhis.public_access.keys(),
                     help="publicAccess (with login), e.g. -a=readwrite")
 parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
                     help='DHIS2 API version e.g. -v=24')
@@ -94,14 +94,29 @@ args = parser.parse_args()
 dhis = Sharer(server=args.server, username=args.username, password=args.password, api_version=args.api_version,
               debug_flag=args.debug)
 
-# split filter of arguments into list
-rw_ug_filter_list = args.usergroup_readwrite.split('&')
-# get UIDs of usergroups with RW access
-readwrite_usergroup_uids = dhis.get_usergroup_uids(rw_ug_filter_list, 'readwrite')
+user_group_accesses = []
+if args.usergroup_readwrite:
+    # split filter of arguments into list
+    rw_ug_filter_list = args.usergroup_readwrite.split('&')
+    # get UIDs of usergroups with RW access
+    readwrite_usergroup_uids = dhis.get_usergroup_uids(rw_ug_filter_list, 'readwrite')
+    for ug in readwrite_usergroup_uids:
+        acc = {
+            'id': ug,
+            'access': Dhis.public_access['readwrite']
+        }
+        user_group_accesses.append(acc)
 
-ro_ug_filter_list = args.usergroup_readonly.split('&')
-# get UID(s) of usergroups with RO access
-readonly_usergroup_uids = dhis.get_usergroup_uids(ro_ug_filter_list, 'readonly')
+if args.usergroup_readonly:
+    ro_ug_filter_list = args.usergroup_readonly.split('&')
+    # get UID(s) of usergroups with RO access
+    readonly_usergroup_uids = dhis.get_usergroup_uids(ro_ug_filter_list, 'readonly')
+    for ug in readonly_usergroup_uids:
+        acc = {
+            'id': ug,
+            'access': Dhis.public_access['readonly']
+        }
+        user_group_accesses.append(acc)
 
 # split arguments for multiple filters for to-be-shared objects
 object_filter_list = args.filter.split('&')
@@ -112,21 +127,6 @@ data = dhis.get_objects(args.object_type, object_filter_list)
 no_of_obj = len(data[args.object_type])
 
 dhis.log.info("Fetched {} {} to apply sharing settings...\n".format(no_of_obj, args.object_type))
-
-user_group_accesses = []
-for ug in readwrite_usergroup_uids:
-    acc = {
-        'id': ug,
-        'access': Dhis.public_access['readwrite']
-    }
-    user_group_accesses.append(acc)
-
-for ug in readonly_usergroup_uids:
-    acc = {
-        'id': ug,
-        'access': Dhis.public_access['readonly']
-    }
-    user_group_accesses.append(acc)
 
 counter = 1
 for obj in data[args.object_type]:
