@@ -65,7 +65,7 @@ arguments:
 - optionGroups
 - optionGroupSets
 - legendSets
-- organisationUnitGroupSet
+- organisationUnitGroups
 - organisationUnitGroupSets
 - categoryOptions
 - categoryOptionGroupSet
