@@ -68,7 +68,7 @@ arguments:
 - organisationUnitGroups
 - organisationUnitGroupSets
 - categoryOptions
-- categoryOptionGroupSet
+- categoryOptionGroups
 - categoryOptionGroupSets
 - categories
 - categoryCombos

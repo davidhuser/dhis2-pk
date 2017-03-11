@@ -23,7 +23,7 @@ class Dhis(object):
         "organisationUnitGroups",
         "organisationUnitGroupSets",
         "categoryOptions",
-        "categoryOptionGroupSet",
+        "categoryOptionGroups",
         "categoryOptionGroupSets",
         "categories",
         "categoryCombos",
