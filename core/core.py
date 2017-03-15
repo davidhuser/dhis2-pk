@@ -12,7 +12,6 @@ class Dhis(object):
 
     # https://play.dhis2.org/demo/api/schemas.csv?fields=klass,shareable
     objects_types = [
-        "userAuthorityGroups",
         "userGroups",
         "sqlViews",
         "constants",
@@ -32,10 +31,9 @@ class Dhis(object):
         "dataElementGroupSets",
         "indicators",
         "indicatorGroups",
-        "indicatorsGroupSets",
+        "indicatorGroupSets",
         "dataSets",
         "dataApprovalLevels",
-        "dataApprovalLevelWorkflows",
         "validationRuleGroups",
         "interpretations",
         "trackedEntityAttributes",

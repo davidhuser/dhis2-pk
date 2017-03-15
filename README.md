@@ -57,7 +57,6 @@ arguments:
 ```
 
 ### Shareable objects:
-- userAuthorityGroups
 - userGroups
 - sqlViews
 - constants
@@ -77,10 +76,9 @@ arguments:
 - dataElementGroupSets
 - indicators
 - indicatorGroups
-- indicatorsGroupSets
+- indicatorGroupSets
 - dataSets
 - dataApprovalLevels
-- dataApprovalLevelWorkflows
 - validationRuleGroups
 - interpretations
 - trackedEntityAttributes
