@@ -101,9 +101,14 @@ dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All
 
 ## Export indicator definition (numerators/denominators) to a CSV file
 
-** Script name: **dhis-pk-indicator-definitions**
+** Script name:** `dhis-pk-indicator-definition`
 
-Writes indicator definition in a readable format to a **csv file**. Includes names and number of orgunits for orgunit groups, dataelements (dataelement.categoryoptioncombo) and constants.
+Writes indicator definition in a readable format to a **csv file**. Includes names and number of orgunits for orgunit groups, dataelements (dataelement.categoryoptioncombo) and constants. Possible to filter indiators with an object filter (see `dhis2-pk-share-objects` for details)
+
+Example column for numerator `ReUHfIn0pTQ - ANC 1-3 Dropout Rate`:
+```
+#{ANC 1st visit.Fixed}+#{ANC 1st visit.Outreach}-#{ANC 3rd visit.Fixed}-#{ANC 3rd visit.Outreach}
+```
 
 ```
 dhis2-pk-indicator-definitions --help
