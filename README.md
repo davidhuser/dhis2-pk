@@ -98,7 +98,7 @@ arguments:
 ```
 dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district -v=24 -d
 ```
-
+---
 ## Export indicator definition (numerators/denominators) to CSV
 
 **Script name:** `dhis-pk-indicator-definitions`
@@ -128,7 +128,7 @@ optional arguments:
   -v API_VERSION       DHIS2 API version e.g. -v=24
   -d                   Debug flag - writes more info to log file, e.g. -d
 ```
-### d2 objects in definitions
+### d2 objects definitions
 | d2 format    | object   |
 |---           |---|
 | `#{UID.UID}` |dataElement.categoryOptionCombo |
@@ -141,7 +141,7 @@ optional arguments:
 ```
 dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 ```
-
+---
 ## Find users with a misconfigured Organisation Unit assignment
 
 **Script name:** `dhis2-pk-user-orgunits`
@@ -178,6 +178,7 @@ dhis2-pk-user-orgunits --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --user
 - ~~arguments: userGroups: multiple filters for userGroups~~
 - ~~API version (optional argument)~~
 - ~~better help text for sharing `-h`~~
+- ~~added indicator description script~~
 
 ### todo
 - better handling of `&` in filters
