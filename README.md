@@ -99,6 +99,33 @@ arguments:
 dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district -v=24 -d
 ```
 
+## Export indicator definition (numerators/denominators) to a CSV file
+
+** Script name: **dhis-pk-indicator-definitions**
+
+Writes indicator definition in a readable format to a **csv file**. Includes names and number of orgunits for orgunit groups, dataelements (dataelement.categoryoptioncombo) and constants.
+
+```
+dhis2-pk-indicator-definitions --help
+usage: dhis2-pk-indicator-definitions [-h] -s [-f] -u -p [-v] [-d]
+
+Create CSV with indicator definitions
+
+optional arguments:
+  -h, --help           show this help message and exit
+  -s SERVER            Server, e.g. play.dhis2.org/demo
+  -f INDICATOR_FILTER  Indicator filter
+  -u USERNAME          DHIS2 username
+  -p PASSWORD          DHIS2 password
+  -v API_VERSION       DHIS2 API version e.g. -v=24
+  -d                   Debug flag - writes more info to log file, e.g. -d
+```
+
+### Example (try it out against DHIS2 demo instance):
+```
+dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
+```
+
 ## Find users with a misconfigured Organisation Unit assignment
 
 **Script name:** `dhis2-pk-user-orgunits`
@@ -106,15 +133,23 @@ dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All
 Writes all users of an Organisation Unit who are configured like below to a **csv file**. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
 ![issue](https://i.imgur.com/MXiALrL.png)
 
-|argument              |description   |required|
-|---|---|---|
-|`-s` / `--server`     |Server base, e.g. `play.dhis2.org/demo`   |**yes**|
-|`-o` / `--orgunit`    |Orgunit UID to check its users     |**yes**|
-|`-u` / `--username`   |DHIS2 username   |**yes**|
-|`-p` / `--password`   |DHIS2 password   |**yes**|
-|`-d` / `--debug`      |Log more info to log file   |no|
+```
+dhis2-pk-user-orgunits --help
+usage: dhis2-pk-user-orgunits [-h] -s -o -u -p [-v] [-d]
 
-### Example:
+Create CSV all users of an orgunit who also have sub-orgunits assigned
+
+optional arguments:
+  -h, --help      show this help message and exit
+  -s SERVER       Server, e.g. play.dhis2.org/demo
+  -o ORGUNIT      Top-level orgunit UID to check its users
+  -u USERNAME     DHIS2 username
+  -p PASSWORD     DHIS2 password
+  -v API_VERSION  DHIS2 API version e.g. -v=24
+  -d              Writes more info in log file
+```
+
+### Example (try it out against DHIS2 demo instance):
 ```
 dhis2-pk-user-orgunits --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --username=admin --password=district
 ```

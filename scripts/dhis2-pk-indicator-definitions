@@ -1,0 +1,131 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+"""
+indicator-definitions
+~~~~~~~~~~~~~~~~~
+Creates a CSV with indicator definitions (names of dataelement.catoptioncombo, constants, orgunitgroups)
+"""
+
+import argparse
+import csv
+import sys
+
+from core.core import Dhis
+
+
+def replace_definitions(definition, obj_map):
+    """replace numerator/denominators with readable objects"""
+    for i, j in obj_map.items():
+        definition = definition.replace(i, obj_map[i]['desc'])
+    return definition
+
+
+#
+def object_map():
+    """get all relevant objects from the server and put it in a single dictionary"""
+    object_map = {}
+    dhis.log.info("Building object mappings...")
+
+    params1 = {'paging': False}
+    resp1 = dhis.get(endpoint='indicatorTypes', params=params1)
+    for elem in resp1['indicatorTypes']:
+        object_map[elem['id']] = {'desc': elem['displayName']}
+
+    params2 = {'fields': 'id,name,value', 'paging': False}
+    resp2 = dhis.get(endpoint='constants', params=params2)
+    for elem in resp2['constants']:
+        object_map[elem['id']] = {'desc': "Name: {} - Value: {}".format(elem['name'], elem['value'])}
+
+    params3 = {'fields': 'id,name,organisationUnits', 'paging': False}
+    resp3 = dhis.get(endpoint='organisationUnitGroups', params=params3)
+    for elem in resp3['organisationUnitGroups']:
+        object_map[elem['id']] = {'desc': "Name: {} - OU Size: {}".format(elem['name'], len(elem['organisationUnits']))}
+
+    params4 = {'fields': 'id,name', 'paging': False}
+    resp4 = dhis.get(endpoint='dataElements', params=params4)
+    for elem in resp4['dataElements']:
+        object_map[elem['id']] = {'desc': elem['name']}
+
+    params5 = {'fields': 'id,name', 'paging': False}
+    resp5 = dhis.get(endpoint='categoryOptionCombos', params=params5)
+    for elem in resp5['categoryOptionCombos']:
+        object_map[elem['id']] = {'desc': elem['name']}
+
+    return object_map
+
+
+parser = argparse.ArgumentParser(description="Create CSV with indicator definitions")
+parser.add_argument('-s', dest='server', action='store', help="Server, e.g. play.dhis2.org/demo", required=True)
+parser.add_argument('-f', dest='indicator_filter', action='store', help="Indicator filter", required=False)
+parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
+parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
+parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
+                    help='DHIS2 API version e.g. -v=24')
+parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
+                    help="Debug flag - writes more info to log file, e.g. -d")
+
+args = parser.parse_args()
+
+# handling of UTF-8 names for all Python versions
+try:
+    reload(sys)
+    sys.setdefaultencoding('utf8')  # Python 2.7
+except NameError:
+    try:
+        from importlib import reload  # Python 3.4+
+
+        reload(sys)
+    except ImportError:
+        from imp import reload  # Python 3.0 - 3.3
+
+        reload(sys)
+
+dhis = Dhis(server=args.server, username=args.username, password=args.password, debug_flag=args.debug,
+            api_version=args.api_version)
+
+if args.indicator_filter:
+    params = {
+        'paging': False,
+        'fields': 'id,name,shortName,description,denominatorDescription,numeratorDescription,numerator,denominator,annualized,decimals,indicatorType',
+        'filter': args.indicator_filter
+    }
+else:
+    params = {
+        'paging': False,
+        'fields': 'id,name,shortName,description,denominatorDescription,numeratorDescription,numerator,denominator,annualized,decimals,indicatorType'
+    }
+
+indicators = dhis.get(endpoint='indicators', params=params)
+dhis.log.debug("Fetched indicators: {}".format(indicators))
+if len(indicators) == 0:
+    if args.indicator_filter:
+        dhis.log.info("No indicators fetched - wrong filter?")
+        sys.exit()
+    else:
+        dhis.log.info("No indicators found - are there any?")
+        sys.exit()
+dhis.log.info("Analyzing {} indicators from {}".format(len(indicators['indicators']), args.server))
+
+object_map = object_map()
+file_name = 'indicator-descriptions-{}.csv'.format(args.server.replace('https://', '').replace('.', '_').replace('/', '_'))
+
+with open(file_name, 'w') as csvfile:
+    writer = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(
+        ['id', 'name', 'shortName', 'numerator', 'num_desc', 'denominator', 'den_desc', 'annualized', 'indicatorType',
+         'decimals'])
+
+    for ind in indicators['indicators']:
+        num = replace_definitions(ind['numerator'], object_map)
+        den = replace_definitions(ind['denominator'], object_map)
+        dhis.log.debug("Replaced numerators: {}".format(num))
+        dhis.log.debug("Replaced denominators: {}".format(den))
+
+        ind_type_desc = object_map[ind['indicatorType']['id']].get('desc')
+        writer.writerow([ind['id'], ind['name'], ind['shortName'], num, ind.get('numeratorDescription', None), den,
+                         ind.get('denominatorDescription', None), ind.get('annualized', None), ind_type_desc,
+                         ind.get('decimals', 'default')])
+
+    dhis.log.info("File written to {}".format(file_name))

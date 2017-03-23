@@ -94,6 +94,8 @@ args = parser.parse_args()
 dhis = Sharer(server=args.server, username=args.username, password=args.password, api_version=args.api_version,
               debug_flag=args.debug)
 
+filter_delimiter = ''
+
 user_group_accesses = []
 if args.usergroup_readwrite:
     # split filter of arguments into list

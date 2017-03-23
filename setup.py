@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='dhis2-pocket-knife',
-    version='0.3.11',
+    version='0.4.8',
     description='Command-line tools for interacting with DHIS2 API in bulk',
     author='David Huser',
     author_email='dhuser@baosystems.com',
@@ -15,7 +15,8 @@ setup(
     ],
     scripts=[
         'scripts/dhis2-pk-share-objects',
-        'scripts/dhis2-pk-user-orgunits'
+        'scripts/dhis2-pk-user-orgunits',
+        'scripts/dhis2-pk-indicator-definitions'
     ],
     packages=find_packages()
 )

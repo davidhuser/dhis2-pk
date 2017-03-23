@@ -20,17 +20,21 @@ def valid_uid(uid):
     return re.compile("[A-Za-z][A-Za-z0-9]{10}").match(uid)
 
 
-parser = argparse.ArgumentParser(description="Print all users of an orgunit who also have sub-orgunits assigned")
+parser = argparse.ArgumentParser(description="Create CSV of users of an orgunit who also have sub-orgunits assigned")
 parser.add_argument('-s', dest='server', action='store', help="Server, e.g. play.dhis2.org/demo", required=True)
-parser.add_argument('-o', dest='orgunit', action='store', help="Root orgunit UID to check its users", required=True)
+parser.add_argument('-o', dest='orgunit', action='store', help="Top-level orgunit UID to check its users",
+                    required=True)
 parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
 parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
+parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
+                    help='DHIS2 API version e.g. -v=24')
 parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
                     help="Writes more info in log file")
 
 args = parser.parse_args()
 
-dhis = Dhis(server=args.server, username=args.username, password=args.password, debug_flag=args.debug)
+dhis = Dhis(server=args.server, username=args.username, password=args.password, debug_flag=args.debug,
+            api_version=args.api_version)
 
 if not valid_uid(args.orgunit):
     dhis.log.info("Orgunit is not a valid DHIS2 UID")
@@ -103,8 +107,8 @@ for user in root_orgunit['users']:
 # write conflicting users to CSV file
 if users_export:
     # remove orgunits for export
-    for u in users_export:
-        del u['organisationUnits']
+    for u in xrange(len(users_export)):
+        users_export[u].pop('organisationUnits')
 
     file_name = '{}_{}-user-orgunits-conflicts.csv'.format(root_orgunit['name'], root_orgunit['id'])
     with open(file_name, 'w') as csv_file:
