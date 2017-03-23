@@ -2,15 +2,17 @@
 
 Command-line tools to interact with [DHIS2](https://dhis2.org) REST API in bulk, e.g. mass sharing of objects with userGroups
 
-## Installation
+## Installation / updating
 
 * [pip](https://pip.pypa.io/en/stable/installing) (python package manager) must be installed
 * `pip install dhis2-pocket-knife`
+* Update with `pip install dhis2-pocket-knife --upgrade`
 
 ## Usage
 * Get help on using arguments, e.g.`dhis2-pk-share-objects --help`
 * Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server.
 * Logs to a file: `dhis2-pk.log`
+
 
 ---
 

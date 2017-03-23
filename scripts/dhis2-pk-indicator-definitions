@@ -138,7 +138,7 @@ with open(file_name, 'w') as csvfile:
         dhis.log.debug("Replaced numerators: {}".format(num))
         dhis.log.debug("Replaced denominators: {}".format(den))
 
-        ind_type_desc = object_map[ind['indicatorType']['id']].get('desc')
+        ind_type_desc = object_mapping[ind['indicatorType']['id']].get('desc')
         writer.writerow([ind['id'], ind['name'], ind['shortName'], num, ind.get('numeratorDescription', None), den,
                          ind.get('denominatorDescription', None), ind.get('annualized', None), ind_type_desc,
                          ind.get('decimals', 'default')])
