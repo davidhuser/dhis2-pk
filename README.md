@@ -128,7 +128,7 @@ arguments:
   -v API_VERSION       DHIS2 API version e.g. -v=24
   -d                   Debug flag - writes more info to log file, e.g. -d
 ```
-### d2 objects definitions
+### Indicator variables
 For interpreting indicator variables (like `OUG{someUID}`), refer to [DHIS2 docs](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#d9584e5669)
 
 ### Example (try it out against DHIS2 demo instance):
