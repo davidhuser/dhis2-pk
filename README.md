@@ -117,9 +117,9 @@ Example column for numerator `ReUHfIn0pTQ - ANC 1-3 Dropout Rate`:
 dhis2-pk-indicator-definitions --help
 usage: dhis2-pk-indicator-definitions [-h] -s [-f] -u -p [-v] [-d]
 
-Create CSV with indicator definitions
+PURPOSE: Create CSV with indicator definitions
 
-optional arguments:
+arguments:
   -h, --help           show this help message and exit
   -s SERVER            Server, e.g. play.dhis2.org/demo
   -f INDICATOR_FILTER  Indicator filter
@@ -153,9 +153,9 @@ Writes all users of an Organisation Unit who are configured like below to a **cs
 dhis2-pk-user-orgunits --help
 usage: dhis2-pk-user-orgunits [-h] -s -o -u -p [-v] [-d]
 
-Create CSV all users of an orgunit who also have sub-orgunits assigned
+PURPOSE: Create CSV all users of an orgunit who also have sub-orgunits assigned
 
-optional arguments:
+arguments:
   -h, --help      show this help message and exit
   -s SERVER       Server, e.g. play.dhis2.org/demo
   -o ORGUNIT      Top-level orgunit UID to check its users
