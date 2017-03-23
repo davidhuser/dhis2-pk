@@ -101,9 +101,9 @@ dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All
 
 ## Export indicator definition (numerators/denominators) to CSV
 
-**Script name:** `dhis-pk-indicator-definition`
+**Script name:** `dhis-pk-indicator-definitions`
 
-Writes indicator definition in a readable format to a **csv file**. Includes names and number of orgunits for orgunit groups, dataelements (dataelement.categoryoptioncombo), program dataelements, program indicators and constants. Possible to filter indiators with an object filter (see `dhis2-pk-share-objects` for details)
+Writes indicator definition in a readable format to a **csv file**. Includes names and number of orgunits for orgunit groups, dataelements (dataelement.categoryoptioncombo), program dataelements, program indicators and constants. Possible to filter indiators with an object filter (see [`dhis2-pk-share-objects`](https://github.com/davidhuser/dhis2-pocket-knife#mass-sharing-of-objects-with-usergroups-through-filtering) for details)
 
 Example output:
 ![ind-definitions](https://i.imgur.com/LFAlFpY.png)
@@ -128,6 +128,14 @@ optional arguments:
   -v API_VERSION       DHIS2 API version e.g. -v=24
   -d                   Debug flag - writes more info to log file, e.g. -d
 ```
+### d2 objects in definitions
+| d2 format    | object   |
+|---           |---|
+| `#{UID.UID}` |dataElement.categoryOptionCombo |
+| `D{UID.UID}` | program.dataElement |
+| `I{UID}`     | programIndicator |
+| `OUG{UID}`   | organisationUnitGroup count |
+| `C{UID}`     | constant |
 
 ### Example (try it out against DHIS2 demo instance):
 ```
