@@ -53,6 +53,11 @@ def object_map():
     for elem in resp5['categoryOptionCombos']:
         object_map[elem['id']] = {'desc': elem['name']}
 
+    params6 = {'fields': 'id,name', 'paging': False}
+    resp6 = dhis.get(endpoint='programs', params=params6)
+    for elem in resp6['programs']:
+        object_map[elem['id']] = {'desc': elem['name']}
+
     return object_map
 
 
