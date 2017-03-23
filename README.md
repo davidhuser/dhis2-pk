@@ -103,7 +103,8 @@ dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All
 
 **Script name:** `dhis-pk-indicator-definitions`
 
-Writes indicator definition in a readable format to a **csv file**. Includes names and number of orgunits for orgunit groups, dataelements (dataelement.categoryoptioncombo), program dataelements, program indicators and constants. Possible to filter indiators with an object filter (see [`dhis2-pk-share-objects`](https://github.com/davidhuser/dhis2-pocket-knife#mass-sharing-of-objects-with-usergroups-through-filtering) for details)
+Writes indicator definition in a readable format to a **csv file**. Includes names and number of orgunits for orgunit groups, dataelements (dataelement.categoryoptioncombo), program dataelements, program indicators, trackedEntityAttributes and constants. I
+t's possible to filter indiators with an object filter (see [`dhis2-pk-share-objects`](https://github.com/davidhuser/dhis2-pocket-knife#mass-sharing-of-objects-with-usergroups-through-filtering) for details)
 
 Example output:
 ![ind-definitions](https://i.imgur.com/LFAlFpY.png)
@@ -129,7 +130,7 @@ arguments:
   -d                   Debug flag - writes more info to log file, e.g. -d
 ```
 ### d2 objects definitions
-For interpreting variables (like `OUG{someUID}`), refer to [docs.dhis2.org](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#d9584e5669)
+For interpreting indicator variables (like `OUG{someUID}`), refer to [DHIS2 docs](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#d9584e5669)
 
 ### Example (try it out against DHIS2 demo instance):
 ```

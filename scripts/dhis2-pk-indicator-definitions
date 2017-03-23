@@ -63,6 +63,11 @@ def object_map():
     for elem in resp7['programIndicators']:
         object_mapping[elem['id']] = {'desc': elem['name']}
 
+    params8 = {'fields': 'id,name', 'paging': False}
+    resp8 = dhis.get(endpoint='trackedEntityAttributes', params=params8)
+    for elem in resp8['trackedEntityAttributes']:
+        object_mapping[elem['id']] = {'desc': elem['name']}
+
     return object_mapping
 
 
