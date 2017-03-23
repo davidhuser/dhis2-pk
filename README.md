@@ -142,7 +142,7 @@ arguments:
 dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 ```
 ---
-## Find users with a misconfigured Organisation Unit assignment
+## Export users with a misconfigured Organisation Unit assignment to CSV
 
 **Script name:** `dhis2-pk-user-orgunits`
 
