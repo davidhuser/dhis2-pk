@@ -101,7 +101,7 @@ dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All
 
 ## Export indicator definition (numerators/denominators) to a CSV file
 
-** Script name:** `dhis-pk-indicator-definition`
+**Script name:** `dhis-pk-indicator-definition`
 
 Writes indicator definition in a readable format to a **csv file**. Includes names and number of orgunits for orgunit groups, dataelements (dataelement.categoryoptioncombo) and constants. Possible to filter indiators with an object filter (see `dhis2-pk-share-objects` for details)
 
