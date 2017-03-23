@@ -129,13 +129,7 @@ arguments:
   -d                   Debug flag - writes more info to log file, e.g. -d
 ```
 ### d2 objects definitions
-| d2 format    | object   |
-|---           |---|
-| `#{UID.UID}` |dataElement.categoryOptionCombo |
-| `D{UID.UID}` | program.dataElement |
-| `I{UID}`     | programIndicator |
-| `OUG{UID}`   | organisationUnitGroup count |
-| `C{UID}`     | constant |
+For interpreting variables (like `OUG{someUID}`), refer to [docs.dhis2.org](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#d9584e5669)
 
 ### Example (try it out against DHIS2 demo instance):
 ```
