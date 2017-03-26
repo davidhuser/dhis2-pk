@@ -2,18 +2,21 @@
 
 Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org) 
 
+* [Mass sharing of objects with user groups through filtering](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#mass-sharing-of-objects-with-usergroups-through-filtering)
+* [Export readable indicator definition to CSV](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#export-readable-indicator-definition-to-csv)
+* [Export user-orgunit double assignment](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#export-users-with-a-misconfigured-organisation-unit-assignment-to-csv)
+
 ## Installation / updating
 
-* [pip](https://pip.pypa.io/en/stable/installing) (python package manager) must be installed
+* Easy installation with [pip](https://pip.pypa.io/en/stable/installing) (python package manager)
 * `pip install dhis2-pocket-knife`
 * Update with `pip install dhis2-pocket-knife --upgrade`
 
 ## Usage
+
 * Get help on using arguments, e.g.`dhis2-pk-share-objects --help`
 * Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server.
 * Logs to a file: `dhis2-pk.log`
-
-
 
 ---
 
