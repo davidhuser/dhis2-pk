@@ -2,9 +2,9 @@
 
 Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org) 
 
-* [Mass sharing of objects with user groups through filtering](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#mass-sharing-of-objects-with-usergroups-through-filtering)
-* [Export readable indicator definition to CSV](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#export-readable-indicator-definition-to-csv)
-* [Export user-orgunit double assignment](https://github.com/davidhuser/dhis2-pocket-knife/blob/master/README.md#export-users-with-a-misconfigured-organisation-unit-assignment-to-csv)
+* [Mass sharing of objects with user groups through filtering](#mass-sharing-of-objects-with-usergroups-through-filtering)
+* [Export readable indicator definition to CSV](#export-readable-indicator-definition-to-csv)
+* [Export user-orgunit double assignment](#export-users-with-a-misconfigured-organisation-unit-assignment-to-csv)
 
 ## Installation / updating
 
