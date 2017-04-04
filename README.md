@@ -63,6 +63,9 @@ arguments:
 ```
 
 ### Shareable objects:
+
+It's also possible to use acronyms like `ou` or `orgunits`
+
 - userGroups
 - sqlViews
 - constants
