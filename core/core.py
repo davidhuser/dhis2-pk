@@ -6,54 +6,68 @@ import sys
 
 import requests
 
+from setup import __VERSION__
+
+objecttype_mapping = {
+    'userGroups': ['ug', 'usergroup'],
+    'sqlViews': ['sqlview'],
+    'constants': ['constant'],
+    'optionSets': ['os'],
+    'optionGroups': ['optiongroup'],
+    'optionGroupSets': ['optiongroupset'],
+    'legendSets': ['legendset'],
+    'organisationUnitGroups': ['oug', 'orgunitgroups', 'ougroups', 'orgunitgroup', 'ougroup'],
+    'organisationUnitGroupSets': ['ougs', 'orgunitgroupsets', 'ougroupsets', 'orgunitgroupset', 'ougroupset'],
+    'categoryOptions': ['catoptions', 'catoption', 'categoryoption'],
+    'categoryOptionGroups': ['catoptiongroups', 'catoptiongroup', 'categoryoptiongroup'],
+    'categoryOptionGroupSets': ['catoptiongroupsets', 'catoptiongroupset', 'categoryoptiongroupset'],
+    'categories': ['cat', 'category'],
+    'categoryCombos': ['catcombos', 'catcombo', 'categorycombo', 'categorycombination', 'categorycombinations'],
+    'dataElements': ['de', 'des', 'dataelement'],
+    'dataElementGroups': ['deg', 'degroups', 'degroup', 'dataelementgroup'],
+    'dataElementGroupSets': ['degs', 'degroupsets', 'degroupset', 'dataelementgroupset'],
+    'indicators': ['i', 'ind', 'indicator'],
+    'indicatorGroups': ['ig', 'indgroups', 'indicatorgroup'],
+    'indicatorGroupSets': ['igs', 'indgroupsets', 'indicatorgroupset'],
+    'dataSets': ['ds', 'dataset'],
+    'dataApprovalLevels': ['datasetapprovallevel'],
+    'validationRuleGroups': ['validationrulegroup'],
+    'interpretations': ['interpretation'],
+    'trackedEntityAttributes': ['trackedentityattribute', 'tea', 'teas'],
+    'programs': ['program'],
+    'eventCharts': ['eventchart'],
+    'eventReports': ['eventtables', 'eventreport'],
+    'programIndicators': ['pi', 'programindicator'],
+    'maps': ['map'],
+    'documents': ['document'],
+    'reports': ['report'],
+    'charts': ['chart'],
+    'reportTables': ['reporttable'],
+    'dashboards': ['dashboard']
+}
+
+# reverse object types so each abbreviation matches to the real valid object in DHIS2
+object_types = {}
+for key, value in objecttype_mapping.items():
+    for acronym in value:
+        object_types[acronym] = key
 
 class Dhis(object):
     """Core class for accessing DHIS2 web API"""
-
-    # https://play.dhis2.org/demo/api/schemas.csv?fields=klass,shareable
-    objects_types = [
-        "userGroups",
-        "sqlViews",
-        "constants",
-        "optionSets",
-        "optionGroups",
-        "optionGroupSets",
-        "legendSets",
-        "organisationUnitGroups",
-        "organisationUnitGroupSets",
-        "categoryOptions",
-        "categoryOptionGroups",
-        "categoryOptionGroupSets",
-        "categories",
-        "categoryCombos",
-        "dataElements",
-        "dataElementGroups",
-        "dataElementGroupSets",
-        "indicators",
-        "indicatorGroups",
-        "indicatorGroupSets",
-        "dataSets",
-        "dataApprovalLevels",
-        "validationRuleGroups",
-        "interpretations",
-        "trackedEntityAttributes",
-        "programs",
-        "eventCharts",
-        "eventReports",
-        "programIndicators",
-        "maps",
-        "documents",
-        "reports",
-        "charts",
-        "reportTables",
-        "dashboards"
-    ]
 
     public_access = {
         'none': '--------',
         'readonly': 'r-------',
         'readwrite': 'rw------'
     }
+
+    def get_object_type(self, passed_name):
+        real = object_types.get(passed_name.lower(), None)
+        if real is not None:
+            return real
+        else:
+            self.log.info('Could not find a valid object type for -f="{}"'.format(passed_name))
+            sys.exit()
 
     def __init__(self, server, username, password, api_version, debug_flag):
         if not server.startswith('https://'):
@@ -63,6 +77,8 @@ class Dhis(object):
         self.auth = (username, password)
         self.api_version = api_version
         self.log = Logger(debug_flag)
+
+        self.log.info("dhis2-pocket-knife v{}\n".format(__VERSION__))
 
     def get(self, endpoint, params):
         if self.api_version:
@@ -147,11 +163,13 @@ class Logger(object):
             logging.basicConfig(filename=filename, level=logging.INFO, format=format,
                                 datefmt=datefmt)
 
-        logging.info("***** START *****")
+        logging.info("\n=========== START (v {}) ===========".format(__VERSION__))
 
-    def info(self, text):
+    @staticmethod
+    def info(text):
         print(text)
         logging.info(text)
 
-    def debug(self, text):
+    @staticmethod
+    def debug(text):
         logging.debug(text)

@@ -72,7 +72,7 @@ parser = argparse.ArgumentParser(usage='%(prog)s [-h] -s -t -f [-w] [-r] -a [-v]
                                  description="PURPOSE: Share DHIS2 objects (dataElements, programs, ...) with userGroups")
 parser.add_argument('-s', dest='server', action='store', required=True,
                     help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'")
-parser.add_argument('-t', dest='object_type', action='store', required=True, choices=Dhis.objects_types,
+parser.add_argument('-t', dest='object_type', action='store', required=True,
                     help="DHIS2 object type to apply sharing, e.g. -t=sqlViews")
 parser.add_argument('-f', dest='filter', action='store', required=True,
                     help="Filter on objects with DHIS2 field filter, e.g. -f='name:like:ABC'")
@@ -94,6 +94,9 @@ args = parser.parse_args()
 dhis = Sharer(server=args.server, username=args.username, password=args.password, api_version=args.api_version,
               debug_flag=args.debug)
 
+# get the real valid object type name
+object_type = dhis.get_object_type(args.object_type)
+
 filter_delimiter = ''
 
 user_group_accesses = []
@@ -105,7 +108,7 @@ if args.usergroup_readwrite:
     for ug in readwrite_usergroup_uids:
         acc = {
             'id': ug,
-            'access': Dhis.public_access['readwrite']
+            'access': dhis.public_access['readwrite']
         }
         user_group_accesses.append(acc)
 
@@ -116,7 +119,7 @@ if args.usergroup_readonly:
     for ug in readonly_usergroup_uids:
         acc = {
             'id': ug,
-            'access': Dhis.public_access['readonly']
+            'access': dhis.public_access['readonly']
         }
         user_group_accesses.append(acc)
 
@@ -124,24 +127,24 @@ if args.usergroup_readonly:
 object_filter_list = args.filter.split('&')
 
 # pull objects for which to apply sharing
-data = dhis.get_objects(args.object_type, object_filter_list)
+data = dhis.get_objects(object_type, object_filter_list)
 
-no_of_obj = len(data[args.object_type])
+no_of_obj = len(data[object_type])
 
-dhis.log.info("Fetched {} {} to apply sharing settings...\n".format(no_of_obj, args.object_type))
+dhis.log.info("Fetched {} {} to apply sharing settings...\n".format(no_of_obj, object_type))
 
 counter = 1
-for obj in data[args.object_type]:
+for obj in data[object_type]:
     payload = {
         'object': {
-            'publicAccess': Dhis.public_access[args.publicaccess],
+            'publicAccess': dhis.public_access[args.publicaccess],
             'externalAccess': False,
             'user': {},
             'userGroupAccesses': user_group_accesses
         }
     }
     # strip name to match API (e.g. dataElements -> dataElement)
-    if args.object_type == 'categories':
+    if object_type == 'categories':
         o_type = 'category'
     else:
         o_type = args.object_type[:-1]
@@ -155,11 +158,11 @@ for obj in data[args.object_type]:
     dhis.share_object(payload, parameters)
 
     try:
-        dhis.log.info("({}/{}) [OK] {} {}".format(str(counter), str(no_of_obj), obj['id'], obj['code']))
+        dhis.log.info("({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['code']))
     except KeyError:
         try:
-            dhis.log.info("({}/{}) [OK] {} {}".format(str(counter), str(no_of_obj), obj['id'], obj['name']))
+            dhis.log.info("({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['name']))
         except UnicodeEncodeError:
-            dhis.log.info("({}/{}) [OK] {}".format(str(counter), str(no_of_obj), obj['id']))
+            dhis.log.info("({}/{}) [OK] {}".format(counter, no_of_obj, obj['id']))
 
     counter += 1
