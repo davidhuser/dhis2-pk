@@ -12,6 +12,7 @@ setup(
     author_email='dhuser@baosystems.com',
     url='https://github.com/davidhuser/dhis2-pocket-knife',
     keywords='dhis2',
+    license='MIT',
     install_requires=[
         "requests>=2.4.2",
         "six>=1.10.0"
@@ -21,5 +22,8 @@ setup(
         'scripts/dhis2-pk-user-orgunits',
         'scripts/dhis2-pk-indicator-definitions'
     ],
-    packages=find_packages()
+    packages=find_packages(exclude=['tests']),
+    test_suite='pytest',
+    tests_require=['pytest'],
+    setup_requires=['pytest-runner']
 )
