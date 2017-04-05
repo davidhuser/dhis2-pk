@@ -1,6 +1,6 @@
 import pytest
 
-from core import core
+import src.dhis.core
 
 
 def test_testing():
