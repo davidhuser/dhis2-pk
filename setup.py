@@ -7,7 +7,7 @@ __VERSION__ = '0.5.0'
 setup(
     name='dhis2-pocket-knife',
     version=__VERSION__,
-    description='Command-line tools for interacting with DHIS2 API in bulk',
+    description='Command-line tools for interacting with DHIS2 REST API',
     author='David Huser',
     author_email='dhuser@baosystems.com',
     url='https://github.com/davidhuser/dhis2-pocket-knife',
@@ -18,9 +18,9 @@ setup(
         "six>=1.10.0"
     ],
     scripts=[
-        'scripts/dhis2-pk-share-objects',
-        'scripts/dhis2-pk-user-orgunits',
-        'scripts/dhis2-pk-indicator-definitions'
+        'src/scripts/dhis2-pk-share-objects',
+        'src/scripts/dhis2-pk-user-orgunits',
+        'src/scripts/dhis2-pk-indicator-definitions'
     ],
     packages=find_packages(exclude=['tests']),
     test_suite='pytest',

@@ -10,7 +10,7 @@ import argparse
 import csv
 import sys
 
-from core.core import Dhis
+from src.dhis.core import Dhis
 
 
 def replace_definitions(definition, obj_map):

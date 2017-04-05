@@ -52,8 +52,20 @@ for key, value in objecttype_mapping.items():
     for acronym in value:
         object_types[acronym] = key
 
+
 class Dhis(object):
     """Core class for accessing DHIS2 web API"""
+
+    def __init__(self, server, username, password, api_version, debug_flag):
+        if not server.startswith('https://'):
+            self.server = "https://" + server
+        else:
+            self.server = server
+        self.auth = (username, password)
+        self.api_version = api_version
+        self.log = Logger(debug_flag)
+
+        self.log.info("dhis2-pocket-knife v{}\n".format(__VERSION__))
 
     public_access = {
         'none': '--------',
@@ -68,17 +80,6 @@ class Dhis(object):
         else:
             self.log.info('Could not find a valid object type for -f="{}"'.format(passed_name))
             sys.exit()
-
-    def __init__(self, server, username, password, api_version, debug_flag):
-        if not server.startswith('https://'):
-            self.server = "https://" + server
-        else:
-            self.server = server
-        self.auth = (username, password)
-        self.api_version = api_version
-        self.log = Logger(debug_flag)
-
-        self.log.info("dhis2-pocket-knife v{}\n".format(__VERSION__))
 
     def get(self, endpoint, params):
         if self.api_version:

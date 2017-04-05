@@ -13,7 +13,7 @@ import sys
 
 from six import iteritems
 
-from core.core import Dhis
+from src.dhis.core import Dhis
 
 
 class Sharer(Dhis):
@@ -65,6 +65,9 @@ class Sharer(Dhis):
     def share_object(self, payload, parameters):
         """Share object by using sharing enpoint"""
         self.post(endpoint="sharing", params=parameters, payload=payload)
+
+    def get_object_type(self, argument):
+        return Dhis.get_object_types(argument)
 
 
 # argument parsing
