@@ -40,16 +40,16 @@ arguments:
   -t {see shareable types below in this README}
                         DHIS2 object type to apply sharing, e.g. -t=sqlViews
                         
-  -f FILTER             Filter on objects with DHIS2 field filter, e.g.
-                        -f='name:like:ABC'
+  -f FILTER             Filter on objects with DHIS2 field filter, 
+                        add multiple filters with '&&' e.g. -f='name:like:ABC'
                         
   -w USERGROUP_READWRITE
-                        UserGroup filter for Read-Write access, concat. with
-                        '&', e.g. -w='name:$ilike:UG1&id:!eq:aBc123XyZ0u'
+                        UserGroup filter for Read-Write access, add multiple filters with '&&'
+                        e.g. -w='name:$ilike:UG1&id:!eq:aBc123XyZ0u'
                         
   -r USERGROUP_READONLY
-                        UserGroup filter for Read-Only access, concat. with
-                        '&', e.g. -r='id:eq:aBc123XyZ0u'
+                        UserGroup filter for Read-Only access, 
+                        add multiple filters with '&&', e.g. -r='id:eq:aBc123XyZ0u'
                         
   -a {readwrite,none,readonly}
                         publicAccess (with login), e.g. -a=readwrite
@@ -177,15 +177,16 @@ dhis2-pk-user-orgunits -s=play.dhis2.org/demo -o=O6uvpzGd5pu -u=admin -p=distric
 
 ### done
 
-- ~~debug flag as optional argument~~
-- ~~arguments: userGroups: multiple filters for userGroups~~
-- ~~API version (optional argument)~~
-- ~~better help text for sharing `-h`~~
-- ~~added indicator description script~~
-- ~~acronym support for object types (`-t=de`)
+- [x] debug flag as optional argument
+- [x] multiple filters for userGroups
+- [x] API version as optional
+- [x] added indicator expression script
+- [x] acronym support for object types (`-t=de`)
+- [x] multiple filter should be added with `&&` instead of `&`
 
 ### todo
-- better handling of `&` in filters
+
+- [ ] new feature: download of metadata
 
 ---
 PyPI link: https://pypi.python.org/pypi/dhis2-pocket-knife

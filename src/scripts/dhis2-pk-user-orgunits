@@ -35,6 +35,7 @@ args = parser.parse_args()
 
 dhis = Dhis(server=args.server, username=args.username, password=args.password, debug_flag=args.debug,
             api_version=args.api_version)
+dhis.log.startinfo(__file__)
 
 if not valid_uid(args.orgunit):
     dhis.log.info("Orgunit is not a valid DHIS2 UID")

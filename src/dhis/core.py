@@ -76,8 +76,6 @@ class Dhis(object):
         self.api_version = api_version
         self.log = Logger(debug_flag)
 
-        self.log.info("--- dhis2-pocket-knife v{}\n".format(get_pkg_version()))
-
     public_access = {
         'none': '--------',
         'readonly': 'r-------',
@@ -176,7 +174,9 @@ class Logger(object):
             logging.basicConfig(filename=filename, level=logging.INFO, format=format,
                                 datefmt=datefmt)
 
-        logging.info("\n=========== START (v {}) ===========".format(get_pkg_version()))
+    @staticmethod
+    def startinfo(scriptname):
+        logging.info("+++ dhis2-pocket-knife v{} +++ {}".format(get_pkg_version(), scriptname))
 
     @staticmethod
     def info(text):

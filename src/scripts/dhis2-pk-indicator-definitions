@@ -69,7 +69,6 @@ def object_map():
 
     return uid_mapping
 
-
 parser = argparse.ArgumentParser(description="Create CSV with indicator definitions")
 parser.add_argument('-s', dest='server', action='store', help="Server, e.g. play.dhis2.org/demo", required=True)
 parser.add_argument('-f', dest='indicator_filter', action='store', help="Indicator filter", required=False)
@@ -98,6 +97,7 @@ except NameError:
 
 dhis = Dhis(server=args.server, username=args.username, password=args.password, debug_flag=args.debug,
             api_version=args.api_version)
+dhis.log.startinfo(__file__)
 
 if args.indicator_filter:
     params = {

@@ -78,11 +78,11 @@ parser.add_argument('-s', dest='server', action='store', required=True,
 parser.add_argument('-t', dest='object_type', action='store', required=True,
                     help="DHIS2 object type to apply sharing, e.g. -t=sqlViews")
 parser.add_argument('-f', dest='filter', action='store', required=True,
-                    help="Filter on objects with DHIS2 field filter, e.g. -f='name:like:ABC'")
+                    help="Filter on objects with DHIS2 field filter, add multiple filters with '&&' e.g. -f='name:like:ABC&&id:!eq:aBc123XyZ0u'")
 parser.add_argument('-w', dest='usergroup_readwrite', action='store', required=False,
-                    help="UserGroup filter for Read-Write access, concat. with '&' e.g. -w='name:$ilike:UG1&id:!eq:aBc123XyZ0u'")
+                    help="UserGroup filter for Read-Write access, add multiple filters with '&&' e.g. -w='name:$ilike:UG1&&id:!eq:aBc123XyZ0u'")
 parser.add_argument('-r', dest='usergroup_readonly', action='store', required=False,
-                    help="UserGroup filter for Read-Only access, concat. with '&' e.g. -r='id:eq:aBc123XyZ0u'")
+                    help="UserGroup filter for Read-Only access, add multiple filters with '&&' e.g. -r='name:$ilike:UG1&&id:!eq:aBc123XyZ0u'")
 parser.add_argument('-a', dest='publicaccess', action='store', required=True, choices=Dhis.public_access.keys(),
                     help="publicAccess (with login), e.g. -a=readwrite")
 parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
@@ -96,16 +96,17 @@ args = parser.parse_args()
 # init DHIS
 dhis = Sharer(server=args.server, username=args.username, password=args.password, api_version=args.api_version,
               debug_flag=args.debug)
+dhis.log.startinfo(__file__)
 
 # get the real valid object type name
 object_type = dhis.get_object_type(args.object_type)
 
-filter_delimiter = ''
+filter_delimiter = '&&'
 
 user_group_accesses = []
 if args.usergroup_readwrite:
     # split filter of arguments into list
-    rw_ug_filter_list = args.usergroup_readwrite.split('&')
+    rw_ug_filter_list = args.usergroup_readwrite.split(filter_delimiter)
     # get UIDs of usergroups with RW access
     readwrite_usergroup_uids = dhis.get_usergroup_uids(rw_ug_filter_list, 'readwrite')
     for ug in readwrite_usergroup_uids:
@@ -116,7 +117,7 @@ if args.usergroup_readwrite:
         user_group_accesses.append(acc)
 
 if args.usergroup_readonly:
-    ro_ug_filter_list = args.usergroup_readonly.split('&')
+    ro_ug_filter_list = args.usergroup_readonly.split(filter_delimiter)
     # get UID(s) of usergroups with RO access
     readonly_usergroup_uids = dhis.get_usergroup_uids(ro_ug_filter_list, 'readonly')
     for ug in readonly_usergroup_uids:
@@ -127,7 +128,7 @@ if args.usergroup_readonly:
         user_group_accesses.append(acc)
 
 # split arguments for multiple filters for to-be-shared objects
-object_filter_list = args.filter.split('&')
+object_filter_list = args.filter.split(filter_delimiter)
 
 # pull objects for which to apply sharing
 data = dhis.get_objects(object_type, object_filter_list)
@@ -150,9 +151,9 @@ for obj in data[object_type]:
     if object_type == 'categories':
         o_type = 'category'
     else:
-        o_type = object_type[:-1]
+        o_type = object_type
     parameters = {
-        'type': o_type,
+        'type': object_type,
         'preheatCache': False,
         'id': obj['id']
     }
