@@ -67,7 +67,7 @@ class Sharer(Dhis):
         self.post(endpoint="sharing", params=parameters, payload=payload)
 
     def get_object_type(self, argument):
-        return Dhis.get_object_types(argument)
+        return super(Sharer, self).get_object_type(argument)
 
 
 # argument parsing
@@ -150,7 +150,7 @@ for obj in data[object_type]:
     if object_type == 'categories':
         o_type = 'category'
     else:
-        o_type = args.object_type[:-1]
+        o_type = object_type[:-1]
     parameters = {
         'type': o_type,
         'preheatCache': False,

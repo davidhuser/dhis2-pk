@@ -2,47 +2,52 @@
 
 import json
 import logging
-import sys
 import os
+import sys
 
 import requests
 
+from src.__init__ import ROOT_DIR
+
 objecttype_mapping = {
-    'userGroups': ['ug', 'usergroup'],
-    'sqlViews': ['sqlview'],
-    'constants': ['constant'],
-    'optionSets': ['os'],
-    'optionGroups': ['optiongroup'],
-    'optionGroupSets': ['optiongroupset'],
-    'legendSets': ['legendset'],
-    'organisationUnitGroups': ['oug', 'orgunitgroups', 'ougroups', 'orgunitgroup', 'ougroup'],
-    'organisationUnitGroupSets': ['ougs', 'orgunitgroupsets', 'ougroupsets', 'orgunitgroupset', 'ougroupset'],
-    'categoryOptions': ['catoptions', 'catoption', 'categoryoption'],
-    'categoryOptionGroups': ['catoptiongroups', 'catoptiongroup', 'categoryoptiongroup'],
-    'categoryOptionGroupSets': ['catoptiongroupsets', 'catoptiongroupset', 'categoryoptiongroupset'],
-    'categories': ['cat', 'category'],
-    'categoryCombos': ['catcombos', 'catcombo', 'categorycombo', 'categorycombination', 'categorycombinations'],
-    'dataElements': ['de', 'des', 'dataelement'],
-    'dataElementGroups': ['deg', 'degroups', 'degroup', 'dataelementgroup'],
-    'dataElementGroupSets': ['degs', 'degroupsets', 'degroupset', 'dataelementgroupset'],
-    'indicators': ['i', 'ind', 'indicator'],
-    'indicatorGroups': ['ig', 'indgroups', 'indicatorgroup'],
-    'indicatorGroupSets': ['igs', 'indgroupsets', 'indicatorgroupset'],
-    'dataSets': ['ds', 'dataset'],
-    'dataApprovalLevels': ['datasetapprovallevel'],
-    'validationRuleGroups': ['validationrulegroup'],
-    'interpretations': ['interpretation'],
-    'trackedEntityAttributes': ['trackedentityattribute', 'tea', 'teas'],
-    'programs': ['program'],
-    'eventCharts': ['eventchart'],
-    'eventReports': ['eventtables', 'eventreport'],
-    'programIndicators': ['pi', 'programindicator'],
-    'maps': ['map'],
-    'documents': ['document'],
-    'reports': ['report'],
-    'charts': ['chart'],
-    'reportTables': ['reporttable'],
-    'dashboards': ['dashboard']
+    'userGroups': ['usergroups', 'ug', 'usergroup'],
+    'sqlViews': ['sqlviews', 'sqlview'],
+    'constants': ['constants', 'constant'],
+    'optionSets': ['optionsets', 'os'],
+    'optionGroups': ['optiongroups', 'optiongroup'],
+    'optionGroupSets': ['optiongroupsets', 'optiongroupset'],
+    'legendSets': ['legendsets', 'legendset'],
+    'organisationUnitGroups': ['organisationunitgroups', 'oug', 'orgunitgroups', 'ougroups', 'orgunitgroup', 'ougroup'],
+    'organisationUnitGroupSets': ['organisationunitgroupsets', 'ougs', 'orgunitgroupsets', 'ougroupsets',
+                                  'orgunitgroupset', 'ougroupset'],
+    'categoryOptions': ['categoryoptions', 'catoptions', 'catoption', 'categoryoption'],
+    'categoryOptionGroups': ['categoryoptiongroups', 'catoptiongroups', 'catoptiongroup', 'categoryoptiongroup'],
+    'categoryOptionGroupSets': ['categoryoptiongroupsets', 'catoptiongroupsets', 'catoptiongroupset',
+                                'categoryoptiongroupset'],
+    'categories': ['categories', 'cat', 'cats' 'category'],
+    'categoryCombos': ['categorycombos', 'catcombos', 'catcombo', 'categorycombo', 'categorycombination',
+                       'categorycombinations'],
+    'dataElements': ['dataelements', 'de', 'des', 'dataelement'],
+    'dataElementGroups': ['dataelementgroups', 'deg', 'degroups', 'degroup', 'dataelementgroup'],
+    'dataElementGroupSets': ['dataelementgroupsets', 'degs', 'degroupsets', 'degroupset', 'dataelementgroupset'],
+    'indicators': ['indicators', 'i', 'ind', 'indicator'],
+    'indicatorGroups': ['indicatorgroups', 'ig', 'indgroups', 'indicatorgroup'],
+    'indicatorGroupSets': ['indicatorgroupsets', 'igs', 'indgroupsets', 'indicatorgroupset'],
+    'dataSets': ['datasets', 'ds', 'dataset'],
+    'dataApprovalLevels': ['dataapprovallevels', 'datasetapprovallevel'],
+    'validationRuleGroups': ['validationrulegroups', 'validationrulegroup'],
+    'interpretations': ['interpretations', 'interpretation'],
+    'trackedEntityAttributes': ['trackedentityattributes', 'trackedentityattribute', 'tea', 'teas'],
+    'programs': ['programs', 'program'],
+    'eventCharts': ['eventcharts', 'eventchart'],
+    'eventReports': ['eventreports', 'eventtables', 'eventreport'],
+    'programIndicators': ['programindicators', 'pi', 'programindicator'],
+    'maps': ['maps', 'map'],
+    'documents': ['documents', 'document'],
+    'reports': ['reports', 'report'],
+    'charts': ['charts', 'chart'],
+    'reportTables': ['reporttables', 'reporttable'],
+    'dashboards': ['dashboards', 'dashboard']
 }
 
 # reverse object types so each abbreviation matches to the real valid object in DHIS2
@@ -50,6 +55,13 @@ object_types = {}
 for key, value in objecttype_mapping.items():
     for acronym in value:
         object_types[acronym] = key
+
+
+def get_pkg_version():
+    __version__ = ''
+    with open(os.path.join(ROOT_DIR, 'version.py')) as f:
+        exec (f.read())
+    return __version__
 
 
 class Dhis(object):
@@ -64,11 +76,7 @@ class Dhis(object):
         self.api_version = api_version
         self.log = Logger(debug_flag)
 
-        __version__ = ''
-        with open(os.path.join('src', 'version.py')) as f:
-            exec (f.read())
-
-        self.log.info("dhis2-pocket-knife v{}\n".format(__version__))
+        self.log.info("--- dhis2-pocket-knife v{}\n".format(get_pkg_version()))
 
     public_access = {
         'none': '--------',
@@ -78,11 +86,12 @@ class Dhis(object):
 
     def get_object_type(self, passed_name):
         real = object_types.get(passed_name.lower(), None)
-        if real is not None:
-            return real
-        else:
-            self.log.info('Could not find a valid object type for -f="{}"'.format(passed_name))
-            sys.exit()
+        if real is None:
+            real = object_types.get(passed_name[:-1].lower(), None)
+            if real is None:
+                self.log.info('Could not find a valid object type for -f="{}"'.format(passed_name))
+                sys.exit()
+        return real
 
     def get(self, endpoint, params):
         if self.api_version:
@@ -167,7 +176,7 @@ class Logger(object):
             logging.basicConfig(filename=filename, level=logging.INFO, format=format,
                                 datefmt=datefmt)
 
-        logging.info("\n=========== START (v {}) ===========".format(__VERSION__))
+        logging.info("\n=========== START (v {}) ===========".format(get_pkg_version()))
 
     @staticmethod
     def info(text):

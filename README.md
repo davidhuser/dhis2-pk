@@ -64,7 +64,7 @@ arguments:
 
 ### Shareable objects:
 
-It's also possible to use acronyms like `ou` or `orgunits`
+It's also possible to use acronyms/abbreviations like `de` or `catcombo`, `-t=ds` for dataSets
 
 - userGroups
 - sqlViews
@@ -170,7 +170,7 @@ arguments:
 
 ### Example (try it out against DHIS2 demo instance):
 ```
-dhis2-pk-user-orgunits --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --username=admin --password=district
+dhis2-pk-user-orgunits -s=play.dhis2.org/demo -o=O6uvpzGd5pu -u=admin -p=district
 ```
 
 
@@ -182,6 +182,7 @@ dhis2-pk-user-orgunits --server=play.dhis2.org/demo --orgunit=O6uvpzGd5pu --user
 - ~~API version (optional argument)~~
 - ~~better help text for sharing `-h`~~
 - ~~added indicator description script~~
+- ~~acronym support for object types (`-t=de`)
 
 ### todo
 - better handling of `&` in filters
