@@ -23,7 +23,7 @@ setup(
     scripts=[
         'src/scripts/dhis2-pk-share-objects',
         'src/scripts/dhis2-pk-user-orgunits',
-        'src/scripts/dhis2-pk-indicator-definitions'
+        'src/scripts/dhis2-pk-indicator-definitions',
         'src/scripts/dhis2-pk-metadata'
     ],
     packages=find_packages(exclude=['tests']),
