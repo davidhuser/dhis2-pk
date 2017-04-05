@@ -1,4 +1,4 @@
-# dhis2-pocket-knife
+# dhis2-pocket-knife [![Build Status](https://travis-ci.org/davidhuser/dhis2-pocket-knife.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pocket-knife)
 
 Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org) 
 
