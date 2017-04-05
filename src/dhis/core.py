@@ -69,11 +69,12 @@ class Dhis(object):
 
     def __init__(self, server, username, password, api_version, debug_flag):
         if not server.startswith('https://'):
-            self.server = "https://" + server
-        else:
-            self.server = server
+            server = "https://{}".format(server)
         self.auth = (username, password)
-        self.api_version = api_version
+        if api_version:
+            self.api_url = "{}/api/{}".format(server, api_version)
+        else:
+            self.api_url = "{}/api".format(server)
         self.log = Logger(debug_flag)
 
     public_access = {
@@ -91,13 +92,10 @@ class Dhis(object):
                 sys.exit()
         return real
 
-    def get(self, endpoint, params):
-        if self.api_version:
-            url = "{}/api/{}/{}.json".format(self.server, self.api_version, endpoint)
-        else:
-            url = "{}/api/{}.json".format(self.server, endpoint)
+    def get(self, endpoint, params=None):
+        url = "{}/{}.json".format(self.api_url, endpoint)
 
-        self.log.debug("{} - parameters: {}".format(url, json.dumps(params)))
+        self.log.debug("GET: {} - parameters: {}".format(url, json.dumps(params)))
 
         try:
             req = requests.get(url, params=params, auth=self.auth)
@@ -105,22 +103,18 @@ class Dhis(object):
             self.log.info(e)
             sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
 
-        self.log.debug(req.url)
+        self.log.debug("URL: {}".format(req.url))
 
         if req.status_code == 200:
-            self.log.debug(req.text)
+            self.log.debug("RESPONSE: {}".format(req.text))
             return req.json()
         else:
             self.log.info(req.text)
             sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
 
     def post(self, endpoint, params, payload):
-        if self.api_version:
-            url = "{}/api/{}/{}".format(self.server, self.api_version, endpoint)
-        else:
-            url = "{}/api/{}".format(self.server, endpoint)
-
-        self.log.debug("{} - parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
+        url = "{}/{}".format(self.api_url, endpoint)
+        self.log.debug("POST: {} \n parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
 
         try:
             req = requests.post(url, params=params, json=payload, auth=self.auth)
@@ -131,16 +125,14 @@ class Dhis(object):
         self.log.debug(req.url)
 
         if req.status_code != 200:
-            msg = "[{}] {}".format(str(req.status_code), req.url)
+            msg = "[{} {}] {}".format(str(req.status_code), req.url, req.text)
             self.log.info(msg)
             self.log.debug(req.text)
             sys.exit()
 
     def delete(self, endpoint, uid):
-        if self.api_version:
-            url = "{}/api/{}/{}/{}".format(self.server, self.api_version, endpoint, uid)
-        else:
-            url = "{}/api/{}/{}".format(self.server, endpoint, uid)
+        url = "{}/{}/{}".format(self.api_url, endpoint, uid)
+
         try:
             req = requests.delete(url, auth=self.auth)
         except requests.RequestException as e:
@@ -175,8 +167,9 @@ class Logger(object):
                                 datefmt=datefmt)
 
     @staticmethod
-    def startinfo(scriptname):
-        logging.info("+++ dhis2-pocket-knife v{} +++ {}".format(get_pkg_version(), scriptname))
+    def startinfo(script_path):
+        script_name = os.path.splitext(os.path.basename(script_path))[0]
+        logging.info("\n+++ dhis2-pocket-knife v{} +++ {}".format(get_pkg_version(), script_name))
 
     @staticmethod
     def info(text):

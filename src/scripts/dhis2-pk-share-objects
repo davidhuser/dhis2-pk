@@ -135,8 +135,6 @@ data = dhis.get_objects(object_type, object_filter_list)
 
 no_of_obj = len(data[object_type])
 
-dhis.log.info("Fetched {} {} to apply sharing settings...\n".format(no_of_obj, object_type))
-
 counter = 1
 for obj in data[object_type]:
     payload = {
@@ -149,12 +147,11 @@ for obj in data[object_type]:
     }
     # strip name to match API (e.g. dataElements -> dataElement)
     if object_type == 'categories':
-        o_type = 'category'
+        object_type_singular = 'category'
     else:
-        o_type = object_type
+        object_type_singular = object_type[:-1]
     parameters = {
-        'type': object_type,
-        'preheatCache': False,
+        'type': object_type_singular,
         'id': obj['id']
     }
 
