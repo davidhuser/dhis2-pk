@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+
+"""
+metadata
+~~~~~~~~~~~~~~~~~
+Download metadata from the commandline
+"""
+
+import argparse
+from datetime import datetime
+
+from src.dhis.core import Dhis
+
+
+class Downloader(Dhis):
+    """Inherited from core Dhis class to extend functionalities"""
+
+    def __init__(self, server, username, password, api_version, debug_flag):
+        Dhis.__init__(self, server, username, password, api_version, debug_flag)
+
+    def get_metadata(self, object_type, object_filter, fields, file_type):
+        params = {
+            'fields': fields,
+            'filter': object_filter,
+            'paging': False
+        }
+        endpoint = "{}.{}".format(object_type, file_type)
+
+        return self.get(endpoint=endpoint, params=params)
+
+
+file_types = ['json', 'xml', 'csv']
+
+parser = argparse.ArgumentParser(description="Download metadata")
+parser.add_argument('-s', dest='server', action='store', help="Server, e.g. play.dhis2.org/demo", required=True)
+parser.add_argument('-t', dest='object_type', action='store', required=True,
+                    help="DHIS2 object type to fetch, e.g. -t=dataElements")
+parser.add_argument('-f', dest='object_filter', action='store', help="Object filter", required=False)
+parser.add_argument('-e', dest='fields', action='store', help="Fields to include", required=False)
+parser.add_argument('-y', dest='filetype', action='store', help="Filetype", required=False, choices=file_types,
+                    default='json')
+parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
+parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
+parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
+                    help='DHIS2 API version e.g. -v=24')
+parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
+                    help="Debug flag - writes more info to log file, e.g. -d")
+
+parser.add_argument('-a', dest='publicaccess', action='store', required=True, choices=Dhis.public_access.keys(),
+                    help="publicAccess (with login), e.g. -a=readwrite")
+
+args = parser.parse_args()
+
+dhis = Downloader(server=args.server, username=args.username, password=args.password, api_version=args.api_version,
+                  debug_flag=args.debug)
+dhis.log.startinfo(__file__)
+
+object_type = dhis.get_object_type(args)
+data = dhis.get_metadata(object_type, args.object_filter, args.fields, args.filetype)
+
+# file name stuff
+now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+server_name = args.server.replace('https://', '').replace('.', '-').replace('/', '-')
+if args.object_filter:
+    file_name = "{}_{}_{}_FILTERED.{}".format(now, server_name, object_type, args.filetype)
+else:
+    file_name = "{}_{}_{}.{}".format(now, server_name, object_type, args.filetype)
+
+# saving the file depending on format
+if args.filetype == 'json':
+    #https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file-in-python
+    import json, codecs
+    with open(file_name, 'wb') as f:
+        json.dump(data, codecs.getwriter('utf-8')(f), ensure_ascii=False)
+elif args.filetype == 'xml':
+    pass
+elif args.filetype == 'csv':
+    pass
