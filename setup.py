@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
+import os
 
 from setuptools import setup, find_packages
 
-__VERSION__ = '0.5.0'
+__version__ = ''
+with open(os.path.join('src', 'version.py')) as f:
+    exec (f.read())
 
 setup(
     name='dhis2-pocket-knife',
-    version=__VERSION__,
+    version=__version__,
     description='Command-line tools for interacting with DHIS2 REST API',
     author='David Huser',
     author_email='dhuser@baosystems.com',

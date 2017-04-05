@@ -3,10 +3,9 @@
 import json
 import logging
 import sys
+import os
 
 import requests
-
-from setup import __VERSION__
 
 objecttype_mapping = {
     'userGroups': ['ug', 'usergroup'],
@@ -65,7 +64,11 @@ class Dhis(object):
         self.api_version = api_version
         self.log = Logger(debug_flag)
 
-        self.log.info("dhis2-pocket-knife v{}\n".format(__VERSION__))
+        __version__ = ''
+        with open(os.path.join('src', 'version.py')) as f:
+            exec (f.read())
+
+        self.log.info("dhis2-pocket-knife v{}\n".format(__version__))
 
     public_access = {
         'none': '--------',
