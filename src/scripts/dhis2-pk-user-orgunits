@@ -21,7 +21,7 @@ def valid_uid(uid):
 
 
 parser = argparse.ArgumentParser(description="Create CSV of users of an orgunit who also have sub-orgunits assigned")
-parser.add_argument('-s', dest='server', action='store', help="Server, e.g. play.dhis2.org/demo", required=True)
+parser.add_argument('-s', dest='server', action='store', help="DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo", required=True)
 parser.add_argument('-o', dest='orgunit', action='store', help="Top-level orgunit UID to check its users",
                     required=True)
 parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)

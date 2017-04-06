@@ -7,54 +7,8 @@ import sys
 
 import requests
 
+from object_types import object_types
 from src.__init__ import ROOT_DIR
-
-objecttype_mapping = {
-    'userGroups': ['usergroups', 'ug', 'usergroup'],
-    'sqlViews': ['sqlviews', 'sqlview'],
-    'constants': ['constants', 'constant'],
-    'optionSets': ['optionsets', 'os'],
-    'optionGroups': ['optiongroups', 'optiongroup'],
-    'optionGroupSets': ['optiongroupsets', 'optiongroupset'],
-    'legendSets': ['legendsets', 'legendset'],
-    'organisationUnitGroups': ['organisationunitgroups', 'oug', 'orgunitgroups', 'ougroups', 'orgunitgroup', 'ougroup'],
-    'organisationUnitGroupSets': ['organisationunitgroupsets', 'ougs', 'orgunitgroupsets', 'ougroupsets',
-                                  'orgunitgroupset', 'ougroupset'],
-    'categoryOptions': ['categoryoptions', 'catoptions', 'catoption', 'categoryoption'],
-    'categoryOptionGroups': ['categoryoptiongroups', 'catoptiongroups', 'catoptiongroup', 'categoryoptiongroup'],
-    'categoryOptionGroupSets': ['categoryoptiongroupsets', 'catoptiongroupsets', 'catoptiongroupset',
-                                'categoryoptiongroupset'],
-    'categories': ['categories', 'cat', 'cats' 'category'],
-    'categoryCombos': ['categorycombos', 'catcombos', 'catcombo', 'categorycombo', 'categorycombination',
-                       'categorycombinations'],
-    'dataElements': ['dataelements', 'de', 'des', 'dataelement'],
-    'dataElementGroups': ['dataelementgroups', 'deg', 'degroups', 'degroup', 'dataelementgroup'],
-    'dataElementGroupSets': ['dataelementgroupsets', 'degs', 'degroupsets', 'degroupset', 'dataelementgroupset'],
-    'indicators': ['indicators', 'i', 'ind', 'indicator'],
-    'indicatorGroups': ['indicatorgroups', 'ig', 'indgroups', 'indicatorgroup'],
-    'indicatorGroupSets': ['indicatorgroupsets', 'igs', 'indgroupsets', 'indicatorgroupset'],
-    'dataSets': ['datasets', 'ds', 'dataset'],
-    'dataApprovalLevels': ['dataapprovallevels', 'datasetapprovallevel'],
-    'validationRuleGroups': ['validationrulegroups', 'validationrulegroup'],
-    'interpretations': ['interpretations', 'interpretation'],
-    'trackedEntityAttributes': ['trackedentityattributes', 'trackedentityattribute', 'tea', 'teas'],
-    'programs': ['programs', 'program'],
-    'eventCharts': ['eventcharts', 'eventchart'],
-    'eventReports': ['eventreports', 'eventtables', 'eventreport'],
-    'programIndicators': ['programindicators', 'pi', 'programindicator'],
-    'maps': ['maps', 'map'],
-    'documents': ['documents', 'document'],
-    'reports': ['reports', 'report'],
-    'charts': ['charts', 'chart'],
-    'reportTables': ['reporttables', 'reporttable'],
-    'dashboards': ['dashboards', 'dashboard']
-}
-
-# reverse object types so each abbreviation matches to the real valid object in DHIS2
-object_types = {}
-for key, value in objecttype_mapping.items():
-    for acronym in value:
-        object_types[acronym] = key
 
 
 def get_pkg_version():
@@ -67,6 +21,12 @@ def get_pkg_version():
 class Dhis(object):
     """Core class for accessing DHIS2 web API"""
 
+    public_access = {
+        'none': '--------',
+        'readonly': 'r-------',
+        'readwrite': 'rw------'
+    }
+
     def __init__(self, server, username, password, api_version, debug_flag):
         if not server.startswith('https://'):
             server = "https://{}".format(server)
@@ -77,20 +37,14 @@ class Dhis(object):
             self.api_url = "{}/api".format(server)
         self.log = Logger(debug_flag)
 
-    public_access = {
-        'none': '--------',
-        'readonly': 'r-------',
-        'readwrite': 'rw------'
-    }
-
     def get_object_type(self, passed_name):
-        real = object_types.get(passed_name.lower(), None)
-        if real is None:
-            real = object_types.get(passed_name[:-1].lower(), None)
+        valid_obj_name = object_types().get(passed_name.lower(), None)
+        if valid_obj_name is None:
+            real = object_types().get(passed_name[:-1].lower(), None)
             if real is None:
                 self.log.info('Could not find a valid object type for -f="{}"'.format(passed_name))
                 sys.exit()
-        return real
+        return valid_obj_name
 
     def get(self, endpoint, params=None):
         url = "{}/{}.json".format(self.api_url, endpoint)

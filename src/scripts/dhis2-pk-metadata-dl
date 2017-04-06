@@ -37,7 +37,7 @@ parser.add_argument('-t', dest='object_type', action='store', required=True,
                     help="DHIS2 object type to fetch, e.g. -t=dataElements")
 parser.add_argument('-f', dest='object_filter', action='store', help="Object filter", required=False)
 parser.add_argument('-e', dest='fields', action='store', help="Fields to include", required=False)
-parser.add_argument('-y', dest='filetype', action='store', help="Filetype", required=False, choices=file_types,
+parser.add_argument('-y', dest='file_type', action='store', help="File format/type", required=False, choices=file_types,
                     default='json')
 parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
 parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
@@ -56,23 +56,24 @@ dhis = Downloader(server=args.server, username=args.username, password=args.pass
 dhis.log.startinfo(__file__)
 
 object_type = dhis.get_object_type(args)
-data = dhis.get_metadata(object_type, args.object_filter, args.fields, args.filetype)
+data = dhis.get_metadata(object_type, args.object_filter, args.fields, args.file_type)
 
 # file name stuff
 now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 server_name = args.server.replace('https://', '').replace('.', '-').replace('/', '-')
 if args.object_filter:
-    file_name = "{}_{}_{}_FILTERED.{}".format(now, server_name, object_type, args.filetype)
+    file_name = "{}_{}_{}_FILTERED.{}".format(now, server_name, object_type, args.file_type)
 else:
-    file_name = "{}_{}_{}.{}".format(now, server_name, object_type, args.filetype)
+    file_name = "{}_{}_{}.{}".format(now, server_name, object_type, args.file_type)
 
 # saving the file depending on format
-if args.filetype == 'json':
+if args.file_type == 'json':
     #https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file-in-python
     import json, codecs
     with open(file_name, 'wb') as f:
         json.dump(data, codecs.getwriter('utf-8')(f), ensure_ascii=False)
-elif args.filetype == 'xml':
-    pass
-elif args.filetype == 'csv':
-    pass
+else:
+    with open(file_name, 'w') as f:
+        f.write(data)
+
+dhis.log.info("{} file written to {}".format(args.file_type, file_name))

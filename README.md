@@ -35,21 +35,21 @@ PURPOSE: Share DHIS2 objects (dataElements, programs, ...) with userGroups
 arguments:
   -h, --help            show this help message and exit
   
-  -s SERVER             DHIS2 server URL, e.g. -s='play.dhis2.org/demo'
+  -s SERVER             DHIS2 server URL without /api/, e.g. -s='play.dhis2.org/demo'
   
   -t {see shareable types below in this README}
                         DHIS2 object type to apply sharing, e.g. -t=sqlViews
                         
-  -f FILTER             Filter on objects with DHIS2 field filter, 
-                        add multiple filters with '&&' e.g. -f='name:like:ABC'
+  -f FILTER             Filter on objects with DHIS2 field filter (add multiple 
+                        filters with '&&') e.g. -f='name:like:ABC'
                         
   -w USERGROUP_READWRITE
-                        UserGroup filter for Read-Write access, add multiple filters with '&&'
-                        e.g. -w='name:$ilike:UG1&id:!eq:aBc123XyZ0u'
+                        UserGroup filter for Read-Write access (add multiple 
+                        filters with '&&') e.g. -w='name:$ilike:aUserGroup7&&id:!eq:aBc123XyZ0u'
                         
   -r USERGROUP_READONLY
-                        UserGroup filter for Read-Only access, 
-                        add multiple filters with '&&', e.g. -r='id:eq:aBc123XyZ0u'
+                        UserGroup filter for Read-Only access, (add multiple 
+                        filters with '&&') e.g. -r='id:eq:aBc123XyZ0u'
                         
   -a {readwrite,none,readonly}
                         publicAccess (with login), e.g. -a=readwrite
@@ -130,12 +130,12 @@ PURPOSE: Create CSV with indicator definitions
 
 arguments:
   -h, --help           show this help message and exit
-  -s SERVER            Server, e.g. play.dhis2.org/demo
-  -f INDICATOR_FILTER  Indicator filter
+  -s SERVER            DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo
+  -f INDICATOR_FILTER  Indicator filter, e.g. -f='name:^like:HIV'
   -u USERNAME          DHIS2 username
   -p PASSWORD          DHIS2 password
   -v API_VERSION       DHIS2 API version e.g. -v=24
-  -d                   Debug flag - writes more info to log file, e.g. -d
+  -d                   Debug flag - writes more info to log file
 ```
 ### Indicator variables
 For interpreting indicator variables (like `OUG{someUID}`), refer to [DHIS2 docs](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#d9584e5669)
@@ -160,7 +160,7 @@ PURPOSE: Create CSV all users of an orgunit who also have sub-orgunits assigned
 
 arguments:
   -h, --help      show this help message and exit
-  -s SERVER       Server, e.g. play.dhis2.org/demo
+  -s SERVER       DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo
   -o ORGUNIT      Top-level orgunit UID to check its users
   -u USERNAME     DHIS2 username
   -p PASSWORD     DHIS2 password
