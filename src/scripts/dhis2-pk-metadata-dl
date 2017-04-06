@@ -18,13 +18,13 @@ class Downloader(Dhis):
     def __init__(self, server, username, password, api_version, debug_flag):
         Dhis.__init__(self, server, username, password, api_version, debug_flag)
 
-    def get_metadata(self, object_type, object_filter, fields, file_type):
+    def get_metadata(self, o_type, object_filter, fields, file_type):
         params = {
             'fields': fields,
             'filter': object_filter,
             'paging': False
         }
-        endpoint = "{}.{}".format(object_type, file_type)
+        endpoint = "{}.{}".format(o_type, file_type)
 
         return self.get(endpoint=endpoint, params=params)
 
@@ -68,8 +68,9 @@ else:
 
 # saving the file depending on format
 if args.file_type == 'json':
-    #https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file-in-python
-    import json, codecs
+    # https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file-in-python
+    import json
+    import codecs
     with open(file_name, 'wb') as f:
         json.dump(data, codecs.getwriter('utf-8')(f), ensure_ascii=False)
 else:

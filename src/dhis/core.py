@@ -7,7 +7,7 @@ import sys
 
 import requests
 
-from object_types import object_types
+from src.dhis.collection_names import object_types
 from src.__init__ import ROOT_DIR
 
 
@@ -104,7 +104,7 @@ class Logger(object):
     """Core class for Logging to file"""
 
     def __init__(self, debug_flag):
-        format = '%(levelname)s:%(asctime)s %(message)s'
+        logformat = '%(levelname)s:%(asctime)s %(message)s'
         datefmt = '%Y-%m-%d-%H:%M:%S'
         filename = 'dhis2-pk.log'
         self.debug_flag = debug_flag
@@ -114,10 +114,10 @@ class Logger(object):
         logging.getLogger("urllib3").setLevel(logging.WARNING)
 
         if self.debug_flag:
-            logging.basicConfig(filename=filename, level=logging.DEBUG, format=format,
+            logging.basicConfig(filename=filename, level=logging.DEBUG, format=logformat,
                                 datefmt=datefmt)
         else:
-            logging.basicConfig(filename=filename, level=logging.INFO, format=format,
+            logging.basicConfig(filename=filename, level=logging.INFO, format=logformat,
                                 datefmt=datefmt)
 
     @staticmethod

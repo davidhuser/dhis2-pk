@@ -22,7 +22,7 @@ class Sharer(Dhis):
     def __init__(self, server, username, password, api_version, debug_flag):
         Dhis.__init__(self, server, username, password, api_version, debug_flag)
 
-    def get_usergroup_uids(self, filter_list, type):
+    def get_usergroup_uids(self, filter_list, access):
         """Get UID(s) of userGroup(s) based on object filter"""
         params = {
             'fields': 'id,name',
@@ -30,7 +30,7 @@ class Sharer(Dhis):
             'filter': filter_list
         }
 
-        print(("\n--- GET userGroup(s) for filter {} ({})".format(filter_list, type)))
+        print(("\n--- GET userGroup(s) for filter {} ({})".format(filter_list, access)))
 
         endpoint = 'userGroups'
         response = self.get(endpoint=endpoint, params=params)
@@ -62,9 +62,9 @@ class Sharer(Dhis):
             self.log.info('*** No objects found. Wrong filter?')
             sys.exit()
 
-    def share_object(self, payload, parameters):
+    def share_object(self, pload, pmeters):
         """Share object by using sharing enpoint"""
-        self.post(endpoint="sharing", params=parameters, payload=payload)
+        self.post(endpoint="sharing", params=pmeters, payload=pload)
 
     def get_object_type(self, argument):
         return super(Sharer, self).get_object_type(argument)
@@ -72,17 +72,21 @@ class Sharer(Dhis):
 
 # argument parsing
 parser = argparse.ArgumentParser(usage='%(prog)s [-h] -s -t -f [-w] [-r] -a [-v] -u -p -d',
-                                 description="PURPOSE: Share DHIS2 objects (dataElements, programs, ...) with userGroups")
+                                 description="PURPOSE: Share DHIS2 objects (dataElements, programs, ...) "
+                                             "with userGroups")
 parser.add_argument('-s', dest='server', action='store', required=True,
                     help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'")
 parser.add_argument('-t', dest='object_type', action='store', required=True,
                     help="DHIS2 object type to apply sharing, e.g. -t=sqlViews")
 parser.add_argument('-f', dest='filter', action='store', required=True,
-                    help="Filter on objects with DHIS2 field filter (add multiple filters with '&&') e.g. -f='name:like:ABC'")
+                    help="Filter on objects with DHIS2 field filter (add "
+                         "multiple filters with '&&') e.g. -f='name:like:ABC'")
 parser.add_argument('-w', dest='usergroup_readwrite', action='store', required=False,
-                    help="UserGroup filter for Read-Write access (add multiple filters with '&&') e.g. -w='name:$ilike:aUserGroup7&&id:!eq:aBc123XyZ0u'")
+                    help="UserGroup filter for Read-Write access (add "
+                         "multiple filters with '&&') e.g. -w='name:$ilike:aUserGroup7&&id:!eq:aBc123XyZ0u'")
 parser.add_argument('-r', dest='usergroup_readonly', action='store', required=False,
-                    help="UserGroup filter for Read-Only access, (add multiple filters with '&&') e.g. -r='id:eq:aBc123XyZ0u'")
+                    help="UserGroup filter for Read-Only access, (add "
+                         "multiple filters with '&&') e.g. -r='id:eq:aBc123XyZ0u'")
 parser.add_argument('-a', dest='publicaccess', action='store', required=True, choices=Dhis.public_access.keys(),
                     help="publicAccess (with login), e.g. -a=readwrite")
 parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
