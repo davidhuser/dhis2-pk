@@ -60,8 +60,11 @@ class Dhis(object):
         self.log.debug("URL: {}".format(req.url))
 
         if req.status_code == 200:
-            self.log.debug("RESPONSE: {}".format(req.text))
-            return req.json()
+            try:
+                self.log.debug("RESPONSE: {}".format(req.text))
+                return req.json()
+            except UnicodeEncodeError:
+                self.log.debug("RESPONSE: {}".format(req.text.encode('ascii', 'replace').decode('ascii')))
         else:
             self.log.info(req.text)
             sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
