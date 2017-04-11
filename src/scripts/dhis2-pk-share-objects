@@ -56,11 +56,12 @@ class Sharer(Dhis):
         print("\n--- GET {} with filter(s) {}".format(objects, objects_filter))
         response = self.get(endpoint=objects, params=params)
 
-        if len(response[objects]) > 0:
-            return response
-        else:
-            self.log.info('*** No objects found. Wrong filter?')
-            sys.exit()
+        if response:
+            if len(response[objects]) > 0:
+                return response
+        self.log.info('*** No objects found. Wrong filter?')
+        self.log.debug('objects: {}'.format(objects))
+        sys.exit()
 
     def share_object(self, pload, pmeters):
         """Share object by using sharing enpoint"""
