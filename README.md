@@ -4,6 +4,7 @@ Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2
 
 * [Mass sharing of objects with user groups through filtering](#mass-sharing-of-objects-with-usergroups-through-filtering)
 * [Export readable indicator definition to CSV](#export-readable-indicator-definition-to-csv)
+* [Download metadata to JSON, XML or CSV](#download-metadata-to-json-or-xml-or-csv)
 * [Export user-orgunit double assignment](#export-users-with-a-misconfigured-organisation-unit-assignment-to-csv)
 
 ## Installation / updating
@@ -15,6 +16,7 @@ Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2
 ## Usage
 
 * Get help on using arguments, e.g.`dhis2-pk-share-objects --help`
+* In the help text, `[-v]` means an optional argument
 * Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server.
 * Logs to a file: `dhis2-pk.log`
 
@@ -145,6 +147,33 @@ For interpreting indicator variables (like `OUG{someUID}`), refer to [DHIS2 docs
 dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 ```
 ---
+
+## Download metadata to JSON or XML or CSV
+
+**Script name:** `dhis-pk-metadata-dl`
+
+* It defaults to use all object fields (without 'created', 'lastUpdated' etc) - but can be overridden by using `-e=id,name`
+* It defaults to use JSON, but can be overriden by using `-y=xml` or `-y=csv`
+
+```
+dhis2-pk-metadata-dl -h
+usage: dhis2-pk-metadata-dl [-h] -s -t [-f] [-e] [-y] -u -p [-v] [-d]
+                                                         
+Download metadata
+
+optional arguments:
+  -h, --help         show this help message and exit
+  -s SERVER          Server, e.g. play.dhis2.org/demo
+  -t OBJECT_TYPE     DHIS2 object type to get, e.g. -t=dataElements
+  -f OBJECT_FILTER   Object filter, e.g. -f='name:like:Acute'
+  -e FIELDS          Fields to include, e.g. -f='id,name'
+  -y {json,xml,csv}  File format, defaults to JSON
+  -u USERNAME        DHIS2 username
+  -p PASSWORD        DHIS2 password
+  -v API_VERSION     DHIS2 API version e.g. -v=24
+  -d                 Debug flag - writes more info to log file
+```
+
 ## Export users with a misconfigured Organisation Unit assignment to CSV
 
 **Script name:** `dhis2-pk-user-orgunits`
@@ -183,10 +212,11 @@ dhis2-pk-user-orgunits -s=play.dhis2.org/demo -o=O6uvpzGd5pu -u=admin -p=distric
 - [x] added indicator expression script
 - [x] acronym support for object types (`-t=de`)
 - [x] multiple filter should be added with `&&` instead of `&`
+- [x] new feature: download of metadata
 
 ### todo
 
-- [ ] new feature: download of metadata
+- [ ] Tests...
 
 ---
 PyPI link: https://pypi.python.org/pypi/dhis2-pocket-knife

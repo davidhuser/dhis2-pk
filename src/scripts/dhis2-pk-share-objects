@@ -163,7 +163,7 @@ for obj in data[object_type]:
         dhis.log.info("({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['code']))
     except KeyError:
         try:
-            dhis.log.info("({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['name']))
+            dhis.log.info("({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['name'].encode('utf-8')))
         except UnicodeEncodeError:
             dhis.log.info("({}/{}) [OK] {}".format(counter, no_of_obj, obj['id']))
 

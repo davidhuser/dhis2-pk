@@ -41,6 +41,9 @@ class Downloader(Dhis):
         for v in resp.values():
             if isinstance(v, dict):
                 self.delete_properties_from_response(v, attr_rm)
+            elif isinstance(v, list):
+                for elem in v:
+                    self.delete_properties_from_response(elem, attr_rm)
         return resp
 
 
@@ -49,17 +52,18 @@ file_types = ['json', 'xml', 'csv']
 parser = argparse.ArgumentParser(description="Download metadata")
 parser.add_argument('-s', dest='server', action='store', help="Server, e.g. play.dhis2.org/demo", required=True)
 parser.add_argument('-t', dest='object_type', action='store', required=True,
-                    help="DHIS2 object type to fetch, e.g. -t=dataElements")
-parser.add_argument('-f', dest='object_filter', action='store', help="Object filter", required=False)
-parser.add_argument('-e', dest='fields', action='store', help="Fields to include", default=':all', required=False)
-parser.add_argument('-y', dest='file_type', action='store', help="File format/type", required=False, choices=file_types,
+                    help="DHIS2 object type to get, e.g. -t=dataElements")
+parser.add_argument('-f', dest='object_filter', action='store', help="Object filter, e.g. -f='name:like:Acute'",
+                    required=False)
+parser.add_argument('-e', dest='fields', action='store', help="Fields to include, e.g. -f='id,name'", default=':all', required=False)
+parser.add_argument('-y', dest='file_type', action='store', help="File format, defaults to JSON", required=False, choices=file_types,
                     default='json')
 parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
 parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
 parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
                     help='DHIS2 API version e.g. -v=24')
 parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
-                    help="Debug flag - writes more info to log file, e.g. -d")
+                    help="Debug flag - writes more info to log file")
 
 args = parser.parse_args()
 
@@ -70,8 +74,11 @@ dhis.log.startinfo(__file__)
 o_type = dhis.get_object_type(args.object_type)
 data = dhis.get_metadata(o_type=o_type, o_filter=args.object_filter, file_type=args.file_type, fields=args.fields)
 
+if not args.debug:
+    print("To see the URL used, add '-d' to the script arguments and look in dhis2-pk.log")
+
 # file name stuff
-now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 server_name = args.server.replace('https://', '').replace('.', '-').replace('/', '-')
 if args.object_filter:
     file_name = "{}_{}_{}_FILTERED.{}".format(now, server_name, o_type, args.file_type)
@@ -90,4 +97,4 @@ else:
     with open(file_name, 'w') as other_file:
         other_file.write(str(data.encode('utf-8')))
 
-dhis.log.info("{} file written to {}".format(args.file_type, file_name))
+dhis.log.info("{} file written to {}".format(args.file_type.upper(), file_name))
