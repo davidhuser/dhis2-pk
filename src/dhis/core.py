@@ -72,7 +72,10 @@ class Dhis(object):
             except UnicodeEncodeError:
                 self.log.debug("RESPONSE: {}".format(req.text.encode('ascii', 'replace').decode('ascii')))
             finally:
-                return req.json()
+                if file_type == 'json':
+                    return req.json()
+                else:
+                    return req
         else:
             self.log.info(req.text)
             sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
