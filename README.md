@@ -175,7 +175,7 @@ optional arguments:
 ```
 Example (try it out against DHIS2 demo instance):
 ```
-dhis2-pk-metadata-dl -s=play.dhis2.org -u=admin -p=district -t=dataElements -f='name:like:Acute'
+dhis2-pk-metadata-dl -s=play.dhis2.org/demo -u=admin -p=district -t=dataElements -f='name:like:Acute'
 ```
 ---
 ## Export users with a misconfigured Organisation Unit assignment to CSV
