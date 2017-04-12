@@ -173,7 +173,7 @@ optional arguments:
   -v API_VERSION     DHIS2 API version e.g. -v=24
   -d                 Debug flag - writes more info to log file
 ```
-
+---
 ## Export users with a misconfigured Organisation Unit assignment to CSV
 
 **Script name:** `dhis2-pk-user-orgunits`
