@@ -34,8 +34,8 @@ d = {
     'maps': ['maps', 'map'],
     'documents': ['documents', 'document'],
     'reports': ['reports', 'report'],
-    'charts': ['charts', 'chart'],
-    'reportTables': ['reporttables', 'reporttable'],
+    'charts': ['charts', 'chart', 'datavisualization', 'datavisualizations', 'datavizualition', 'datavizualizations'],
+    'reportTables': ['pivottable', 'pivottables', 'reporttables', 'reporttable'],
     'dashboards': ['dashboards', 'dashboard']
 }
 

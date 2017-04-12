@@ -19,9 +19,6 @@ from src.dhis.core import Dhis
 class Sharer(Dhis):
     """Inherited from core Dhis class to extend functionalities"""
 
-    def __init__(self, server, username, password, api_version, debug_flag):
-        Dhis.__init__(self, server, username, password, api_version, debug_flag)
-
     def get_usergroup_uids(self, filter_list, access):
         """Get UID(s) of userGroup(s) based on object filter"""
         params = {

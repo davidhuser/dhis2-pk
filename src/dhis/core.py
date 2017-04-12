@@ -7,7 +7,11 @@ import sys
 
 import requests
 
-from src.dhis.collection_names import object_types
+try:
+    from .helpers import object_types
+except ImportError:
+    from src.dhis.helpers import object_types
+
 from src.__init__ import ROOT_DIR
 
 
@@ -38,16 +42,17 @@ class Dhis(object):
         self.log = Logger(debug_flag)
 
     def get_object_type(self, passed_name):
-        valid_obj_name = object_types().get(passed_name.lower(), None)
-        if valid_obj_name is None:
-            real = object_types().get(passed_name[:-1].lower(), None)
+        obj_types = object_types()
+        valid_obj_name = obj_types.get(passed_name.lower(), None)
+        if valid_obj_name is not None:
+            real = valid_obj_name.get(passed_name[:-1].lower(), None)
             if real is None:
                 self.log.info('Could not find a valid object type for -f="{}"'.format(passed_name))
                 sys.exit()
         return valid_obj_name
 
-    def get(self, endpoint, params=None):
-        url = "{}/{}.json".format(self.api_url, endpoint)
+    def get(self, endpoint, file_type, params=None):
+        url = "{}/{}.{}".format(self.api_url, endpoint, file_type)
 
         self.log.debug("GET: {} - parameters: {}".format(url, json.dumps(params)))
 
@@ -127,7 +132,7 @@ class Logger(object):
     @staticmethod
     def startinfo(script_path):
         script_name = os.path.splitext(os.path.basename(script_path))[0]
-        logging.info("\n+++ dhis2-pocket-knife v{} +++ {}".format(get_pkg_version(), script_name))
+        logging.info("\n\n+++ dhis2-pocket-knife v{} +++ {}".format(get_pkg_version(), script_name))
 
     @staticmethod
     def info(text):

@@ -15,18 +15,17 @@ from src.dhis.core import Dhis
 class Downloader(Dhis):
     """Inherited from core Dhis class to extend functionalities"""
 
-    def __init__(self, server, username, password, api_version, debug_flag):
-        Dhis.__init__(self, server, username, password, api_version, debug_flag)
+    def get_metadata(self, o_type, o_filter, file_type, fields=':all'):
 
-    def get_metadata(self, o_type, object_filter, fields, file_type):
+        to_remove = ',!access,!created,!href,!externalAccess,!user,\
+        !displayFormName,!displayName,!displayShortName,!lastUpdated'
+
         params = {
-            'fields': fields,
-            'filter': object_filter,
+            'fields': '{}{}'.format(fields, to_remove),
+            'filter': o_filter,
             'paging': False
         }
-        endpoint = "{}.{}".format(o_type, file_type)
-
-        return self.get(endpoint=endpoint, params=params)
+        return self.get(endpoint=o_type, file_type=file_type, params=params)
 
 
 file_types = ['json', 'xml', 'csv']
@@ -36,7 +35,7 @@ parser.add_argument('-s', dest='server', action='store', help="Server, e.g. play
 parser.add_argument('-t', dest='object_type', action='store', required=True,
                     help="DHIS2 object type to fetch, e.g. -t=dataElements")
 parser.add_argument('-f', dest='object_filter', action='store', help="Object filter", required=False)
-parser.add_argument('-e', dest='fields', action='store', help="Fields to include", required=False)
+parser.add_argument('-e', dest='fields', action='store', help="Fields to include", default=':all', required=False)
 parser.add_argument('-y', dest='file_type', action='store', help="File format/type", required=False, choices=file_types,
                     default='json')
 parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
@@ -46,35 +45,33 @@ parser.add_argument('-v', dest='api_version', action='store', required=False, ty
 parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
                     help="Debug flag - writes more info to log file, e.g. -d")
 
-parser.add_argument('-a', dest='publicaccess', action='store', required=True, choices=Dhis.public_access.keys(),
-                    help="publicAccess (with login), e.g. -a=readwrite")
-
 args = parser.parse_args()
 
 dhis = Downloader(server=args.server, username=args.username, password=args.password, api_version=args.api_version,
                   debug_flag=args.debug)
 dhis.log.startinfo(__file__)
 
-object_type = dhis.get_object_type(args)
-data = dhis.get_metadata(object_type, args.object_filter, args.fields, args.file_type)
+o_type = dhis.get_object_type(args.object_type)
+data = dhis.get_metadata(o_type=o_type, o_filter=args.object_filter, file_type=args.file_type, fields=args.fields)
 
 # file name stuff
 now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 server_name = args.server.replace('https://', '').replace('.', '-').replace('/', '-')
 if args.object_filter:
-    file_name = "{}_{}_{}_FILTERED.{}".format(now, server_name, object_type, args.file_type)
+    file_name = "{}_{}_{}_FILTERED.{}".format(now, server_name, o_type, args.file_type)
 else:
-    file_name = "{}_{}_{}.{}".format(now, server_name, object_type, args.file_type)
+    file_name = "{}_{}_{}.{}".format(now, server_name, o_type, args.file_type)
 
 # saving the file depending on format
 if args.file_type == 'json':
     # https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file-in-python
     import json
     import codecs
-    with open(file_name, 'wb') as f:
-        json.dump(data, codecs.getwriter('utf-8')(f), ensure_ascii=False)
+
+    with open(file_name, 'wb') as json_file:
+        json.dump(data, codecs.getwriter('utf-8')(json_file), ensure_ascii=False, indent=4)
 else:
-    with open(file_name, 'w') as f:
-        f.write(data)
+    with open(file_name, 'w') as other_file:
+        other_file.write(str(data))
 
 dhis.log.info("{} file written to {}".format(args.file_type, file_name))
