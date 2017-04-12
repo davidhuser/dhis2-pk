@@ -53,7 +53,7 @@ class Dhis(object):
                 return valid_obj_name2
         return valid_obj_name1
 
-    def get(self, endpoint, file_type, params=None):
+    def get(self, endpoint, file_type='json', params=None):
         url = "{}/{}.{}".format(self.api_url, endpoint, file_type)
 
         self.log.debug("GET: {} - parameters: {}".format(url, json.dumps(params)))
