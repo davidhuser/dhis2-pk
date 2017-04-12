@@ -43,13 +43,15 @@ class Dhis(object):
 
     def get_object_type(self, passed_name):
         obj_types = object_types()
-        valid_obj_name = obj_types.get(passed_name.lower(), None)
-        if valid_obj_name is not None:
-            real = valid_obj_name.get(passed_name[:-1].lower(), None)
-            if real is None:
+        valid_obj_name1 = obj_types.get(passed_name.lower(), None)
+        if valid_obj_name1 is not None:
+            valid_obj_name2 = obj_types.get(passed_name[:-1].lower(), None)
+            if valid_obj_name2 is None:
                 self.log.info('Could not find a valid object type for -f="{}"'.format(passed_name))
                 sys.exit()
-        return valid_obj_name
+            else:
+                return valid_obj_name2
+        return valid_obj_name1
 
     def get(self, endpoint, file_type, params=None):
         url = "{}/{}.{}".format(self.api_url, endpoint, file_type)
