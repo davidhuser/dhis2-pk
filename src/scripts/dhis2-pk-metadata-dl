@@ -10,6 +10,7 @@ import argparse
 from datetime import datetime
 
 from src.dhis.core import Dhis
+from src.dhis.helpers import properties_to_remove
 
 
 class Downloader(Dhis):
@@ -17,15 +18,30 @@ class Downloader(Dhis):
 
     def get_metadata(self, o_type, o_filter, file_type, fields=':all'):
 
-        to_remove = ',!access,!created,!href,!externalAccess,!user,\
-        !displayFormName,!displayName,!displayShortName,!lastUpdated'
+        to_remove = ",!{}".format(",!".join(properties_to_remove))
 
         params = {
             'fields': '{}{}'.format(fields, to_remove),
             'filter': o_filter,
             'paging': False
         }
-        return self.get(endpoint=o_type, file_type=file_type, params=params)
+        response = self.get(endpoint=o_type, file_type=file_type, params=params)
+        if file_type == 'json':
+            return self.delete_properties_from_response(response)
+        else:
+            return response
+
+    def delete_properties_from_response(self, resp, attr_rm=properties_to_remove):
+        """ Remove all keys which are in the list (see param)"""
+        for k in attr_rm:
+            try:
+                del resp[k]
+            except KeyError:
+                pass
+        for v in resp.values():
+            if isinstance(v, dict):
+                self.delete_properties_from_response(v, attr_rm)
+        return resp
 
 
 file_types = ['json', 'xml', 'csv']
@@ -72,6 +88,6 @@ if args.file_type == 'json':
         json.dump(data, codecs.getwriter('utf-8')(json_file), ensure_ascii=False, indent=4)
 else:
     with open(file_name, 'w') as other_file:
-        other_file.write(str(data))
+        other_file.write(str(data.encode('utf-8')))
 
 dhis.log.info("{} file written to {}".format(args.file_type, file_name))

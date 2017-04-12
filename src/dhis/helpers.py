@@ -43,3 +43,16 @@ d = {
 def object_types():
     """Reverse dictionary from  key:list  to  each_listitem: key"""
     return dict((v, k) for k in d for v in d[k])
+
+
+properties_to_remove = {
+    'access',
+    'created',
+    'href',
+    'externalAccess',
+    'user',
+    'displayFormName',
+    'displayName',
+    'displayShortName',
+    'lastUpdated',
+}
