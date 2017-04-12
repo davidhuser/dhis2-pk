@@ -75,7 +75,7 @@ class Dhis(object):
                 if file_type == 'json':
                     return req.json()
                 else:
-                    return req
+                    return req.text
         else:
             self.log.info(req.text)
             sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
