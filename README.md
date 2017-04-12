@@ -173,6 +173,10 @@ optional arguments:
   -v API_VERSION     DHIS2 API version e.g. -v=24
   -d                 Debug flag - writes more info to log file
 ```
+Example (try it out against DHIS2 demo instance):
+```
+dhis2-pk-metadata-dl -s=play.dhis2.org -u=admin -p=district -t=dataElements -f='name:like:Acute'
+```
 ---
 ## Export users with a misconfigured Organisation Unit assignment to CSV
 
