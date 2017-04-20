@@ -67,11 +67,7 @@ class Dhis(object):
         self.log.debug("URL: {}".format(req.url))
 
         if req.status_code == 200:
-            try:
                 self.log.debug("RESPONSE: {}".format(req.text))
-            except UnicodeEncodeError:
-                self.log.debug("RESPONSE: {}".format(req.text.encode('ascii', 'replace').decode('ascii')))
-            finally:
                 if file_type == 'json':
                     return req.json()
                 else:
@@ -93,7 +89,7 @@ class Dhis(object):
         self.log.debug(req.url)
 
         if req.status_code != 200:
-            msg = "[{} {}] {}".format(str(req.status_code), req.url, req.text)
+            msg = "[{} {}] {}".format(req.status_code, req.url, req.text)
             self.log.info(msg)
             self.log.debug(req.text)
             sys.exit()
@@ -107,7 +103,7 @@ class Dhis(object):
             self.log.info(e)
             sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
 
-        msg = "[{}] {}".format(str(req.status_code), req.url)
+        msg = "[{}] {}".format(req.status_code, req.url)
         self.log.info(msg)
         if req.status_code != 200 or req.status_code != 204:
             self.log.info(req.text)
@@ -141,9 +137,9 @@ class Logger(object):
 
     @staticmethod
     def info(text):
-        print(text)
-        logging.info(text)
+        print(text.encode('utf-8'))
+        logging.info(text.encode('utf-8'))
 
     @staticmethod
     def debug(text):
-        logging.debug(text)
+        logging.debug(text.encode('utf-8'))

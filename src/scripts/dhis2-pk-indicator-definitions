@@ -116,21 +116,25 @@ file_name = 'indicator-descriptions-{}.csv'.format(
 with open(file_name, 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(
-        ['id', 'name', 'shortName', 'numerator', 'num_desc', 'denominator', 'den_desc', 'annualized', 'indicatorType',
+        ['uid', 'name', 'shortName', 'numerator', 'num_desc', 'denominator', 'den_desc', 'annualized', 'indicatorType',
          'decimals'])
 
     for ind in indicators['indicators']:
-        num = replace_definitions(ind['numerator'], object_mapping)
-        den = replace_definitions(ind['denominator'], object_mapping)
-        dhis.log.debug("Replaced numerators: {}".format(num.encode('utf-8')))
-        dhis.log.debug("Replaced denominators: {}".format(den.encode('utf-8')))
+        num = replace_definitions(ind['numerator'], object_mapping).encode('utf-8')
+        den = replace_definitions(ind['denominator'], object_mapping).encode('utf-8')
+        dhis.log.debug("Replaced numerators: {}".format(num))
+        dhis.log.debug("Replaced denominators: {}".format(den))
 
-        ind_type_desc = object_mapping[ind['indicatorType']['id']].get('desc')
-        row = [
-            ind['id'], ind['name'], ind['shortName'], num, ind.get('numeratorDescription', None), den,
-            ind.get('denominatorDescription', None), ind.get('annualized', None), ind_type_desc,
-            ind.get('decimals', 'default')
-        ]
+        uid = ind['id'].encode('utf-8')
+        name = ind['name'].encode('utf-8')
+        shortname = ind['shortName'].encode('utf-8')
+        num_desc = ind.get('denominatorDescription', None).encode('utf-8')
+        den_desc = ind.get('denominatorDescription', None).encode('utf-8')
+        annualized = ind.get('annualized', None).encode('utf-8')
+        ind_type_desc = object_mapping[ind['indicatorType']['id']].get('desc').encode('utf-8')
+        decimals = ind.get('decimals', 'default').encode('utf-8')
+
+        row = [uid, name, shortname, num, num_desc, den, den_desc, annualized, ind_type_desc, decimals]
         writer.writerow(row)
 
     dhis.log.info("File written to {}".format(file_name))
