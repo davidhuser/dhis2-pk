@@ -46,13 +46,10 @@ def object_types():
 
 
 properties_to_remove = {
-    'access',
     'created',
-    'href',
-    'externalAccess',
     'user',
-    'displayFormName',
-    'displayName',
-    'displayShortName',
     'lastUpdated',
+    'publicAccess',
+    'userGroupAccesses',
+    'userAccesses'
 }

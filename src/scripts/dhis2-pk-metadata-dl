@@ -7,6 +7,7 @@ Download metadata from the commandline
 """
 
 import argparse
+import sys
 from datetime import datetime
 
 from src.dhis.core import Dhis
@@ -16,35 +17,29 @@ from src.dhis.helpers import properties_to_remove
 class Downloader(Dhis):
     """Inherited from core Dhis class to extend functionalities"""
 
-    def get_metadata(self, o_type, o_filter, file_type, fields=':all'):
+    def get_dhis_version(self):
+        """ return DHIS2 verson (e.g. 26) as integer"""
+        response = self.get(endpoint='system/info', file_type='json')
+        return int(response.get('version').split('.')[1])
 
-        to_remove = ",!{}".format(",!".join(properties_to_remove))
+    def get_metadata(self, o_type, o_filter, file_type, fields):
 
-        params = {
-            'fields': '{}{}'.format(fields, to_remove),
-            'filter': o_filter,
-            'paging': False
-        }
-        response = self.get(endpoint=o_type, file_type=file_type, params=params)
-        if file_type == 'json':
-            return self.delete_properties_from_response(response)
+        if o_type in {'dataSets', 'programs', 'categoryCombos'}:
+            dhis.log.info('Looking for export {} with dependencies? '
+                          'Look at docs.dhis2.org > Dev guide > "Metadata export with dependencies"'.format(o_type))
+
+        params = {o_type: True, 'translate': True}
+
+        if fields:
+            params['fields'] = fields
         else:
-            return response
+            to_remove = ",!{}".format(",!".join(properties_to_remove))
+            params['fields'] = ":owner{}".format(to_remove)
+            print(to_remove)
+        if o_filter:
+            params['filter'] = o_filter
 
-    def delete_properties_from_response(self, resp, attr_rm=properties_to_remove):
-        """ Remove all keys which are in the list (see param)"""
-        for k in attr_rm:
-            try:
-                del resp[k]
-            except KeyError:
-                pass
-        for v in resp.values():
-            if isinstance(v, dict):
-                self.delete_properties_from_response(v, attr_rm)
-            elif isinstance(v, list):
-                for elem in v:
-                    self.delete_properties_from_response(elem, attr_rm)
-        return resp
+        return self.get(endpoint='metadata', file_type=file_type, params=params)
 
 
 file_types = ['json', 'xml', 'csv']
@@ -55,8 +50,9 @@ parser.add_argument('-t', dest='object_type', action='store', required=True,
                     help="DHIS2 object type to get, e.g. -t=dataElements")
 parser.add_argument('-f', dest='object_filter', action='store', help="Object filter, e.g. -f='name:like:Acute'",
                     required=False)
-parser.add_argument('-e', dest='fields', action='store', help="Fields to include, e.g. -f='id,name'", default=':all', required=False)
-parser.add_argument('-y', dest='file_type', action='store', help="File format, defaults to JSON", required=False, choices=file_types,
+parser.add_argument('-e', dest='fields', action='store', help="Fields to include, e.g. -f='id,name'", required=False)
+parser.add_argument('-y', dest='file_type', action='store', help="File format, defaults to JSON", required=False,
+                    choices=file_types,
                     default='json')
 parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
 parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
@@ -67,21 +63,36 @@ parser.add_argument('-d', dest='debug', action='store_true', default=False, requ
 
 args = parser.parse_args()
 
+if args.object_filter:
+    o_filter = args.object_filter.decode()
+else:
+    o_filter = None
+
 dhis = Downloader(server=args.server, username=args.username, password=args.password, api_version=args.api_version,
                   debug_flag=args.debug)
 dhis.log.startinfo(__file__)
 
+dhis_version = dhis.get_dhis_version()
+
+if dhis_version < 23:
+    dhis.log.info('DHIS2 version 2.{} is currently not supported for metadata export - only 2.23+'.format(dhis_version))
+    sys.exit()
+
 o_type = dhis.get_object_type(args.object_type)
-data = dhis.get_metadata(o_type=o_type, o_filter=args.object_filter, file_type=args.file_type, fields=args.fields)
+data = dhis.get_metadata(o_type=o_type, o_filter=o_filter, file_type=args.file_type, fields=args.fields)
 
 if not args.debug:
-    print("To see the URL used, add '-d' to the script arguments and look in dhis2-pk.log")
+    print("Note: To see the URL used, add '-d' to the script arguments and look in dhis2-pk.log")
 
 # file name stuff
 now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 server_name = args.server.replace('https://', '').replace('.', '-').replace('/', '-')
-if args.object_filter:
-    file_name = "{}_{}_{}_FILTERED.{}".format(now, server_name, o_type, args.file_type)
+if o_filter:
+    remove = ":^!$"
+    filter_sanitized = o_filter
+    for char in remove:
+        filter_sanitized = filter_sanitized.replace(char, "-")
+    file_name = "{}_{}_{}_{}.{}".format(now, server_name, o_type, filter_sanitized, args.file_type)
 else:
     file_name = "{}_{}_{}.{}".format(now, server_name, o_type, args.file_type)
 
