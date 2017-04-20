@@ -107,7 +107,7 @@ It's also possible to use acronyms/abbreviations like `de` or `catcombo`, `-t=ds
 ### Example (try it out against DHIS2 demo instance):
 
 ```
-dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district -v=24 -d
+dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All&&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district -v=24 -d
 ```
 ---
 ## Export readable indicator definition to CSV

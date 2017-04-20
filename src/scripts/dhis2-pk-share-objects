@@ -30,7 +30,7 @@ class Sharer(Dhis):
         print(("\n--- GET userGroup(s) for filter {} ({})".format(filter_list, access)))
 
         endpoint = 'userGroups'
-        response = self.get(endpoint=endpoint, params=params)
+        response = self.get(endpoint=endpoint, file_type='json', params=params)
 
         if len(response['userGroups']) > 0:
             # zip it into a dict { id: name, id:name }
@@ -51,7 +51,7 @@ class Sharer(Dhis):
             'paging': False
         }
         print("\n--- GET {} with filter(s) {}".format(objects, objects_filter))
-        response = self.get(endpoint=objects, params=params)
+        response = self.get(endpoint=objects, file_type='json', params=params)
 
         if response:
             if len(response[objects]) > 0:
