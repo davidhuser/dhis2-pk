@@ -21,7 +21,8 @@ def valid_uid(uid):
 
 
 parser = argparse.ArgumentParser(description="Create CSV of users of an orgunit who also have sub-orgunits assigned")
-parser.add_argument('-s', dest='server', action='store', help="DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo", required=True)
+parser.add_argument('-s', dest='server', action='store',
+                    help="DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo", required=True)
 parser.add_argument('-o', dest='orgunit', action='store', help="Top-level orgunit UID to check its users",
                     required=True)
 parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
@@ -111,7 +112,7 @@ if users_export:
     for u in xrange(len(users_export)):
         users_export[u].pop('organisationUnits')
 
-    file_name = '{}_{}-user-orgunits-conflicts.csv'.format(root_orgunit['name'], root_orgunit['id'])
+    file_name = 'user-orgunits_{}-{}_{}.csv'.format(root_orgunit['name'], root_orgunit['id'], dhis.file_timestamp)
     with open(file_name, 'w') as csv_file:
         # use the keys of first user as csv headers
         fieldnames = list(users_export[0].keys())
@@ -120,6 +121,6 @@ if users_export:
         writer.writeheader()
         writer.writerows(users_export)
 
-    dhis.log.info("Found and exported {} users to {}".format(str(len(users_export)), file_name))
+    dhis.log.info("Found and exported {} users to {}".format(len(users_export), file_name))
 else:
     dhis.log.info("No conflicts found.")

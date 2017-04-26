@@ -51,5 +51,7 @@ properties_to_remove = {
     'lastUpdated',
     'publicAccess',
     'userGroupAccesses',
-    'userAccesses'
+    'userAccesses',
+    'href',
+    'url'
 }

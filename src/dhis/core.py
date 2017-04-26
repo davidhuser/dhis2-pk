@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import sys
+from datetime import datetime
 
 import requests
 
@@ -40,6 +41,9 @@ class Dhis(object):
         else:
             self.api_url = "{}/api".format(server)
         self.log = Logger(debug_flag)
+        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        server_name = server.replace('https://', '').replace('.', '-').replace('/', '-')
+        self.file_timestamp = "{}_{}".format(now, server_name)
 
     def get_object_type(self, passed_name):
         obj_types = object_types()
@@ -137,7 +141,10 @@ class Logger(object):
 
     @staticmethod
     def info(text):
-        print(text.encode('utf-8'))
+        try:
+            print(text)
+        except UnicodeDecodeError:
+            print(text.encode('utf-8'))
         logging.info(text.encode('utf-8'))
 
     @staticmethod

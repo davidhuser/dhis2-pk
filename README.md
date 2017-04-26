@@ -159,7 +159,7 @@ dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 
 ```
 dhis2-pk-metadata-dl -h
-usage: dhis2-pk-metadata-dl [-h] -s -t [-f] [-e] [-y] -u -p [-v] [-d]
+usage: dhis2-pk-metadata-dl [-h] -s -t [-f] [-e] [-y] -u -p [-d]
                                                          
 Download metadata
 
@@ -172,9 +172,9 @@ optional arguments:
   -y {json,xml,csv}  File format, defaults to JSON
   -u USERNAME        DHIS2 username
   -p PASSWORD        DHIS2 password
-  -v API_VERSION     DHIS2 API version e.g. -v=24
   -d                 Debug flag - writes more info to log file
 ```
+
 Example (try it out against DHIS2 demo instance):
 ```
 dhis2-pk-metadata-dl -s=play.dhis2.org/demo -u=admin -p=district -t=dataElements -f='name:like:Acute'

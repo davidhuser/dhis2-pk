@@ -8,7 +8,7 @@ Download metadata from the commandline
 
 import argparse
 import sys
-from datetime import datetime
+import codecs
 
 from src.dhis.core import Dhis
 from src.dhis.helpers import properties_to_remove
@@ -35,7 +35,6 @@ class Downloader(Dhis):
         else:
             to_remove = ",!{}".format(",!".join(properties_to_remove))
             params['fields'] = ":owner{}".format(to_remove)
-            print(to_remove)
         if o_filter:
             params['filter'] = o_filter
 
@@ -47,7 +46,7 @@ file_types = ['json', 'xml', 'csv']
 parser = argparse.ArgumentParser(description="Download metadata")
 parser.add_argument('-s', dest='server', action='store', help="Server, e.g. play.dhis2.org/demo", required=True)
 parser.add_argument('-t', dest='object_type', action='store', required=True,
-                    help="DHIS2 object type to get, e.g. -t=dataElements")
+                    help="DHIS2 object types to get, e.g. -t=dataElements")
 parser.add_argument('-f', dest='object_filter', action='store', help="Object filter, e.g. -f='name:like:Acute'",
                     required=False)
 parser.add_argument('-e', dest='fields', action='store', help="Fields to include, e.g. -f='id,name'", required=False)
@@ -56,8 +55,6 @@ parser.add_argument('-y', dest='file_type', action='store', help="File format, d
                     default='json')
 parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
 parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
-parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
-                    help='DHIS2 API version e.g. -v=24')
 parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
                     help="Debug flag - writes more info to log file")
 
@@ -68,7 +65,7 @@ if args.object_filter:
 else:
     o_filter = None
 
-dhis = Downloader(server=args.server, username=args.username, password=args.password, api_version=args.api_version,
+dhis = Downloader(server=args.server, username=args.username, password=args.password, api_version=None,
                   debug_flag=args.debug)
 dhis.log.startinfo(__file__)
 
@@ -82,30 +79,30 @@ o_type = dhis.get_object_type(args.object_type)
 data = dhis.get_metadata(o_type=o_type, o_filter=o_filter, file_type=args.file_type, fields=args.fields)
 
 if not args.debug:
-    print("Note: To see the URL used, add '-d' to the script arguments and look in dhis2-pk.log")
+    print("To see the URL used, add '-d' to the script arguments and look in dhis2-pk.log")
 
-# file name stuff
-now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-server_name = args.server.replace('https://', '').replace('.', '-').replace('/', '-')
 if o_filter:
     remove = ":^!$"
     filter_sanitized = o_filter
     for char in remove:
         filter_sanitized = filter_sanitized.replace(char, "-")
-    file_name = "{}_{}_{}_{}.{}".format(now, server_name, o_type, filter_sanitized, args.file_type)
+    file_name = "metadata-{}_{}_{}.{}".format(o_type, dhis.file_timestamp, filter_sanitized, args.file_type)
 else:
-    file_name = "{}_{}_{}.{}".format(now, server_name, o_type, args.file_type)
+    file_name = "metadata-{}_{}.{}".format(o_type, dhis.file_timestamp, args.file_type)
 
 # saving the file depending on format
 if args.file_type == 'json':
     # https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file-in-python
     import json
-    import codecs
-
     with open(file_name, 'wb') as json_file:
         json.dump(data, codecs.getwriter('utf-8')(json_file), ensure_ascii=False, indent=4)
-else:
-    with open(file_name, 'w') as other_file:
-        other_file.write(str(data.encode('utf-8')))
+elif args.file_type == 'xml':
+    with codecs.open(file_name, 'w', encoding='utf-8') as other_file:
+        other_file.write(str(data))
+elif args.file_type == 'csv':
+    print("Warning: there might be issues with CSV import, better use JSON or XML.")
+    with codecs.open("{}".format(file_name), 'wb', encoding='utf-8') as f:
+        f.write(str(data.replace(',id,', ',uid,')))
 
-dhis.log.info("{} file written to {}".format(args.file_type.upper(), file_name))
+
+dhis.log.info("+++ {} file exported to {}".format(args.file_type.upper(), file_name))
