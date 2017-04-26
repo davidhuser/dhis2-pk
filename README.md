@@ -1,4 +1,6 @@
-# dhis2-pocket-knife [![Build Status](https://travis-ci.org/davidhuser/dhis2-pocket-knife.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pocket-knife)
+# dhis2-pocket-knife 
+[![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Build Status](https://travis-ci.org/davidhuser/dhis2-pocket-knife.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pocket-knife)[![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
+
 
 Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org) 
 
@@ -206,7 +208,7 @@ arguments:
 dhis2-pk-user-orgunits -s=play.dhis2.org/demo -o=O6uvpzGd5pu -u=admin -p=district
 ```
 
-
+---
 
 ### done
 
@@ -222,5 +224,4 @@ dhis2-pk-user-orgunits -s=play.dhis2.org/demo -o=O6uvpzGd5pu -u=admin -p=distric
 
 - [ ] Tests...
 
----
-PyPI link: https://pypi.python.org/pypi/dhis2-pocket-knife
+
