@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import json
 import logging
@@ -71,7 +72,7 @@ class Dhis(object):
         self.log.debug("URL: {}".format(req.url))
 
         if req.status_code == 200:
-                self.log.debug("RESPONSE: {}".format(req.text))
+                self.log.debug("RESPONSE: {}".format(req.text.encode('utf-8')))
                 if file_type == 'json':
                     return req.json()
                 else:

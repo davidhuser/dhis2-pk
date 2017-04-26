@@ -57,7 +57,7 @@ class Sharer(Dhis):
             if len(response[objects]) > 0:
                 return response
         self.log.info('*** No objects found. Wrong filter?')
-        self.log.debug('objects: {}'.format(objects))
+        self.log.debug('objects: {}'.format(objects.encode('utf-8')))
         sys.exit()
 
     def share_object(self, pload, pmeters):
