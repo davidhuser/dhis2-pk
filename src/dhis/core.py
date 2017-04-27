@@ -142,11 +142,15 @@ class Logger(object):
 
     @staticmethod
     def info(text):
-        try:
-            print(text)
-        except UnicodeDecodeError:
-            print(text.encode('utf-8'))
-        logging.info(text.encode('utf-8'))
+        if isinstance(text, Exception):
+            logging.debug(repr(text))
+        else:
+            try:
+                print(text)
+            except UnicodeDecodeError:
+                print(text.encode('utf-8'))
+            finally:
+                logging.info(text.encode('utf-8'))
 
     @staticmethod
     def debug(text):

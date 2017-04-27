@@ -24,6 +24,7 @@ d = {
     'indicatorGroupSets': ['indicatorgroupsets', 'igs', 'indgroupsets', 'indicatorgroupset'],
     'dataSets': ['datasets', 'ds', 'dataset'],
     'dataApprovalLevels': ['dataapprovallevels', 'datasetapprovallevel'],
+    'validationRules': ['validationrules', 'validationrule'],
     'validationRuleGroups': ['validationrulegroups', 'validationrulegroup'],
     'interpretations': ['interpretations', 'interpretation'],
     'trackedEntityAttributes': ['trackedentityattributes', 'trackedentityattribute', 'tea', 'teas'],
@@ -54,4 +55,17 @@ properties_to_remove = {
     'userAccesses',
     'href',
     'url'
+}
+
+csv_import_objects = {
+    'dataElements',
+    'dataElementGroups',
+    'categoryOptions',
+    'categoryOptionGroups',
+    'organisationUnits',
+    'organisationUnitGroups',
+    'validationRules',
+    'translations',
+    'optionSets'
+
 }

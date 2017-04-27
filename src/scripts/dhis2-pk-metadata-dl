@@ -7,11 +7,14 @@ Download metadata from the commandline
 """
 
 import argparse
-import sys
 import codecs
+import json
+import os
+import sys
+import traceback
 
 from src.dhis.core import Dhis
-from src.dhis.helpers import properties_to_remove
+from src.dhis.helpers import properties_to_remove, csv_import_objects
 
 
 class Downloader(Dhis):
@@ -72,10 +75,15 @@ dhis.log.startinfo(__file__)
 dhis_version = dhis.get_dhis_version()
 
 if dhis_version < 23:
-    dhis.log.info(u'DHIS2 version 2.{} is currently not supported for metadata export - only 2.23+'.format(dhis_version))
+    dhis.log.info(
+        u'DHIS2 version 2.{} is currently not supported for metadata export - only 2.23+'.format(dhis_version))
     sys.exit()
 
+if args.file_type == 'csv':
+    print("WARNING: CSV needs to be edited correctly before importing.")
+
 o_type = dhis.get_object_type(args.object_type)
+
 data = dhis.get_metadata(o_type=o_type, o_filter=o_filter, file_type=args.file_type, fields=args.fields)
 
 if not args.debug:
@@ -91,18 +99,20 @@ else:
     file_name = "metadata-{}_{}.{}".format(o_type, dhis.file_timestamp, args.file_type)
 
 # saving the file depending on format
-if args.file_type == 'json':
-    # https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file-in-python
-    import json
-    with open(file_name, 'wb') as json_file:
-        json.dump(data, codecs.getwriter('utf-8')(json_file), ensure_ascii=False, indent=4)
-elif args.file_type == 'xml':
-    with codecs.open(file_name, 'w', encoding='utf-8') as other_file:
-        other_file.write(str(data))
-elif args.file_type == 'csv':
-    print("Warning: there might be issues with CSV import, better use JSON or XML.")
-    with codecs.open(file_name, 'wb', encoding='utf-8') as f:
-        f.write(str(data.replace(',id,', ',uid,')))
-
-
-dhis.log.info(u"+++ Success! {} file exported to {}".format(args.file_type.upper(), file_name))
+try:
+    if args.file_type == 'json':
+        # https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file-in-python
+        with open(file_name, 'wb') as json_file:
+            json.dump(data, codecs.getwriter('utf-8')(json_file), ensure_ascii=False, indent=4)
+    elif args.file_type == 'xml':
+        with codecs.open(file_name, 'wb', encoding='utf-8') as xml_file:
+            xml_file.write(data)
+    elif args.file_type == 'csv':
+        if o_type not in csv_import_objects:
+            print("WARNING: {} cannot be imported to DHIS2 directly with CSV files.".format(o_type))
+        with codecs.open(file_name, 'wb', encoding='utf-8') as csv_file:
+            csv_file.write(data)
+    dhis.log.info(u"+++ Success! {} file exported to {}".format(args.file_type.upper(), file_name))
+except Exception as e:
+    os.remove(file_name)
+    dhis.log.info(traceback.print_exc())
