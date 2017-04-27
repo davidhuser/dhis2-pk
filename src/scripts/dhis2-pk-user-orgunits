@@ -8,7 +8,7 @@ and its sub-organisation units and prints them with their UID.
 """
 
 import argparse
-import csv
+import unicodecsv as csv
 import re
 import sys
 
@@ -102,7 +102,7 @@ for user in root_orgunit['users']:
             user_orgunit_uid = user_orgunits[x]['id']
             if user_orgunit_uid != orgunit_root_uid and user_orgunit_uid in sub_uids:
                 users_export.append(user)
-                msg = "Conflicting user found: {} - UID: {}".format(user['name'], user_uid)
+                msg = u"Conflicting user found: {} - UID: {}".format(user['name'], user_uid)
                 dhis.log.info(msg)
                 break
 
@@ -121,6 +121,6 @@ if users_export:
         writer.writeheader()
         writer.writerows(users_export)
 
-    dhis.log.info(u"Found and exported {} users to {}".format(len(users_export), file_name))
+    dhis.log.info(u"+++ Success! Exported {} users to {}".format(len(users_export), file_name))
 else:
-    dhis.log.info(u"No conflicts found.")
+    dhis.log.info(u"+++ No conflicts found.")

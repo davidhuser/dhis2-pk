@@ -105,4 +105,4 @@ elif args.file_type == 'csv':
         f.write(str(data.replace(',id,', ',uid,')))
 
 
-dhis.log.info(u"+++ {} file exported to {}".format(args.file_type.upper(), file_name))
+dhis.log.info(u"+++ Success! {} file exported to {}".format(args.file_type.upper(), file_name))

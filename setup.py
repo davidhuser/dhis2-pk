@@ -18,7 +18,8 @@ setup(
     license='MIT',
     install_requires=[
         "requests>=2.4.2",
-        "six>=1.10.0"
+        "six>=1.10.0",
+        "unicodecsv>=0.14.1"
     ],
     scripts=[
         'src/scripts/dhis2-pk-share-objects',

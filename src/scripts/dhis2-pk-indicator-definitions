@@ -7,7 +7,7 @@ Creates a CSV with indicator definitions (names of dataelement.catoptioncombo, c
 """
 
 import argparse
-import csv
+import unicodecsv as csv
 import sys
 
 from src.dhis.core import Dhis
@@ -113,27 +113,34 @@ object_mapping = object_map()
 file_name = 'indicators-{}.csv'.format(dhis.file_timestamp)
 
 with open(file_name, 'w') as csvfile:
-    writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+    writer = csv.writer(csvfile, encoding='utf-8', delimiter=',', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(
         ['uid', 'name', 'shortName', 'numerator', 'num_desc', 'denominator', 'den_desc', 'annualized', 'indicatorType',
          'decimals'])
 
     for ind in indicators['indicators']:
-        num = replace_definitions(ind['numerator'], object_mapping).encode('utf-8')
-        den = replace_definitions(ind['denominator'], object_mapping).encode('utf-8')
+        num = replace_definitions(ind['numerator'], object_mapping)
+        den = replace_definitions(ind['denominator'], object_mapping)
         dhis.log.debug(u"Replaced numerators: {}".format(num))
         dhis.log.debug(u"Replaced denominators: {}".format(den))
 
-        uid = ind['id'].encode('utf-8')
-        name = ind['name'].encode('utf-8')
-        shortname = ind['shortName'].encode('utf-8')
-        num_desc = ind.get('denominatorDescription', None).encode('utf-8')
-        den_desc = ind.get('denominatorDescription', None).encode('utf-8')
-        annualized = ind.get('annualized', None)
-        ind_type_desc = object_mapping[ind['indicatorType']['id']].get('desc').encode('utf-8')
-        decimals = ind.get('decimals', 'default')
+        uid = ind['id']
+        name = ind['name']
+        shortname = ind['shortName']
+        num_desc = ind.get('numeratorDescription', None)
+        den_desc = ind.get('denominatorDescription', None)
+        annualized = str(ind.get('annualized', 'False')).decode('utf-8')
+        ind_type_desc = object_mapping[ind['indicatorType']['id']].get('desc')
+        decimals = ind.get('decimals', u'default')
 
         row = [uid, name, shortname, num, num_desc, den, den_desc, annualized, ind_type_desc, decimals]
-        writer.writerow(row)
+        row_copy = row[:]
+        for elem in row_copy:
+            if type(elem) is unicode or type(elem) is str:
+                elem = elem.encode('utf-8')
+            elif type(elem) is bool:
+                elem = str(elem)
+        print([type(elem) for elem in row_copy])
+        writer.writerow(row_copy)
 
-    dhis.log.info(u"File written to {}".format(file_name))
+    dhis.log.info(u"+++ Success! CSV file exported to {}".format(file_name))
