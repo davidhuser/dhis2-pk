@@ -52,7 +52,7 @@ class Dhis(object):
         if valid_obj_name1 is not None:
             valid_obj_name2 = obj_types.get(passed_name[:-1].lower(), None)
             if valid_obj_name2 is None:
-                self.log.info('Could not find a valid object type for -f="{}"'.format(passed_name))
+                self.log.info(u'Could not find a valid object type for -f="{}"'.format(passed_name))
                 sys.exit()
             else:
                 return valid_obj_name2
@@ -61,7 +61,7 @@ class Dhis(object):
     def get(self, endpoint, file_type='json', params=None):
         url = "{}/{}.{}".format(self.api_url, endpoint, file_type)
 
-        self.log.debug("GET: {} - parameters: {}".format(url, json.dumps(params)))
+        self.log.debug(u"GET: {} - parameters: {}".format(url, json.dumps(params)))
 
         try:
             req = requests.get(url, params=params, auth=self.auth)
@@ -69,10 +69,10 @@ class Dhis(object):
             self.log.info(e)
             sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
 
-        self.log.debug("URL: {}".format(req.url))
+        self.log.debug(u"URL: {}".format(req.url))
 
         if req.status_code == 200:
-                self.log.debug("RESPONSE: {}".format(req.text.encode('utf-8')))
+                self.log.debug(u"RESPONSE: {}".format(req.text))
                 if file_type == 'json':
                     return req.json()
                 else:
@@ -83,7 +83,7 @@ class Dhis(object):
 
     def post(self, endpoint, params, payload):
         url = "{}/{}".format(self.api_url, endpoint)
-        self.log.debug("POST: {} \n parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
+        self.log.debug(u"POST: {} \n parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
 
         try:
             req = requests.post(url, params=params, json=payload, auth=self.auth)
@@ -138,7 +138,7 @@ class Logger(object):
     @staticmethod
     def startinfo(script_path):
         script_name = os.path.splitext(os.path.basename(script_path))[0]
-        logging.info("\n\n+++ dhis2-pocket-knife v{} +++ {}".format(get_pkg_version(), script_name))
+        logging.info(u"\n\n+++ dhis2-pocket-knife v{} +++ {}".format(get_pkg_version(), script_name))
 
     @staticmethod
     def info(text):

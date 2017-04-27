@@ -71,7 +71,7 @@ no_of_users = len(root_orgunit['users'])
 # put the response ids into a list
 sub_uids = list(ou['id'] for ou in resp2['organisationUnits'])
 
-dhis.log.info("Checking users against Sub-OrgUnit assignments of Parent-OrgUnit {}".format(root_orgunit['name']))
+dhis.log.info(u"Checking users against Sub-OrgUnit assignments of Parent-OrgUnit {}".format(root_orgunit['name']))
 
 # Python2 & 3 compatibility
 try:
@@ -121,6 +121,6 @@ if users_export:
         writer.writeheader()
         writer.writerows(users_export)
 
-    dhis.log.info("Found and exported {} users to {}".format(len(users_export), file_name))
+    dhis.log.info(u"Found and exported {} users to {}".format(len(users_export), file_name))
 else:
-    dhis.log.info("No conflicts found.")
+    dhis.log.info(u"No conflicts found.")

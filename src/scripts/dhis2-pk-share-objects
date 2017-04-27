@@ -36,10 +36,10 @@ class Sharer(Dhis):
             # zip it into a dict { id: name, id:name }
             ugmap = {ug['id']: ug['name'] for ug in response['userGroups']}
             for (key, value) in iteritems(ugmap):
-                self.log.info("{} - {}".format(key, value))
+                self.log.info(u"{} - {}".format(key, value))
             return ugmap.keys()
         else:
-            self.log.info("*** No userGroup(s) found. Wrong filter?")
+            self.log.info(u"*** No userGroup(s) found. Wrong filter?")
             sys.exit()
 
     def get_objects(self, objects, objects_filter):
@@ -56,8 +56,8 @@ class Sharer(Dhis):
         if response:
             if len(response[objects]) > 0:
                 return response
-        self.log.info('*** No objects found. Wrong filter?')
-        self.log.debug('objects: {}'.format(objects.encode('utf-8')))
+        self.log.info(u'*** No objects found. Wrong filter?')
+        self.log.debug(u'objects: {}'.format(objects.encode('utf-8')))
         sys.exit()
 
     def share_object(self, pload, pmeters):
@@ -160,11 +160,11 @@ for obj in data[object_type]:
     dhis.share_object(payload, parameters)
 
     try:
-        dhis.log.info("({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['code']))
+        dhis.log.info(u"({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['code']))
     except KeyError:
         try:
-            dhis.log.info("({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['name'].encode('utf-8')))
+            dhis.log.info(u"({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['name'].encode('utf-8')))
         except UnicodeEncodeError:
-            dhis.log.info("({}/{}) [OK] {}".format(counter, no_of_obj, obj['id']))
+            dhis.log.info(u"({}/{}) [OK] {}".format(counter, no_of_obj, obj['id']))
 
     counter += 1
