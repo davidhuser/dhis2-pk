@@ -153,8 +153,10 @@ dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 
 **Script name:** `dhis-pk-metadata-dl`
 
-* It defaults to use all object fields (without 'created', 'lastUpdated' etc) - but can be overridden by using `-e=id,name`
+* It uses the metadata export feature (for 2.23+ versions) described in the [docs](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_export)
 * It defaults to use JSON, but can be overriden by using `-y=xml` or `-y=csv`
+* Note that CSV should not be used for direct import to DHIS2 as it may break things.
+* You can use any common term for a type, e.g. `-f=ou` of `-f=CatCombos`
 
 ```
 dhis2-pk-metadata-dl -h
