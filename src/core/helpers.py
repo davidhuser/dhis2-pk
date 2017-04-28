@@ -1,4 +1,6 @@
-d = {
+from copy import deepcopy
+
+shareable = {
     'userGroups': ['usergroups', 'ug', 'usergroup'],
     'sqlViews': ['sqlviews', 'sqlview'],
     'constants': ['constants', 'constant'],
@@ -41,10 +43,18 @@ d = {
 }
 
 
-def object_types():
+def shareable_object_types():
     """Reverse dictionary from  key:list  to  each_listitem: key and sort it"""
-    return dict((v, k) for k in d for v in d[k])
+    return dict((v, k) for k in shareable for v in shareable[k])
 
+
+all_objects = deepcopy(shareable)
+all_objects['organisationUnits'] = ['ou', 'orgunit', 'orgunits']
+
+
+def all_object_types():
+    """Reverse dictionary from  key:list  to  each_listitem: key and sort it"""
+    return dict((v, k) for k in all_objects for v in all_objects[k])
 
 properties_to_remove = {
     'created',
@@ -67,4 +77,9 @@ csv_import_objects = {
     'validationRules',
     'translations',
     'optionSets'
+}
+
+replace_headers_from_to = {
+    'id': 'UID'
+    'openingDate'
 }

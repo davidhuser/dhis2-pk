@@ -17,16 +17,18 @@ setup(
     keywords='dhis2',
     license='MIT',
     install_requires=[
-        "requests>=2.4.2",
-        "six>=1.10.0",
-        "unicodecsv>=0.14.1"
+        'requests>=2.4.2',
+        'six>=1.10.0',
+        'unicodecsv>=0.14.1'
     ],
-    scripts=[
-        'src/scripts/dhis2-pk-share-objects',
-        'src/scripts/dhis2-pk-user-orgunits',
-        'src/scripts/dhis2-pk-indicator-definitions',
-        'src/scripts/dhis2-pk-metadata-dl'
-    ],
+    entry_points={
+        'console_scripts': [
+            'dhis2-pk-indicator-definitions = src.scripts.indicator_definitions:main',
+            'dhis2-pk-share-objects = src.scripts.share_objects:main',
+            'dhis2-pk-user-orgunits = src.scripts.user_orgunits:main',
+            'dhis2-pk-metadata-dl = src.scripts.metadata_download:main'
+        ]
+    },
     packages=find_packages(exclude=['tests']),
     test_suite='pytest',
     tests_require=['pytest'],
