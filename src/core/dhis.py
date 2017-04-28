@@ -89,7 +89,7 @@ class Dhis(object):
         if valid_obj_name1 is None:
             valid_obj_name2 = obj_types.get(passed_name[:-1].lower(), None)
             if valid_obj_name2 is None:
-                log_info(u"+++ Could not find a valid object type for -t='{}'".format(passed_name))
+                log_info(u"+++ Could not find a shareable object type for -t='{}'".format(passed_name))
                 sys.exit()
             else:
                 return valid_obj_name2

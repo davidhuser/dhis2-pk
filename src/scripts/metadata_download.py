@@ -14,7 +14,7 @@ import traceback
 import re
 
 from src.core.dhis import Dhis
-from src.core.helpers import properties_to_remove, csv_import_objects, replace_headers_from_to
+from src.core.helpers import properties_to_remove, csv_import_objects
 from src.core.logger import *
 
 
@@ -76,19 +76,6 @@ def check_dhis_version(dhis):
         sys.exit()
 
 
-def replace_csv_headers(data):
-    d = replace_headers_from_to
-    header_row = data.split('\n', 1)[0]
-    content_rows = '\n'.join(data.split('\n')[1:])
-
-    # https://stackoverflow.com/a/2400577/1344855
-    pattern = re.compile(r'\b(' + '|'.join(d.keys()) + r')\b')
-    replaced_header_row = pattern.sub(lambda x: d[x.group()], header_row)
-
-    full = "{}\n{}".format(replaced_header_row, content_rows).decode('utf-8')
-    return full
-
-
 def main():
     args = parse_args()
     init_logger(args.debug)
@@ -126,7 +113,7 @@ def main():
                 xml_file.write(data)
         elif args.file_type == 'csv':
             with codecs.open(file_name, 'wb', encoding='utf-8') as csv_file:
-                csv_file.write(replace_csv_headers(data))
+                csv_file.write(data)
         log_info(u"+++ Success! {} file exported to {}".format(args.file_type.upper(), file_name))
     except Exception:
         os.remove(file_name)

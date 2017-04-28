@@ -53,7 +53,7 @@ def test_get_all_object_types(dhis):
         'indicatorgroupset', 'indicatorgroupsets', 'indicators', 'interpretation', 'interpretations', 'legendset',
         'legendsets', 'map', 'maps', 'optiongroup', 'optiongroups', 'optiongroupset', 'optiongroupsets', 'optionsets',
         'organisationunitgroups', 'organisationunitgroupsets', 'orgunitgroup', 'orgunitgroups', 'orgunitgroupset',
-        'orgunitgroupsets', 'os', 'oug', 'ougroup', 'ougroups', 'ougroupset', 'ougroupsets', 'ougs', 'pi', 'pivottable',
+        'orgunitgroupsets', 'os', 'ou', 'oug', 'ougroup', 'ougroups', 'ougroupset', 'ougroupsets', 'ougs', 'pi', 'pivottable',
         'pivottables', 'program', 'programindicator', 'programindicators', 'programs', 'report', 'reports',
         'reporttable', 'reporttables', 'sqlview', 'sqlviews', 'tea', 'teas', 'trackedentityattribute',
         'trackedentityattributes', 'ug', 'usergroup', 'usergroups', 'validationrule', 'validationrulegroup',
@@ -65,14 +65,14 @@ def test_get_all_object_types(dhis):
 
 
 def test_get_shareable_object_types(dhis):
-    passed_objects = ['ou']
+    passed_objects = ['sqlviews']
     for elem in passed_objects:
         dhis.get_shareable_object_type(elem)
 
 
 def test_get_no_object_types(dhis):
     with pytest.raises(SystemExit):
-        dhis.get_object_type('blupaodo')
+        dhis.get_all_object_type('blupaodo')
 
 
 def test_api_version(dhis_with_api_version):
