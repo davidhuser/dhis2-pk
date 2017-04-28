@@ -38,7 +38,7 @@ def test_demo_server_200(dhis):
     assert response['email'] == 'someone@dhis2.org'
 
 
-def test_get_object_types(dhis):
+def test_get_all_object_types(dhis):
     passed_objects = [
         'cat', 'catcombo', 'catcombos', 'categories', 'categorycombination', 'categorycombinations', 'categorycombo',
         'categorycombos', 'categoryoption', 'categoryoptiongroup', 'categoryoptiongroups', 'categoryoptiongroupset',
@@ -61,7 +61,13 @@ def test_get_object_types(dhis):
     ]
 
     for elem in passed_objects:
-        dhis.get_object_type(elem)
+        dhis.get_all_object_type(elem)
+
+
+def test_get_shareable_object_types(dhis):
+    passed_objects = ['ou']
+    for elem in passed_objects:
+        dhis.get_shareable_object_type(elem)
 
 
 def test_get_no_object_types(dhis):
