@@ -35,14 +35,14 @@ d = {
     'maps': ['maps', 'map'],
     'documents': ['documents', 'document'],
     'reports': ['reports', 'report'],
-    'charts': ['charts', 'chart', 'datavisualization', 'datavisualizations', 'datavizualition', 'datavizualizations'],
+    'charts': ['charts', 'chart', 'datavisualization', 'datavisualizations', 'datavizualisation', 'datavizualizations'],
     'reportTables': ['pivottable', 'pivottables', 'reporttables', 'reporttable'],
     'dashboards': ['dashboards', 'dashboard']
 }
 
 
 def object_types():
-    """Reverse dictionary from  key:list  to  each_listitem: key"""
+    """Reverse dictionary from  key:list  to  each_listitem: key and sort it"""
     return dict((v, k) for k in d for v in d[k])
 
 

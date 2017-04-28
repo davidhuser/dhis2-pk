@@ -54,10 +54,10 @@ class Dhis(object):
     def get_object_type(self, passed_name):
         obj_types = object_types()
         valid_obj_name1 = obj_types.get(passed_name.lower(), None)
-        if valid_obj_name1 is not None:
+        if valid_obj_name1 is None:
             valid_obj_name2 = obj_types.get(passed_name[:-1].lower(), None)
             if valid_obj_name2 is None:
-                self.log.info(u'+++ Could not find a valid object type for -f="{}"'.format(passed_name))
+                self.log.info(u"+++ Could not find a valid object type for -t='{}'".format(passed_name))
                 sys.exit()
             else:
                 return valid_obj_name2
