@@ -27,7 +27,7 @@ class Sharer(Dhis):
             'filter': filter_list
         }
 
-        print(("\n--- GET userGroup(s) for filter {} ({})".format(filter_list, access)))
+        print(("\n+++ GET userGroup(s) for filter {} ({})".format(filter_list, access)))
 
         endpoint = 'userGroups'
         response = self.get(endpoint=endpoint, file_type='json', params=params)
@@ -39,7 +39,7 @@ class Sharer(Dhis):
                 self.log.info(u"{} - {}".format(key, value))
             return ugmap.keys()
         else:
-            self.log.info(u"*** No userGroup(s) found. Wrong filter?")
+            self.log.info(u"+++ No userGroup(s) found. Check your filter / DHIS2")
             sys.exit()
 
     def get_objects(self, objects, objects_filter):
@@ -50,13 +50,13 @@ class Sharer(Dhis):
             'filter': objects_filter,
             'paging': False
         }
-        print("\n--- GET {} with filter(s) {}".format(objects, objects_filter))
+        print("\n+++ GET {} with filter(s) {}".format(objects, objects_filter))
         response = self.get(endpoint=objects, file_type='json', params=params)
 
         if response:
             if len(response[objects]) > 0:
                 return response
-        self.log.info(u'*** No objects found. Wrong filter?')
+        self.log.info(u'+++ No objects found. Wrong filter?')
         self.log.debug(u'objects: {}'.format(objects.encode('utf-8')))
         sys.exit()
 

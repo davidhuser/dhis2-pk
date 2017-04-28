@@ -67,5 +67,4 @@ csv_import_objects = {
     'validationRules',
     'translations',
     'optionSets'
-
 }

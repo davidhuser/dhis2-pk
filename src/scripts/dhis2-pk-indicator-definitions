@@ -23,7 +23,7 @@ def replace_definitions(definition, obj_map):
 def object_map():
     """get all relevant objects from the server and put it in a single dictionary"""
     uid_mapping = {}
-    dhis.log.info(u"Building object UID mappings...")
+    dhis.log.info(u"Downloading UIDs<->Names...")
 
     params1 = {'paging': False}
     resp1 = dhis.get(endpoint='indicatorTypes', file_type='json', params=params1)
@@ -33,13 +33,13 @@ def object_map():
     params2 = {'fields': 'id,name,value', 'paging': False}
     resp2 = dhis.get(endpoint='constants', file_type='json', params=params2)
     for elem in resp2['constants']:
-        uid_mapping[elem['id']] = {'desc': "Name: {} - Value: {}".format(elem['name'], elem['value'])}
+        uid_mapping[elem['id']] = {'desc': "[Name: {} - Value: {}]".format(elem['name'], elem['value'])}
 
     params3 = {'fields': 'id,name,organisationUnits', 'paging': False}
     resp3 = dhis.get(endpoint='organisationUnitGroups', file_type='json', params=params3)
     for elem in resp3['organisationUnitGroups']:
         uid_mapping[elem['id']] = {
-            'desc': "Name: {} - OU Size: {}".format(elem['name'], len(elem['organisationUnits']))}
+            'desc': "[Name: {} - OUG Size: {}]".format(elem['name'], len(elem['organisationUnits']))}
 
     params4 = {'fields': 'id,name', 'paging': False}
     resp4 = dhis.get(endpoint='dataElements', file_type='json', params=params4)
@@ -90,33 +90,35 @@ dhis.log.startinfo(__file__)
 if args.indicator_filter:
     params = {
         'paging': False,
-        'fields': 'id,name,shortName,description,denominatorDescription,numeratorDescription,numerator,denominator,annualized,decimals,indicatorType',
+        'fields': 'id,name,shortName,description,denominatorDescription,'
+                  'numeratorDescription,numerator,denominator,annualized,decimals,indicatorType',
         'filter': args.indicator_filter
     }
 else:
     params = {
         'paging': False,
-        'fields': 'id,name,shortName,description,denominatorDescription,numeratorDescription,numerator,denominator,annualized,decimals,indicatorType'
+        'fields': 'id,name,shortName,description,denominatorDescription,'
+                  'numeratorDescription,numerator,denominator,annualized,decimals,indicatorType'
     }
 
 indicators = dhis.get(endpoint='indicators', file_type='json', params=params)
 if len(indicators) == 0:
     if args.indicator_filter:
-        dhis.log.info(u"No indicators fetched - wrong filter?")
+        dhis.log.info(u"No indicators fetched - check your filter")
         sys.exit()
     else:
-        dhis.log.info(u"No indicators found - are there any?")
+        dhis.log.info(u"No indicators found - are there any? Check {}/indicators".format(dhis.api_url))
         sys.exit()
 dhis.log.info(u"Analyzing {} indicators from {}".format(len(indicators['indicators']), args.server))
 
 object_mapping = object_map()
-file_name = 'indicators-{}.csv'.format(dhis.file_timestamp)
 
-with open(file_name, 'w') as csvfile:
+file_name = 'indicators-{}.csv'.format(dhis.file_timestamp)
+with open(file_name, 'wb') as csvfile:
     writer = csv.writer(csvfile, encoding='utf-8', delimiter=',', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(
-        ['uid', 'name', 'shortName', 'numerator', 'num_desc', 'denominator', 'den_desc', 'annualized', 'indicatorType',
-         'decimals'])
+        ['uid', 'name', 'shortName', 'numerator', 'numeratorDescription', 'denominator', 'denominatorDescription',
+         'annualized', 'indicatorType', 'decimals'])
 
     for ind in indicators['indicators']:
         num = replace_definitions(ind['numerator'], object_mapping)
@@ -134,13 +136,13 @@ with open(file_name, 'w') as csvfile:
         decimals = ind.get('decimals', u'default')
 
         row = [uid, name, shortname, num, num_desc, den, den_desc, annualized, ind_type_desc, decimals]
-        row_copy = row[:]
-        for elem in row_copy:
-            if type(elem) is unicode or type(elem) is str:
+
+        # convert all elements in row to unicode before writing it to csv
+        for elem in row:
+            if type(elem) in {unicode, str}:
                 elem = elem.encode('utf-8')
             elif type(elem) is bool:
                 elem = str(elem)
-        print([type(elem) for elem in row_copy])
-        writer.writerow(row_copy)
+        writer.writerow(row)
 
     dhis.log.info(u"+++ Success! CSV file exported to {}".format(file_name))

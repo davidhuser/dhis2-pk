@@ -18,8 +18,6 @@ from src.dhis.helpers import properties_to_remove, csv_import_objects
 
 
 class Downloader(Dhis):
-    """Inherited from core Dhis class to extend functionalities"""
-
     def get_dhis_version(self):
         """ return DHIS2 verson (e.g. 26) as integer"""
         response = self.get(endpoint='system/info', file_type='json')
@@ -28,8 +26,12 @@ class Downloader(Dhis):
     def get_metadata(self, o_type, o_filter, file_type, fields):
 
         if o_type in {'dataSets', 'programs', 'categoryCombos'}:
-            dhis.log.info(u'Looking for export {} with dependencies? '
-                          'Look at docs.dhis2.org > Dev guide > "Metadata export with dependencies"'.format(o_type))
+            print("Looking for export {} with dependencies? "
+                  "Look at docs.dhis2.org > Dev guide > 'Metadata export with dependencies'".format(o_type))
+        if file_type == 'csv':
+            print("WARNING: CSV file needs to be edited correctly before importing.")
+            if o_type not in csv_import_objects:
+                print("WARNING: {} cannot be imported to DHIS2 directly with CSV files.".format(o_type))
 
         params = {o_type: True, 'translate': True}
 
@@ -79,17 +81,12 @@ if dhis_version < 23:
         u'DHIS2 version 2.{} is currently not supported for metadata export - only 2.23+'.format(dhis_version))
     sys.exit()
 
-if args.file_type == 'csv':
-    print("WARNING: CSV needs to be edited correctly before importing.")
-
 o_type = dhis.get_object_type(args.object_type)
 
 data = dhis.get_metadata(o_type=o_type, o_filter=o_filter, file_type=args.file_type, fields=args.fields)
 
-if not args.debug:
-    print("To see the URL used, add '-d' to the script arguments and look in dhis2-pk.log")
-
 if o_filter:
+    # replace special characters in filter for file name
     remove = ":^!$"
     filter_sanitized = o_filter
     for char in remove:
@@ -108,8 +105,6 @@ try:
         with codecs.open(file_name, 'wb', encoding='utf-8') as xml_file:
             xml_file.write(data)
     elif args.file_type == 'csv':
-        if o_type not in csv_import_objects:
-            print("WARNING: {} cannot be imported to DHIS2 directly with CSV files.".format(o_type))
         with codecs.open(file_name, 'wb', encoding='utf-8') as csv_file:
             csv_file.write(data)
     dhis.log.info(u"+++ Success! {} file exported to {}".format(args.file_type.upper(), file_name))

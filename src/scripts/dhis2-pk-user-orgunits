@@ -16,7 +16,7 @@ from src.dhis.core import Dhis
 
 
 def valid_uid(uid):
-    "Check if string matches DHIS2 UID pattern"
+    """Check if string matches DHIS2 UID pattern"""
     return re.compile("[A-Za-z][A-Za-z0-9]{10}").match(uid)
 
 
@@ -39,7 +39,7 @@ dhis = Dhis(server=args.server, username=args.username, password=args.password, 
 dhis.log.startinfo(__file__)
 
 if not valid_uid(args.orgunit):
-    dhis.log.info("Orgunit is not a valid DHIS2 UID")
+    dhis.log.info(u"{} is not a valid DHIS2 UID".format(args.orgunit))
     sys.exit()
 
 orgunit_root_uid = args.orgunit

@@ -46,13 +46,18 @@ class Dhis(object):
         server_name = server.replace('https://', '').replace('.', '-').replace('/', '-')
         self.file_timestamp = "{}_{}".format(now, server_name)
 
+    def abort(self, request):
+        msg = u"++++++ ERROR ++++++\n+++HTTP code: {}\n+++URL: {}\n+++RESPONSE: {}"
+        self.log.info(msg.format(request.status_code, request.url, request.text))
+        sys.exit()
+
     def get_object_type(self, passed_name):
         obj_types = object_types()
         valid_obj_name1 = obj_types.get(passed_name.lower(), None)
         if valid_obj_name1 is not None:
             valid_obj_name2 = obj_types.get(passed_name[:-1].lower(), None)
             if valid_obj_name2 is None:
-                self.log.info(u'Could not find a valid object type for -f="{}"'.format(passed_name))
+                self.log.info(u'+++ Could not find a valid object type for -f="{}"'.format(passed_name))
                 sys.exit()
             else:
                 return valid_obj_name2
@@ -66,8 +71,7 @@ class Dhis(object):
         try:
             req = requests.get(url, params=params, auth=self.auth)
         except requests.RequestException as e:
-            self.log.info(e)
-            sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
+            self.abort(req)
 
         self.log.debug(u"URL: {}".format(req.url))
 
@@ -78,8 +82,7 @@ class Dhis(object):
                 else:
                     return req.text
         else:
-            self.log.info(req.text)
-            sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
+            self.abort(req)
 
     def post(self, endpoint, params, payload):
         url = "{}/{}".format(self.api_url, endpoint)
@@ -88,31 +91,12 @@ class Dhis(object):
         try:
             req = requests.post(url, params=params, json=payload, auth=self.auth)
         except requests.RequestException as e:
-            self.log.info(e)
-            sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
+            self.abort(req)
 
         self.log.debug(req.url)
 
         if req.status_code != 200:
-            msg = "[{} {}] {}".format(req.status_code, req.url, req.text)
-            self.log.info(msg)
-            self.log.debug(req.text)
-            sys.exit()
-
-    def delete(self, endpoint, uid):
-        url = "{}/{}/{}".format(self.api_url, endpoint, uid)
-
-        try:
-            req = requests.delete(url, auth=self.auth)
-        except requests.RequestException as e:
-            self.log.info(e)
-            sys.exit("Error: Check dhis2-pk.log or use debug argument -d")
-
-        msg = "[{}] {}".format(req.status_code, req.url)
-        self.log.info(msg)
-        if req.status_code != 200 or req.status_code != 204:
-            self.log.info(req.text)
-            sys.exit()
+            self.abort(req)
 
 
 class Logger(object):
@@ -138,7 +122,7 @@ class Logger(object):
     @staticmethod
     def startinfo(script_path):
         script_name = os.path.splitext(os.path.basename(script_path))[0]
-        logging.info(u"\n\n+++ dhis2-pocket-knife v{} +++ {}".format(get_pkg_version(), script_name))
+        logging.info(u"\n\n===== dhis2-pocket-knife v{} - {} =====".format(get_pkg_version(), script_name))
 
     @staticmethod
     def info(text):
