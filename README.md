@@ -156,7 +156,7 @@ dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 * It uses the metadata export feature (for 2.23+ versions) described in the [docs](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_export)
 * It defaults to use JSON, but can be overriden by using `-y=xml` or `-y=csv`
 * Note that CSV should not be used for direct import to DHIS2 as it may break things.
-* You can use any common term for a type, e.g. `-f=ou` of `-f=CatCombos`
+* You can use any common term for a type, e.g. `-t=ou` of `-t=CatCombos`
 
 ```
 dhis2-pk-metadata-dl -h
