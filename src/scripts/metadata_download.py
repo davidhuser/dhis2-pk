@@ -9,9 +9,8 @@ Download metadata from the commandline
 import argparse
 import codecs
 import json
-import sys
 import traceback
-import re
+import requests
 
 from src.core.dhis import Dhis
 from src.core.helpers import properties_to_remove, csv_import_objects
@@ -31,6 +30,29 @@ class Downloader(Dhis):
 
         return int(version.split('.')[1])
 
+    def get(self, endpoint, file_type='json', params=None, compressed=False):
+        url = '{}/{}.{}'.format(self.api_url, endpoint, file_type)
+
+        log_debug(u"GET: {} - parameters: {}".format(url, json.dumps(params)))
+
+        try:
+            req = requests.get(url, params=params, auth=self.auth)
+        except requests.RequestException as e:
+            self.abort(req)
+
+        log_debug(u"URL: {}".format(req.url))
+
+        if req.status_code == 200:
+            log_debug(u"RESPONSE: {}".format(req.text))
+            if compressed:
+                return req.content
+            elif file_type == 'json':
+                return req.json()
+            else:
+                return req.text
+        else:
+            self.abort(req)
+
     def get_metadata(self, o_type, o_filter, file_type, fields, compressed, dhis_version):
 
         if o_type in {'dataSets', 'programs', 'categoryCombos'}:
@@ -45,7 +67,7 @@ class Downloader(Dhis):
 
         if compressed:
             if file_type != 'csv':
-                file_type += ".zip"
+                file_type += ".gz"
             else:
                 print("Can't zip CSVs.")
 
@@ -70,7 +92,7 @@ class Downloader(Dhis):
             else:
                 endpoint = '{}/metadata'.format(dhis_version)
 
-        return self.get(endpoint=endpoint, file_type=file_type, params=params)
+        return self.get(endpoint=endpoint, file_type=file_type, params=params, compressed=compressed)
 
 
 def parse_args():
@@ -114,7 +136,7 @@ def main():
                              compressed=args.compress, dhis_version=version)
 
     if args.compress and args.file_type != 'csv':
-            fn_file_type = "{}.zip".format(args.file_type)
+            fn_file_type = "{}.gz".format(args.file_type)
     else:
         fn_file_type = args.file_type
     if o_filter:
@@ -129,20 +151,27 @@ def main():
 
     # saving the file depending on format
     try:
-        if args.file_type == 'json':
-            # https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file-in-python
-            with open(file_name, 'wb') as json_file:
-                json.dump(data, codecs.getwriter('utf-8')(json_file), ensure_ascii=False, indent=4)
-        elif args.file_type == 'xml':
-            with codecs.open(file_name, 'wb', encoding='utf-8') as xml_file:
-                xml_file.write(data)
-        elif args.file_type == 'csv':
-            with codecs.open(file_name, 'wb', encoding='utf-8') as csv_file:
-                csv_file.write(data)
+        if args.compress:
+            with codecs.open(file_name, 'wb') as zip_file:
+                zip_file.write(data)
+        else:
+            if args.file_type == 'json':
+                # https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file-in-python
+                with open(file_name, 'wb') as json_file:
+                    json.dump(data, codecs.getwriter('utf-8')(json_file), ensure_ascii=False, indent=4)
+            elif args.file_type == 'xml':
+                with codecs.open(file_name, 'wb', encoding='utf-8') as xml_file:
+                    xml_file.write(data)
+            elif args.file_type == 'csv':
+                with codecs.open(file_name, 'wb', encoding='utf-8') as csv_file:
+                    csv_file.write(data)
         log_info(u"+++ Success! {} file exported to {}".format(args.file_type.upper(), file_name))
-    except Exception:
-        os.remove(file_name)
-        log_info(traceback.print_exc())
+    except Exception as e:
+        try:
+            os.remove(file_name)
+        except OSError:
+            pass
+        log_info("{}\n{}".format(e, traceback.print_exc()))
 
 
 if __name__ == "__main__":
