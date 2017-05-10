@@ -85,9 +85,9 @@ def parse_args():
     parser.add_argument('-e', dest='fields', action='store', help="Fields to include, e.g. -f='id,name'",
                         required=False)
     parser.add_argument('-y', dest='file_type', action='store', help="File format, defaults to JSON", required=False,
-                        choices=file_types,
-                        default='json')
-    parser.add_argument('-z', dest='compress', action='store_true', help="Compress/zip download", default=False, required=False)
+                        choices=file_types, default='json')
+    parser.add_argument('-z', dest='compress', action='store_true', help="Compress/zip download", default=False,
+                        required=False)
     parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
     parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
     parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
@@ -113,15 +113,19 @@ def main():
     data = dhis.get_metadata(o_type=o_type, o_filter=o_filter, file_type=args.file_type, fields=args.fields,
                              compressed=args.compress, dhis_version=version)
 
+    if args.compress and args.file_type != 'csv':
+            fn_file_type = "{}.zip".format(args.file_type)
+    else:
+        fn_file_type = args.file_type
     if o_filter:
         # replace special characters in filter for file name
         remove = ":^!$"
         filter_sanitized = o_filter
         for char in remove:
             filter_sanitized = filter_sanitized.replace(char, "-")
-        file_name = "metadata-{}_{}_{}.{}".format(o_type, dhis.file_timestamp, filter_sanitized, args.file_type)
+        file_name = "metadata-{}_{}_{}.{}".format(o_type, dhis.file_timestamp, filter_sanitized, fn_file_type)
     else:
-        file_name = "metadata-{}_{}.{}".format(o_type, dhis.file_timestamp, args.file_type)
+        file_name = "metadata-{}_{}.{}".format(o_type, dhis.file_timestamp, fn_file_type)
 
     # saving the file depending on format
     try:
