@@ -62,7 +62,8 @@ properties_to_remove = {
     'userGroupAccesses',
     'userAccesses',
     'href',
-    'url'
+    'url',
+    'uuid'
 }
 
 csv_import_objects = {

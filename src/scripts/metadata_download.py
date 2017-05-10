@@ -22,7 +22,14 @@ class Downloader(Dhis):
     def get_dhis_version(self):
         """ return DHIS2 verson (e.g. 26) as integer"""
         response = self.get(endpoint='system/info', file_type='json')
-        return int(response.get('version').split('.')[1])
+
+        # remove -snapshot for play.dhis2.org/dev
+        snapshot = '-SNAPSHOT'
+        version = response.get('version')
+        if snapshot in version:
+            version = response.replace(snapshot, '')
+
+        return int(version.split('.')[1])
 
     def get_metadata(self, o_type, o_filter, file_type, fields, compressed, dhis_version):
 
@@ -80,7 +87,7 @@ def parse_args():
     parser.add_argument('-y', dest='file_type', action='store', help="File format, defaults to JSON", required=False,
                         choices=file_types,
                         default='json')
-    parser.add_argument('-z', dest='compress', action='store', help="Compress/zip download", default=False, required=False)
+    parser.add_argument('-z', dest='compress', action='store_true', help="Compress/zip download", default=False, required=False)
     parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
     parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
     parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
