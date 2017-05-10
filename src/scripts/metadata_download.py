@@ -27,7 +27,7 @@ class Downloader(Dhis):
         snapshot = '-SNAPSHOT'
         version = response.get('version')
         if snapshot in version:
-            version = response.replace(snapshot, '')
+            version = version.replace(snapshot, '')
 
         return int(version.split('.')[1])
 
