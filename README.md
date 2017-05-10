@@ -1,7 +1,16 @@
 # dhis2-pocket-knife [![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Build Status](https://travis-ci.org/davidhuser/dhis2-pocket-knife.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pocket-knife) [![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
 
 
-Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org) 
+Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org)
+
+_An example:_
+> Share all dataElements starting with `ABC-` with a userGroup called `UG Admin` for read-write access and with a userGroup called `UG Users` for read-only access while public Access is set to `None`:
+  
+ ```
+ dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:ABC-' -w='name:like:UG Admin' -r='name:like:UG Users' -a=none -u=admin -p=district
+ ```
+
+All tools:
 
 * [Mass sharing of objects with user groups through filtering](#mass-sharing-of-objects-with-usergroups-through-filtering)
 * [Export readable indicator definition to CSV](#export-readable-indicator-definition-to-csv)
@@ -10,9 +19,9 @@ Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2
 
 ## Installation / updating
 
-* Easy installation with [pip](https://pip.pypa.io/en/stable/installing) (python package manager)
-* `pip install dhis2-pocket-knife`
-* Update with `pip install dhis2-pocket-knife --upgrade`
+* Easy installation with [pip](https://pip.pypa.io/en/stable/installing) (python package manager, see if it is installed: `pip -V`)
+* `pip install dhis2-pocket-knife` or `sudo -H pip install dhis2-pocket-knife`
+* Upgrade with `pip install dhis2-pocket-knife --upgrade`
 
 ## Usage
 
@@ -41,7 +50,7 @@ arguments:
   -s SERVER             DHIS2 server URL without /api/, e.g. -s='play.dhis2.org/demo'
   
   -t {see shareable types below in this README}
-                        DHIS2 object type to apply sharing, e.g. -t=sqlViews
+                        DHIS2 object type to apply sharing, e.g. -t=sqlViews or -t=DE
                         
   -f FILTER             Filter on objects with DHIS2 field filter (add multiple 
                         filters with '&&') e.g. -f='name:like:ABC'
@@ -55,7 +64,7 @@ arguments:
                         filters with '&&') e.g. -r='id:eq:aBc123XyZ0u'
                         
   -a {readwrite,none,readonly}
-                        publicAccess (with login), e.g. -a=readwrite
+                        Public Access (with login), e.g. -a=readwrite
                         
   -v API_VERSION        DHIS2 API version e.g. -v=24
                         (if omitted, <URL>/api/endpoint will be used)
@@ -160,7 +169,7 @@ dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 
 ```
 dhis2-pk-metadata-dl -h
-usage: dhis2-pk-metadata-dl [-h] -s -t [-f] [-e] [-y] -u -p [-d]
+usage: dhis2-pk-metadata-dl [-h] -s -t [-f] [-e] [-y] [-z]-u -p [-d]
                                                          
 Download metadata
 
@@ -171,6 +180,7 @@ optional arguments:
   -f OBJECT_FILTER   Object filter, e.g. -f='name:like:Acute'
   -e FIELDS          Fields to include, e.g. -f='id,name'
   -y {json,xml,csv}  File format, defaults to JSON
+  -z COMPRESS        Compress/zip download (for XML and JSON only)
   -u USERNAME        DHIS2 username
   -p PASSWORD        DHIS2 password
   -d                 Debug flag - writes more info to log file
@@ -223,6 +233,7 @@ dhis2-pk-user-orgunits -s=play.dhis2.org/demo -o=O6uvpzGd5pu -u=admin -p=distric
 
 ### todo
 
-- [ ] Tests...
+- [ ] Script tests
+- [ ] User-orgunits: Tree traversal of all OUs where Root=args.ou
 
 

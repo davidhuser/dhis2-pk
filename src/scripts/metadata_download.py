@@ -24,7 +24,7 @@ class Downloader(Dhis):
         response = self.get(endpoint='system/info', file_type='json')
         return int(response.get('version').split('.')[1])
 
-    def get_metadata(self, o_type, o_filter, file_type, fields):
+    def get_metadata(self, o_type, o_filter, file_type, fields, compressed, dhis_version):
 
         if o_type in {'dataSets', 'programs', 'categoryCombos'}:
             print("Looking for export {} with dependencies? "
@@ -34,17 +34,36 @@ class Downloader(Dhis):
             if o_type not in csv_import_objects:
                 print("WARNING: {} cannot be imported to DHIS2 directly with CSV files.".format(o_type))
 
-        params = {o_type: True, 'translate': True}
+        params = {o_type: True}
 
-        if fields:
-            params['fields'] = fields
+        if compressed:
+            if file_type != 'csv':
+                file_type += ".zip"
+            else:
+                print("Can't zip CSVs.")
+
+        # DHIS 2.22 and older
+        if dhis_version < 23:
+            params['assumeTrue'] = False
+            endpoint = 'metaData'
+            if fields or o_filter:
+                print("Can't filter objects or fields on metadata export in version 2.{}".format(dhis_version))
+
+        # DHIS 2.23 and newer
         else:
-            to_remove = ",!{}".format(",!".join(properties_to_remove))
-            params['fields'] = ":owner{}".format(to_remove)
-        if o_filter:
-            params['filter'] = o_filter
+            if fields:
+                params['fields'] = fields
+            else:
+                to_remove = ",!{}".format(",!".join(properties_to_remove))
+                params['fields'] = ":owner{}".format(to_remove)
+            if o_filter:
+                params['filter'] = o_filter
+            if dhis_version == 24:
+                endpoint = '23/metadata'
+            else:
+                endpoint = '{}/metadata'.format(dhis_version)
 
-        return self.get(endpoint='metadata', file_type=file_type, params=params)
+        return self.get(endpoint=endpoint, file_type=file_type, params=params)
 
 
 def parse_args():
@@ -61,19 +80,13 @@ def parse_args():
     parser.add_argument('-y', dest='file_type', action='store', help="File format, defaults to JSON", required=False,
                         choices=file_types,
                         default='json')
+    parser.add_argument('-z', dest='compress', action='store', help="Compress/zip download", default=False, required=False)
     parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
     parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
     parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
                         help="Debug flag - writes more info to log file")
 
     return parser.parse_args()
-
-
-def check_dhis_version(dhis):
-    dhis_version = dhis.get_dhis_version()
-    if dhis_version < 23:
-        log_info(u'DHIS2 version 2.{} is currently not supported for metadata export - only 2.23+'.format(dhis_version))
-        sys.exit()
 
 
 def main():
@@ -87,10 +100,11 @@ def main():
         o_filter = None
 
     dhis = Downloader(server=args.server, username=args.username, password=args.password, api_version=None)
-    check_dhis_version(dhis)
+    version = dhis.get_dhis_version()
     o_type = dhis.get_all_object_type(args.object_type)
 
-    data = dhis.get_metadata(o_type=o_type, o_filter=o_filter, file_type=args.file_type, fields=args.fields)
+    data = dhis.get_metadata(o_type=o_type, o_filter=o_filter, file_type=args.file_type, fields=args.fields,
+                             compressed=args.compress, dhis_version=version)
 
     if o_filter:
         # replace special characters in filter for file name

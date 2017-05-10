@@ -26,7 +26,6 @@ shareable = {
     'indicatorGroupSets': ['indicatorgroupsets', 'igs', 'indgroupsets', 'indicatorgroupset'],
     'dataSets': ['datasets', 'ds', 'dataset'],
     'dataApprovalLevels': ['dataapprovallevels', 'datasetapprovallevel'],
-    'validationRules': ['validationrules', 'validationrule'],
     'validationRuleGroups': ['validationrulegroups', 'validationrulegroup'],
     'interpretations': ['interpretations', 'interpretation'],
     'trackedEntityAttributes': ['trackedentityattributes', 'trackedentityattribute', 'tea', 'teas'],
@@ -52,6 +51,7 @@ def all_object_types():
     """Reverse dictionary from  key:list  to  each_listitem: key and sort it"""
     all_objects = deepcopy(shareable)
     all_objects['organisationUnits'] = ['ou', 'orgunit', 'orgunits']
+    all_objects['validationRules'] = ['validationrules', 'validationrule']
     return dict((v, k) for k in all_objects for v in all_objects[k])
 
 properties_to_remove = {
