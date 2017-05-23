@@ -217,7 +217,10 @@ optional arguments:
 
 ```
 
-------------------------------------------------------------------------------------------------
+Example (try it out against DHIS2 demo instance):
+`dhis2-pk-userinfo -s=play.dhis2.org/demo -u=admin -p=district`
+
+---
 ## Export users with a misconfigured Organisation Unit assignment to CSV
 
 **Script name:** `dhis2-pk-user-orgunits`
