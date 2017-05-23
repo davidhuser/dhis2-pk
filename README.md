@@ -15,6 +15,7 @@ All tools:
 * [Mass sharing of objects with user groups through filtering](#mass-sharing-of-objects-with-usergroups-through-filtering)
 * [Export readable indicator definition to CSV](#export-readable-indicator-definition-to-csv)
 * [Download metadata to JSON, XML or CSV](#download-metadata-to-json-or-xml-or-csv)
+* [Export user info to CSV](#export-user-info-to-csv)
 * [Export user-orgunit double assignment](#export-users-with-a-misconfigured-organisation-unit-assignment-to-csv)
 
 ## Installation / updating
@@ -190,7 +191,33 @@ Example (try it out against DHIS2 demo instance):
 ```
 dhis2-pk-metadata-dl -s=play.dhis2.org/demo -u=admin -p=district -t=dataElements -f='name:like:Acute'
 ```
+
 ---
+## Export user info to CSV
+
+Write information about users (paths of organisationUnits, userGroups membership) to a CSV file.
+
+Click image for example CSV output:
+![issue](https://i.imgur.com/2zkIFVi.png)
+
+```
+dhis2-pk-userinfo -h
+usage: dhis2-pk-userinfo [-h] -s SERVER -u USERNAME -p PASSWORD [-v API_VERSION]
+                   [-d]
+
+Create CSV of orgunits / usergroups of users
+
+optional arguments:
+  -h, --help      show this help message and exit
+  -s SERVER       DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo
+  -u USERNAME     DHIS2 username
+  -p PASSWORD     DHIS2 password
+  -v API_VERSION  DHIS2 API version e.g. -v=24
+  -d              Writes more info in log file
+
+```
+
+------------------------------------------------------------------------------------------------
 ## Export users with a misconfigured Organisation Unit assignment to CSV
 
 **Script name:** `dhis2-pk-user-orgunits`
