@@ -25,6 +25,7 @@ def parse_args():
 
 
 def replace_path(oumap, path):
+    """ Replace path UIDs with readable OU names"""
     pattern = re.compile(r'\b(' + '|'.join(oumap.keys()) + r')\b')
     result = pattern.sub(lambda x: oumap[x.group()], path)
     return result
@@ -37,8 +38,8 @@ def main():
 
     dhis = Dhis(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
     params1 = {
-        'fields': 'dataViewOrganisationUnits[id,name,path],userCredentials[username],name,'
-                  'organisationUnits[id,name,path],userGroups[id,name]',
+        'fields': 'dataViewOrganisationUnits[path],userCredentials[username],name,'
+                  'organisationUnits[path],userGroups[name],userRoles[name]',
         'paging': False
     }
     users = dhis.get(endpoint='users', file_type='json', params=params1)
@@ -53,7 +54,7 @@ def main():
     file_name = "userinfo-{}.csv".format(dhis.file_timestamp)
 
     with open(file_name, 'wb') as csvfile:
-        fieldnames = ['name', 'username', 'organisationUnitPaths', 'userGroups', 'dataViewOrgunitPaths']
+        fieldnames = ['name', 'username', 'userGroups', 'userRoles', 'orgunitPaths', 'dataViewOrgunitPaths']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, encoding='utf-8', delimiter=',',
                                 quoting=csv.QUOTE_MINIMAL)
 
@@ -62,10 +63,11 @@ def main():
             export = {
                 'name': u['name'],
                 'username': u['userCredentials']['username'],
-                'userGroups': ", ".join([ug['name'] for ug in u['userGroups']])
+                'userGroups': ", ".join([ug['name'] for ug in u['userGroups']]),
+                'userRoles': ", ".join([ug['name'] for ug in u['userRoles']])
             }
             orgunits = [ou['path'] for ou in u['organisationUnits']]
-            export['organisationUnitPaths'] = "\n".join([replace_path(oumap, elem) for elem in orgunits])
+            export['orgunitPaths'] = "\n".join([replace_path(oumap, elem) for elem in orgunits])
 
             dvorgunits = [ou['path'] for ou in u['dataViewOrganisationUnits']]
             export['dataViewOrgunitPaths'] = "\n".join([replace_path(oumap, elem) for elem in dvorgunits])
