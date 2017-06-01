@@ -10,8 +10,7 @@ from src.core.logger import *
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Create CSV of orgunits / usergroups of users")
+    parser = argparse.ArgumentParser(description="Create CSV of orgunits / usergroups of users")
     parser.add_argument('-s', dest='server', action='store',
                         help="DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo", required=True)
     parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)

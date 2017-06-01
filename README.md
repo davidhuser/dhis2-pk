@@ -3,14 +3,7 @@
 
 Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org)
 
-_An example:_
-> Share all dataElements starting with `ABC-` with a userGroup called `UG Admin` for read-write access and with a userGroup called `UG Users` for read-only access while public Access is set to `None`:
-  
- ```
- dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:ABC-' -w='name:like:UG Admin' -r='name:like:UG Users' -a=none -u=admin -p=district
- ```
-
-All tools:
+## Features:
 
 * [Mass sharing of objects with user groups through filtering](#mass-sharing-of-objects-with-usergroups-through-filtering)
 * [Export readable indicator definition to CSV](#export-readable-indicator-definition-to-csv)
@@ -77,7 +70,7 @@ arguments:
 
 ### Shareable objects:
 
-It's also possible to use acronyms/abbreviations like `de` or `catcombo`, `-t=ds` for dataSets
+It's also possible to use acronyms/abbreviations like `-t=de` for dataElements, or `-t=ds` for dataSets, or `-t=catcombo` for Category Combinations
 
 - userGroups
 - sqlViews
@@ -250,6 +243,13 @@ dhis2-pk-user-orgunits -s=play.dhis2.org/demo -o=O6uvpzGd5pu -u=admin -p=distric
 ```
 
 ---
+
+### Install from source
+
+- `wget https://github.com/davidhuser/dhis2-pocket-knife/archive/master.zip`
+- `unzip master.zip`
+- `cd dhis2-pocket-knife`
+- `sudo python setup.py install` (to install it in `/usr/local/bin`)
 
 ### done
 
