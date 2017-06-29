@@ -38,43 +38,6 @@ def test_demo_server_200(dhis):
     assert response['email'] == 'someone@dhis2.org'
 
 
-def test_get_all_object_types(dhis):
-    passed_objects = [
-        'cat', 'catcombo', 'catcombos', 'categories', 'categorycombination', 'categorycombinations', 'categorycombo',
-        'categorycombos', 'categoryoption', 'categoryoptiongroup', 'categoryoptiongroups', 'categoryoptiongroupset',
-        'categoryoptiongroupsets', 'categoryoptions', 'catoption', 'catoptiongroup', 'catoptiongroups',
-        'catoptiongroupset', 'catoptiongroupsets', 'catoptions', 'catscategory', 'chart', 'charts', 'constant',
-        'constants', 'dashboard', 'dashboards', 'dataapprovallevels', 'dataelement', 'dataelementgroup',
-        'dataelementgroups', 'dataelementgroupset', 'dataelementgroupsets', 'dataelements', 'dataset',
-        'datasetapprovallevel', 'datasets', 'datavisualization', 'datavisualizations', 'datavizualisation',
-        'datavizualizations', 'de', 'deg', 'degroup', 'degroups', 'degroupset', 'degroupsets', 'degs', 'des',
-        'document', 'documents', 'ds', 'eventchart', 'eventcharts', 'eventreport', 'eventreports', 'eventtables', 'i',
-        'ig', 'igs', 'ind', 'indgroups', 'indgroupsets', 'indicator', 'indicatorgroup', 'indicatorgroups',
-        'indicatorgroupset', 'indicatorgroupsets', 'indicators', 'interpretation', 'interpretations', 'legendset',
-        'legendsets', 'map', 'maps', 'optiongroup', 'optiongroups', 'optiongroupset', 'optiongroupsets', 'optionsets',
-        'organisationunitgroups', 'organisationunitgroupsets', 'orgunitgroup', 'orgunitgroups', 'orgunitgroupset',
-        'orgunitgroupsets', 'os', 'ou', 'oug', 'ougroup', 'ougroups', 'ougroupset', 'ougroupsets', 'ougs', 'pi', 'pivottable',
-        'pivottables', 'program', 'programindicator', 'programindicators', 'programs', 'report', 'reports',
-        'reporttable', 'reporttables', 'sqlview', 'sqlviews', 'tea', 'teas', 'trackedentityattribute',
-        'trackedentityattributes', 'ug', 'usergroup', 'usergroups', 'validationrule', 'validationrulegroup',
-        'validationrulegroups', 'validationrules'
-    ]
-
-    for elem in passed_objects:
-        dhis.get_all_object_type(elem)
-
-
-def test_get_shareable_object_types(dhis):
-    passed_objects = ['sqlviews']
-    for elem in passed_objects:
-        dhis.get_shareable_object_type(elem)
-
-
-def test_get_no_object_types(dhis):
-    with pytest.raises(SystemExit):
-        dhis.get_all_object_type('blupaodo')
-
-
 def test_api_version(dhis_with_api_version):
     assert dhis_with_api_version.api_url == 'https://play.dhis2.org/demo/api/26'
 
