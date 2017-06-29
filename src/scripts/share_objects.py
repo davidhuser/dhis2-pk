@@ -20,13 +20,15 @@ from src.core.logger import *
 class Sharer(Dhis):
     """Inherited from core Dhis class to extend functionalities"""
 
-    def get_usergroup_uids(self, filter_list, access):
+    def get_usergroup_uids(self, filter_list, access, delimiter):
         """Get UID(s) of userGroup(s) based on object filter"""
         params = {
             'fields': 'id,name',
             'paging': False,
             'filter': filter_list
         }
+        if delimiter == '||':
+            params['rootJunction'] = 'OR'
 
         print(("\n+++ GET userGroup(s) for filter {} ({})".format(filter_list, access)))
 
@@ -51,7 +53,8 @@ class Sharer(Dhis):
             'filter': objects_filter,
             'paging': False
         }
-        if delimiter:
+
+        if delimiter == '||':
             params['rootJunction'] = 'OR'
 
         print("\n+++ GET {} with filter(s) {}".format(objects, objects_filter))
@@ -123,12 +126,11 @@ def main():
 
     user_group_accesses = []
     if args.usergroup_readwrite:
-
         delimiter = filter_delimiter(args.usergroup_readwrite, dhis_version)
         # split filter of arguments into list
         rw_ug_filter_list = args.usergroup_readwrite.split(delimiter)
         # get UIDs of usergroups with RW access
-        readwrite_usergroup_uids = dhis.get_usergroup_uids(rw_ug_filter_list, 'readwrite')
+        readwrite_usergroup_uids = dhis.get_usergroup_uids(rw_ug_filter_list, 'readwrite', delimiter)
         for ug in readwrite_usergroup_uids:
             acc = {
                 'id': ug,
@@ -140,7 +142,7 @@ def main():
         delimiter = filter_delimiter(args.usergroup_readonly, dhis_version)
         ro_ug_filter_list = args.usergroup_readonly.split(delimiter)
         # get UID(s) of usergroups with RO access
-        readonly_usergroup_uids = dhis.get_usergroup_uids(ro_ug_filter_list, 'readonly')
+        readonly_usergroup_uids = dhis.get_usergroup_uids(ro_ug_filter_list, 'readonly', delimiter)
         for ug in readonly_usergroup_uids:
             acc = {
                 'id': ug,
