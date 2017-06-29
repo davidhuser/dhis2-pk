@@ -46,17 +46,20 @@ arguments:
   -t {see shareable types below in this README}
                         DHIS2 object type to apply sharing, e.g. -t=sqlViews or -t=DE
                         
-  -f FILTER             Filter on objects with DHIS2 field filter (add multiple 
-                        filters with '&&' or use rootJunction OR (instead of AND) by using '||') e.g. -f='name:like:ABC'
+  -f FILTER             Filter on objects with DHIS2 field filter
+                        (add multiple filters with '&&' or use rootJunction OR (instead of AND) by using '||')
+                        e.g. -f='name:like:ABC||name:like:XYZ'
                         
   -w USERGROUP_READWRITE
-                        UserGroup filter for Read-Write access (add multiple 
-                        filters with '&&' or use rootJunction OR (instead of AND) by using '||')) e.g. -w='name:$ilike:aUserGroup7&&id:!eq:aBc123XyZ0u'
+                        UserGroup filter for Read-Write access
+                        (add multiple filters with '&&' or use rootJunction OR (instead of AND) by using '||'))
+                        e.g. -w='name:$ilike:aUserGroup7&&id:!eq:aBc123XyZ0u'
                         
   -r USERGROUP_READONLY
-                        UserGroup filter for Read-Only access, (add multiple 
-                        filters with '&&' or use rootJunction OR (instead of AND) by using '||')) e.g. -r='id:eq:aBc123XyZ0u'
-                        
+                        UserGroup filter for Read-Only access
+                        (add multiple filters with '&&' or use rootJunction OR (instead of AND) by using '||'))
+                        e.g. -r='id:eq:aBc123XyZ0u'
+                       
   -a {readwrite,none,readonly}
                         Public Access (with login), e.g. -a=readwrite
                         
