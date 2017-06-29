@@ -137,8 +137,8 @@ def main():
             user_group_accesses.append(acc)
 
     if args.usergroup_readonly:
-        delimiter = filter_delimiter(args.usergroup_readonly)
-        ro_ug_filter_list = args.usergroup_readonly.split(delimiter, dhis_version)
+        delimiter = filter_delimiter(args.usergroup_readonly, dhis_version)
+        ro_ug_filter_list = args.usergroup_readonly.split(delimiter)
         # get UID(s) of usergroups with RO access
         readonly_usergroup_uids = dhis.get_usergroup_uids(ro_ug_filter_list, 'readonly')
         for ug in readonly_usergroup_uids:
@@ -149,8 +149,8 @@ def main():
             user_group_accesses.append(acc)
 
     # split arguments for multiple filters for to-be-shared objects
-    delimiter = filter_delimiter(args.filter)
-    object_filter_list = args.filter.split(delimiter, dhis_version)
+    delimiter = filter_delimiter(args.filter, dhis_version)
+    object_filter_list = args.filter.split(delimiter)
 
     # pull objects for which to apply sharing
     data = dhis.get_objects(object_type, object_filter_list, delimiter)
