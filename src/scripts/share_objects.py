@@ -33,7 +33,7 @@ class Sharer(Dhis):
         else:
             root_junction = 'AND'
 
-        print(("\n+++ GET userGroup(s) for filter [rootJunction: {}] {} ({})".format(filter_list, root_junction, access)))
+        print(("\n+++ GET userGroup(s) for filter (rootJunction: {}) {} ({})".format(root_junction, filter_list, access)))
 
         endpoint = 'userGroups'
         response = self.get(endpoint=endpoint, file_type='json', params=params)
