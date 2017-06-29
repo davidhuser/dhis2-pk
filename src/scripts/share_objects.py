@@ -28,9 +28,12 @@ class Sharer(Dhis):
             'filter': filter_list
         }
         if delimiter == '||':
-            params['rootJunction'] = 'OR'
+            root_junction = 'OR'
+            params['rootJunction'] = root_junction
+        else:
+            root_junction = 'AND'
 
-        print(("\n+++ GET userGroup(s) for filter {} ({})".format(filter_list, access)))
+        print(("\n+++ GET userGroup(s) for filter [rootJunction: {}] {} ({})".format(filter_list, root_junction, access)))
 
         endpoint = 'userGroups'
         response = self.get(endpoint=endpoint, file_type='json', params=params)
@@ -55,9 +58,12 @@ class Sharer(Dhis):
         }
 
         if delimiter == '||':
-            params['rootJunction'] = 'OR'
+            root_junction = 'OR'
+            params['rootJunction'] = root_junction
+        else:
+            root_junction = 'AND'
 
-        print("\n+++ GET {} with filter(s) {}".format(objects, objects_filter))
+        print("\n+++ GET {} with filter(s) [rootJunction: {}] {}".format(objects, root_junction, objects_filter))
         response = self.get(endpoint=objects, file_type='json', params=params)
 
         if response:
@@ -107,7 +113,7 @@ def filter_delimiter(argument, dhis_version):
 
     if '||' in argument:
         if dhis_version < 25:
-            sys.exit("rootJunction=OR is only supported 2.25 onwards. Exiting.")
+            sys.exit("rootJunction 'OR' is only supported 2.25 onwards. Nothing shared.")
         return '||'
     else:
         return '&&'
