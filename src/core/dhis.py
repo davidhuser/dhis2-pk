@@ -76,6 +76,18 @@ class Dhis(object):
         if req.status_code != 200:
             self.abort(req)
 
+    def get_dhis_version(self):
+        """ return DHIS2 verson (e.g. 26) as integer"""
+        response = self.get(endpoint='system/info', file_type='json')
+
+        # remove -snapshot for play.dhis2.org/dev
+        snapshot = '-SNAPSHOT'
+        version = response.get('version')
+        if snapshot in version:
+            version = version.replace(snapshot, '')
+
+        return int(version.split('.')[1])
+
     @staticmethod
     def abort(request):
         msg = u"++++++ ERROR ++++++\n+++HTTP code: {}\n+++URL: {}\n+++RESPONSE: {}"

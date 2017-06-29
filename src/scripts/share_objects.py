@@ -100,8 +100,11 @@ def parse_args():
     return parser.parse_args()
 
 
-def filter_delimiter(argument):
+def filter_delimiter(argument, dhis_version):
+
     if '||' in argument:
+        if dhis_version < 25:
+            sys.exit("rootJunction=OR is only supported 2.25 onwards. Exiting.")
         return '||'
     else:
         return '&&'
@@ -113,13 +116,15 @@ def main():
     log_start_info(__file__)
     dhis = Sharer(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
 
+    dhis_version = dhis.get_dhis_version()
+
     # get the real valid object type name
     object_type = dhis.get_object_type(args.object_type)
 
     user_group_accesses = []
     if args.usergroup_readwrite:
 
-        delimiter = filter_delimiter(args.usergroup_readwrite)
+        delimiter = filter_delimiter(args.usergroup_readwrite, dhis_version)
         # split filter of arguments into list
         rw_ug_filter_list = args.usergroup_readwrite.split(delimiter)
         # get UIDs of usergroups with RW access
@@ -133,7 +138,7 @@ def main():
 
     if args.usergroup_readonly:
         delimiter = filter_delimiter(args.usergroup_readonly)
-        ro_ug_filter_list = args.usergroup_readonly.split(delimiter)
+        ro_ug_filter_list = args.usergroup_readonly.split(delimiter, dhis_version)
         # get UID(s) of usergroups with RO access
         readonly_usergroup_uids = dhis.get_usergroup_uids(ro_ug_filter_list, 'readonly')
         for ug in readonly_usergroup_uids:
@@ -145,7 +150,7 @@ def main():
 
     # split arguments for multiple filters for to-be-shared objects
     delimiter = filter_delimiter(args.filter)
-    object_filter_list = args.filter.split(delimiter)
+    object_filter_list = args.filter.split(delimiter, dhis_version)
 
     # pull objects for which to apply sharing
     data = dhis.get_objects(object_type, object_filter_list, delimiter)

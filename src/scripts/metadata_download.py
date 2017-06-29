@@ -18,17 +18,6 @@ from src.core.logger import *
 
 
 class Downloader(Dhis):
-    def get_dhis_version(self):
-        """ return DHIS2 verson (e.g. 26) as integer"""
-        response = self.get(endpoint='system/info', file_type='json')
-
-        # remove -snapshot for play.dhis2.org/dev
-        snapshot = '-SNAPSHOT'
-        version = response.get('version')
-        if snapshot in version:
-            version = version.replace(snapshot, '')
-
-        return int(version.split('.')[1])
 
     def get(self, endpoint, file_type='json', params=None, compressed=False):
         url = '{}/{}.{}'.format(self.api_url, endpoint, file_type)
