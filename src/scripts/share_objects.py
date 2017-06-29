@@ -43,7 +43,7 @@ class Sharer(Dhis):
             log_info(u"+++ No userGroup(s) found. Check your filter / DHIS2")
             sys.exit()
 
-    def get_objects(self, objects, objects_filter):
+    def get_objects(self, objects, objects_filter, delimiter):
         """Returns filtered DHIS2 objects"""
 
         params = {
@@ -51,6 +51,9 @@ class Sharer(Dhis):
             'filter': objects_filter,
             'paging': False
         }
+        if delimiter:
+            params['rootJunction'] = 'OR'
+
         print("\n+++ GET {} with filter(s) {}".format(objects, objects_filter))
         response = self.get(endpoint=objects, file_type='json', params=params)
 
@@ -97,6 +100,13 @@ def parse_args():
     return parser.parse_args()
 
 
+def filter_delimiter(argument):
+    if '||' in argument:
+        return '||'
+    else:
+        return '&&'
+
+
 def main():
     args = parse_args()
     init_logger(args.debug)
@@ -106,12 +116,12 @@ def main():
     # get the real valid object type name
     object_type = dhis.get_object_type(args.object_type)
 
-    filter_delimiter = '&&'
-
     user_group_accesses = []
     if args.usergroup_readwrite:
+
+        delimiter = filter_delimiter(args.usergroup_readwrite)
         # split filter of arguments into list
-        rw_ug_filter_list = args.usergroup_readwrite.split(filter_delimiter)
+        rw_ug_filter_list = args.usergroup_readwrite.split(delimiter)
         # get UIDs of usergroups with RW access
         readwrite_usergroup_uids = dhis.get_usergroup_uids(rw_ug_filter_list, 'readwrite')
         for ug in readwrite_usergroup_uids:
@@ -122,7 +132,8 @@ def main():
             user_group_accesses.append(acc)
 
     if args.usergroup_readonly:
-        ro_ug_filter_list = args.usergroup_readonly.split(filter_delimiter)
+        delimiter = filter_delimiter(args.usergroup_readonly)
+        ro_ug_filter_list = args.usergroup_readonly.split(delimiter)
         # get UID(s) of usergroups with RO access
         readonly_usergroup_uids = dhis.get_usergroup_uids(ro_ug_filter_list, 'readonly')
         for ug in readonly_usergroup_uids:
@@ -133,10 +144,11 @@ def main():
             user_group_accesses.append(acc)
 
     # split arguments for multiple filters for to-be-shared objects
-    object_filter_list = args.filter.split(filter_delimiter)
+    delimiter = filter_delimiter(args.filter)
+    object_filter_list = args.filter.split(delimiter)
 
     # pull objects for which to apply sharing
-    data = dhis.get_objects(object_type, object_filter_list)
+    data = dhis.get_objects(object_type, object_filter_list, delimiter)
 
     no_of_obj = len(data[object_type])
     counter = 1
@@ -163,11 +175,11 @@ def main():
         dhis.share_object(payload, parameters)
 
         try:
-            log_info(u"({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['code']))
-        except KeyError:
+            log_info(u"({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['name'].encode('utf-8')))
+        except UnicodeEncodeError:
             try:
-                log_info(u"({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['name'].encode('utf-8')))
-            except UnicodeEncodeError:
+                log_info(u"({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['code']))
+            except KeyError:
                 log_info(u"({}/{}) [OK] {}".format(counter, no_of_obj, obj['id']))
 
         counter += 1
