@@ -4,7 +4,7 @@ shareable = {
     'userGroups': ['usergroups', 'ug', 'usergroup'],
     'sqlViews': ['sqlviews', 'sqlview'],
     'constants': ['constants', 'constant'],
-    'optionSets': ['optionsets', 'os'],
+    'optionSets': ['optionsets', 'optionset', 'os'],
     'optionGroups': ['optiongroups', 'optiongroup'],
     'optionGroupSets': ['optiongroupsets', 'optiongroupset'],
     'legendSets': ['legendsets', 'legendset'],
@@ -36,7 +36,7 @@ shareable = {
     'maps': ['maps', 'map'],
     'documents': ['documents', 'document'],
     'reports': ['reports', 'report'],
-    'charts': ['charts', 'chart', 'datavisualization', 'datavisualizations', 'datavizualisation', 'datavizualizations'],
+    'charts': ['charts', 'chart', 'datavisualization', 'datavisualizations', 'datavizualisation', 'datavizualisations'],
     'reportTables': ['pivottable', 'pivottables', 'reporttables', 'reporttable'],
     'dashboards': ['dashboards', 'dashboard']
 }
