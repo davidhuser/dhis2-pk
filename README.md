@@ -1,21 +1,19 @@
 # dhis2-pocket-knife [![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Build Status](https://travis-ci.org/davidhuser/dhis2-pocket-knife.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pocket-knife) [![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
 
 
-Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org)
+Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org). Features:
 
-## Features:
-
-* [Mass sharing of objects with user groups through filtering](#mass-sharing-of-objects-with-usergroups-through-filtering)
-* [Export readable indicator definition to CSV](#export-readable-indicator-definition-to-csv)
-* [Download metadata to JSON, XML or CSV](#download-metadata-to-json-or-xml-or-csv)
-* [Export user info to CSV](#export-user-info-to-csv)
-* [Export user-orgunit double assignment](#export-users-with-a-misconfigured-organisation-unit-assignment-to-csv)
+* [Mass sharing of objects via filtering](#mass-sharing-of-objects-with-usergroups-through-filtering)
+* [Readable indicator definition to CSV](#export-readable-indicator-definition-to-csv)
+* [Download Metadata to JSON, XML or CSV](#download-metadata-to-json-or-xml-or-csv)
+* [User information to CSV](#export-user-info-to-csv)
+* [Find User to Orgunit double assignments](#export-users-with-a-misconfigured-organisation-unit-assignment-to-csv)
 
 ## Installation / updating
 
 * Easy installation with [pip](https://pip.pypa.io/en/stable/installing) (python package manager, see if it is installed: `pip -V`)
 * `pip install dhis2-pocket-knife` or `sudo -H pip install dhis2-pocket-knife`
-* Upgrade with `pip install dhis2-pocket-knife --upgrade`
+* Upgrade with `pip install dhis2-pocket-knife -U`
 
 ## Usage
 
@@ -26,12 +24,18 @@ Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2
 
 ---
 
-## Mass sharing of objects with userGroups through filtering
+## Mass sharing of objects via filtering
 
 **Script name:** `dhis2-pk-share-objects`
 
-Apply [sharing](https://docs.dhis2.org/master/en/user/html/dhis2_user_manual_en_full.html#sharing) for DHIS2 metadata objects (dataElements, indicators, programs, ...) based on **[metadata object filtering](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)** (for both shareable objects and userGroups).
+Apply [sharing](https://docs.dhis2.org/master/en/user/html/dhis2_user_manual_en_full.html#sharing) for DHIS2 metadata objects (dataElements, indicators, programs, ...) through on **[metadata object filtering](https://dhis2.github.io/dhis2-docs/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)** (for both shareable objects and userGroups).
 
+**Example:** "Share all data elements with name starting with `All` but not those with `cough`" with two different user groups while public access should be `read and write`.
+
+`
+dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All&&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district`
+
+#### Usage
 ```
 dhis2-pk-share-objects --help
 usage: dhis2-pk-share-objects [-h] -s -t -f [-w] [-r] -a [-v] -u -p [-d]
@@ -111,13 +115,13 @@ It's also possible to use acronyms/abbreviations like `-t=de` for dataElements, 
 - reportTables
 - dashboards
 
-### Example (try it out against DHIS2 demo instance):
+##### Example (try it out against DHIS2 demo instance):
 
 ```
 dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All&&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district -v=24 -d
 ```
 ---
-## Export readable indicator definition to CSV
+## Readable indicator definition to CSV
 
 **Script name:** `dhis-pk-indicator-definitions`
 
@@ -130,6 +134,8 @@ Example column for numerator `ReUHfIn0pTQ - ANC 1-3 Dropout Rate`:
 ```
 #{ANC 1st visit.Fixed}+#{ANC 1st visit.Outreach}-#{ANC 3rd visit.Fixed}-#{ANC 3rd visit.Outreach}
 ```
+
+### Usage
 
 ```
 dhis2-pk-indicator-definitions --help
@@ -149,7 +155,7 @@ arguments:
 ### Indicator variables
 For interpreting indicator variables (like `OUG{someUID}`), refer to [DHIS2 docs](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#d9584e5669)
 
-### Example (try it out against DHIS2 demo instance):
+##### Example (try it out against DHIS2 demo instance):
 ```
 dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 ```
@@ -163,6 +169,8 @@ dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 * It defaults to use JSON, but can be overriden by using `-y=xml` or `-y=csv`
 * Note that CSV should not be used for direct import to DHIS2 as it may break things.
 * You can use any common term for a type, e.g. `-t=ou` of `-t=CatCombos`
+
+### Usage
 
 ```
 dhis2-pk-metadata-dl -h
@@ -191,7 +199,7 @@ dhis2-pk-metadata-dl -s=play.dhis2.org/demo -u=admin -p=district -t=dataElements
 ---
 ## Export user info to CSV
 
-Write information about users (paths of organisationUnits, userGroups membership) to a CSV file.
+Write information about users (paths of organisationUnits, userGroup membership) to a CSV file.
 
 Click image for example CSV output:
 ![issue](https://i.imgur.com/2zkIFVi.png)
@@ -224,6 +232,8 @@ Example (try it out against DHIS2 demo instance):
 Writes all users of an Organisation Unit who are configured like below to a **csv file**. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
 ![issue](https://i.imgur.com/MXiALrL.png)
 
+### Usage
+
 ```
 dhis2-pk-user-orgunits --help
 usage: dhis2-pk-user-orgunits [-h] -s -o -u -p [-v] [-d]
@@ -240,7 +250,7 @@ arguments:
   -d              Writes more info in log file
 ```
 
-### Example (try it out against DHIS2 demo instance):
+##### Example (try it out against DHIS2 demo instance):
 ```
 dhis2-pk-user-orgunits -s=play.dhis2.org/demo -o=O6uvpzGd5pu -u=admin -p=district
 ```
@@ -252,9 +262,9 @@ dhis2-pk-user-orgunits -s=play.dhis2.org/demo -o=O6uvpzGd5pu -u=admin -p=distric
 - `wget https://github.com/davidhuser/dhis2-pocket-knife/archive/master.zip`
 - `unzip master.zip`
 - `cd dhis2-pocket-knife`
-- `sudo python setup.py install` (to install it in `/usr/local/bin`)
+- `python setup.py install`
 
-### done
+### Done
 
 - [x] debug flag as optional argument
 - [x] multiple filters for userGroups
@@ -264,7 +274,7 @@ dhis2-pk-user-orgunits -s=play.dhis2.org/demo -o=O6uvpzGd5pu -u=admin -p=distric
 - [x] multiple filter should be added with `&&` instead of `&`
 - [x] new feature: download of metadata
 
-### todo
+### Todo
 
 - [ ] Script tests
 - [ ] User-orgunits: Tree traversal of all OUs where Root=args.ou
