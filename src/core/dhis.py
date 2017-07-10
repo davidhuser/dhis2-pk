@@ -22,7 +22,7 @@ class Config(object):
 
         if not server:
             dish = self.get_dish()
-            server = dish['server']
+            server = dish['baseurl']
             username = dish['username']
             password = dish['password']
 
@@ -72,7 +72,7 @@ class Config(object):
             if not valid:
                 raise ConfigException(
                     "dish.json found at {} but not configured according dish.json format "
-                    "(see github.com/baosystems/dish#Configuration)".format(dish_location))
+                    "(see https://github.com/baosystems/dish#Configuration for details)".format(dish_location))
 
             return {'baseurl': dish['dhis']['baseurl'], 'username': dish['dhis']['username'],
                     'password': dish['dhis']['password']}
@@ -130,6 +130,8 @@ class Dhis(Config):
         r = requests.post(url, data=fileread, headers=headers, auth=self.auth)
         if r.status_code not in range(200, 204):
             self.abort(r)
+        else:
+            return r.text
 
     def get_dhis_version(self):
         """ return DHIS2 verson (e.g. 26) as integer"""

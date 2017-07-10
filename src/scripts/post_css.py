@@ -28,8 +28,9 @@ def main():
     log_start_info(__file__)
     dhis = Dhis(server=args.server, username=args.username, password=args.password, api_version=None)
 
-    dhis.post_file(endpoint='files/style', filename=args.css, content_type='Content-Type:text/css')
-    print("{} CSS posted to {}. Clear your caches.".format(args.css, args.server))
+    p = dhis.post_file(endpoint='files/style', filename=args.css, content_type='text/css')
+    print("{} CSS posted to {}. Clear your caches.".format(args.css, dhis.api_url))
+    print(p)
 
 
 if __name__ == "__main__":
