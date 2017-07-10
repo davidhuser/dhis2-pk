@@ -25,7 +25,6 @@ setup(
         'console_scripts': [
             'dhis2-pk-indicator-definitions = src.scripts.indicator_definitions:main',
             'dhis2-pk-share-objects = src.scripts.share_objects:main',
-            'dhis2-pk-user-orgunits = src.scripts.user_orgunits:main',
             'dhis2-pk-metadata-dl = src.scripts.metadata_download:main',
             'dhis2-pk-userinfo = src.scripts.userinfo:main'
         ]
