@@ -82,7 +82,7 @@ class Sharer(Dhis):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(usage='%(prog)s [-h] -s -t -f [-w] [-r] -a [-v] -u -p -d',
+    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f [-w] [-r] -a [-v] [-u] [-p] [-d]',
                                      description="PURPOSE: Share DHIS2 objects (dataElements, programs, ...) "
                                                  "with userGroups")
     parser.add_argument('-s', dest='server', action='store', help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'")
