@@ -7,6 +7,7 @@ Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2
 * [Readable indicator definition to CSV](#readable-indicator-definition-to-csv)
 * [Download Metadata to JSON, XML or CSV](#download-metadata-to-json-or-xml-or-csv)
 * [User information to CSV](#export-user-info-to-csv)
+* [Post CSS file](#post-css-file)
 
 ## Installation / updating
 
@@ -38,8 +39,6 @@ dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All
 ```
 dhis2-pk-share-objects --help
 usage: dhis2-pk-share-objects [-h] [-s] -t -f [-w] [-r] -a [-v] [-u] [-p] [-d]
-
-PURPOSE: Share DHIS2 objects (dataElements, programs, ...) with userGroups
 
 arguments:
   -h, --help            show this help message and exit
@@ -140,8 +139,6 @@ Example column for numerator `ReUHfIn0pTQ - ANC 1-3 Dropout Rate`:
 dhis2-pk-indicator-definitions --help
 usage: dhis2-pk-indicator-definitions [-h] [-s] [-f] [-u] [-p] [-v] [-d]
 
-PURPOSE: Create CSV with indicator definitions
-
 optional arguments:
   -h, --help           show this help message and exit
   -s SERVER            DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo
@@ -175,8 +172,6 @@ dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 dhis2-pk-metadata-dl -h
 usage: dhis2-pk-metadata-dl [-h] [-s] -t [-f] [-e] [-y] [-z] [-u] [-p] [-d]
                                                          
-Download metadata
-
 optional arguments:
   -h, --help         show this help message and exit
   -s SERVER          Server, e.g. play.dhis2.org/demo
@@ -207,8 +202,6 @@ Click image for example CSV output:
 dhis2-pk-userinfo -h
 usage: dhis2-pk-userinfo [-h] [-s] [-u] [-p] [-v] [-d]
 
-Create CSV of orgunits / usergroups of users
-
 optional arguments:
   -h, --help      show this help message and exit
   -s SERVER       DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo
@@ -222,6 +215,25 @@ optional arguments:
 Example (try it out against DHIS2 demo instance):
 `dhis2-pk-userinfo -s=play.dhis2.org/demo -u=admin -p=district`
 
+---
+## Post CSS file
+
+Simply post a CSS file to a server. 
+
+```
+dhis2-pk-post-css -h
+usage: dhis2-pk-post-css [-h] [-s] -c [-u] [-p] [-v] [-d]
+
+optional arguments:
+  -h, --help      show this help message and exit
+  -s SERVER       DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo
+  -c CSS          CSS file to post
+  -u USERNAME     DHIS2 username
+  -p PASSWORD     DHIS2 password
+  -v API_VERSION  DHIS2 API version e.g. -v=24
+  -d              Writes more info in log file
+
+```
 
 ---
 
@@ -241,10 +253,10 @@ Example (try it out against DHIS2 demo instance):
 - [x] acronym support for object types (`-t=de`)
 - [x] multiple filter should be added with `&&` instead of `&`
 - [x] new feature: download of metadata
+- [x] new feature: POST CSS to server
 
 ### Todo
 
 - [ ] Script tests
-- [ ] User-orgunits: Tree traversal of all OUs where Root=args.ou
 
 
