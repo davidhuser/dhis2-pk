@@ -238,10 +238,12 @@ optional arguments:
 
 ### Install from source
 
-- `wget https://github.com/davidhuser/dhis2-pocket-knife/archive/master.zip`
-- `unzip master.zip`
-- `cd dhis2-pocket-knife`
-- `python setup.py install`
+```
+wget https://github.com/davidhuser/dhis2-pocket-knife/archive/master.zip
+unzip master.zip
+cd dhis2-pocket-knife
+python setup.py install
+```
 
 ### Done
 
