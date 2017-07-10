@@ -85,8 +85,7 @@ def parse_args():
     parser = argparse.ArgumentParser(usage='%(prog)s [-h] -s -t -f [-w] [-r] -a [-v] -u -p -d',
                                      description="PURPOSE: Share DHIS2 objects (dataElements, programs, ...) "
                                                  "with userGroups")
-    parser.add_argument('-s', dest='server', action='store', required=True,
-                        help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'")
+    parser.add_argument('-s', dest='server', action='store', help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'")
     parser.add_argument('-t', dest='object_type', action='store', required=True,
                         help="DHIS2 object type to apply sharing, e.g. -t=sqlViews")
     parser.add_argument('-f', dest='filter', action='store', required=True,
@@ -102,8 +101,8 @@ def parse_args():
                         help="publicAccess (with login), e.g. -a=readwrite")
     parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
                         help='DHIS2 API version e.g. -v=24')
-    parser.add_argument('-u', dest='username', action='store', required=True, help='DHIS2 username, e.g. -u=admin')
-    parser.add_argument('-p', dest='password', action='store', required=True, help='DHIS2 password, e.g. -p=district')
+    parser.add_argument('-u', dest='username', action='store', help='DHIS2 username, e.g. -u=admin')
+    parser.add_argument('-p', dest='password', action='store', help='DHIS2 password, e.g. -p=district')
     parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
                         help="Debug flag - writes more info to log file, e.g. -d")
     return parser.parse_args()

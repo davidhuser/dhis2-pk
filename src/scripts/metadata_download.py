@@ -13,7 +13,7 @@ import traceback
 import requests
 
 from src.core.dhis import Dhis
-from src.core.helpers import properties_to_remove, csv_import_objects
+from src.core.static import properties_to_remove, csv_import_objects
 from src.core.logger import *
 
 
@@ -88,7 +88,7 @@ def parse_args():
     file_types = ['json', 'xml', 'csv']
 
     parser = argparse.ArgumentParser(description="Download metadata")
-    parser.add_argument('-s', dest='server', action='store', help="Server, e.g. play.dhis2.org/demo", required=True)
+    parser.add_argument('-s', dest='server', action='store', help="Server, e.g. play.dhis2.org/demo")
     parser.add_argument('-t', dest='object_type', action='store', required=True,
                         help="DHIS2 object types to get, e.g. -t=dataElements")
     parser.add_argument('-f', dest='object_filter', action='store', help="Object filter, e.g. -f='name:like:Acute'",
@@ -99,8 +99,8 @@ def parse_args():
                         choices=file_types, default='json')
     parser.add_argument('-z', dest='compress', action='store_true', help="Compress/zip download", default=False,
                         required=False)
-    parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
-    parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
+    parser.add_argument('-u', dest='username', action='store', help="DHIS2 username")
+    parser.add_argument('-p', dest='password', action='store', help="DHIS2 password")
     parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
                         help="Debug flag - writes more info to log file")
 
@@ -130,7 +130,7 @@ def main():
         fn_file_type = args.file_type
     if o_filter:
         # replace special characters in filter for file name
-        remove = ":^!$"
+        remove = ":^!$&|"
         filter_sanitized = o_filter
         for char in remove:
             filter_sanitized = filter_sanitized.replace(char, "-")

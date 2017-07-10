@@ -3,23 +3,22 @@
 
 Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org). Features:
 
-* [Mass sharing of objects via filtering](#mass-sharing-of-objects-with-usergroups-through-filtering)
-* [Readable indicator definition to CSV](#export-readable-indicator-definition-to-csv)
+* [Mass sharing of objects via filtering](#mass-sharing-of-objects-via-filtering)
+* [Readable indicator definition to CSV](#readable-indicator-definition-to-csv)
 * [Download Metadata to JSON, XML or CSV](#download-metadata-to-json-or-xml-or-csv)
 * [User information to CSV](#export-user-info-to-csv)
-* [Find User to Orgunit double assignments](#export-users-with-a-misconfigured-organisation-unit-assignment-to-csv)
 
 ## Installation / updating
 
-* Easy installation with [pip](https://pip.pypa.io/en/stable/installing) (python package manager, see if it is installed: `pip -V`)
+* Installation with [pip](https://pip.pypa.io/en/stable/installing) (python package manager, see if it is installed: `pip -V`)
 * `pip install dhis2-pocket-knife` or `sudo -H pip install dhis2-pocket-knife`
 * Upgrade with `pip install dhis2-pocket-knife -U`
 
 ## Usage
 
+* You can either pass arguments for a server / username / password or it make it read from a `dish.json` file as described in [**baosystems/dish2**](https://github.com/baosystems/dish2#configuration).
 * Get help on using arguments, e.g.`dhis2-pk-share-objects --help`
 * In the help text, `[-v]` means an optional argument
-* Be sure the specified user has the authorities to run these tasks for the specified DHIS2 server.
 * Logs to a file: `dhis2-pk.log`
 
 ---
@@ -38,7 +37,7 @@ dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All
 #### Usage
 ```
 dhis2-pk-share-objects --help
-usage: dhis2-pk-share-objects [-h] -s -t -f [-w] [-r] -a [-v] -u -p [-d]
+usage: dhis2-pk-share-objects [-h] [-s] -t -f [-w] [-r] -a [-v] [-u] [-p] [-d]
 
 PURPOSE: Share DHIS2 objects (dataElements, programs, ...) with userGroups
 
@@ -47,7 +46,7 @@ arguments:
   
   -s SERVER             DHIS2 server URL without /api/, e.g. -s='play.dhis2.org/demo'
   
-  -t {see shareable types below in this README}
+  -t {see shareable types below}
                         DHIS2 object type to apply sharing, e.g. -t=sqlViews or -t=DE
                         
   -f FILTER             Filter on objects with DHIS2 field filter
@@ -139,11 +138,11 @@ Example column for numerator `ReUHfIn0pTQ - ANC 1-3 Dropout Rate`:
 
 ```
 dhis2-pk-indicator-definitions --help
-usage: dhis2-pk-indicator-definitions [-h] -s [-f] -u -p [-v] [-d]
+usage: dhis2-pk-indicator-definitions [-h] [-s] [-f] [-u] [-p] [-v] [-d]
 
 PURPOSE: Create CSV with indicator definitions
 
-arguments:
+optional arguments:
   -h, --help           show this help message and exit
   -s SERVER            DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo
   -f INDICATOR_FILTER  Indicator filter, e.g. -f='name:^like:HIV'
@@ -174,7 +173,7 @@ dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 
 ```
 dhis2-pk-metadata-dl -h
-usage: dhis2-pk-metadata-dl [-h] -s -t [-f] [-e] [-y] [-z]-u -p [-d]
+usage: dhis2-pk-metadata-dl [-h] [-s] -t [-f] [-e] [-y] [-z] [-u] [-p] [-d]
                                                          
 Download metadata
 
@@ -206,8 +205,7 @@ Click image for example CSV output:
 
 ```
 dhis2-pk-userinfo -h
-usage: dhis2-pk-userinfo [-h] -s SERVER -u USERNAME -p PASSWORD [-v API_VERSION]
-                   [-d]
+usage: dhis2-pk-userinfo [-h] [-s] [-u] [-p] [-v] [-d]
 
 Create CSV of orgunits / usergroups of users
 
@@ -224,36 +222,6 @@ optional arguments:
 Example (try it out against DHIS2 demo instance):
 `dhis2-pk-userinfo -s=play.dhis2.org/demo -u=admin -p=district`
 
----
-## Export users with a misconfigured Organisation Unit assignment to CSV
-
-**Script name:** `dhis2-pk-user-orgunits`
-
-Writes all users of an Organisation Unit who are configured like below to a **csv file**. Users who are assigned both an Orgunit **and** sub-Orgunit can be a source of access errors.
-![issue](https://i.imgur.com/MXiALrL.png)
-
-### Usage
-
-```
-dhis2-pk-user-orgunits --help
-usage: dhis2-pk-user-orgunits [-h] -s -o -u -p [-v] [-d]
-
-PURPOSE: Create CSV all users of an orgunit who also have sub-orgunits assigned
-
-arguments:
-  -h, --help      show this help message and exit
-  -s SERVER       DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo
-  -o ORGUNIT      Top-level orgunit UID to check its users
-  -u USERNAME     DHIS2 username
-  -p PASSWORD     DHIS2 password
-  -v API_VERSION  DHIS2 API version e.g. -v=24
-  -d              Writes more info in log file
-```
-
-##### Example (try it out against DHIS2 demo instance):
-```
-dhis2-pk-user-orgunits -s=play.dhis2.org/demo -o=O6uvpzGd5pu -u=admin -p=district
-```
 
 ---
 

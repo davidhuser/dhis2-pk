@@ -12,9 +12,9 @@ from src.core.logger import *
 def parse_args():
     parser = argparse.ArgumentParser(description="Create CSV of orgunits / usergroups of users")
     parser.add_argument('-s', dest='server', action='store',
-                        help="DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo", required=True)
-    parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
-    parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
+                        help="DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo")
+    parser.add_argument('-u', dest='username', action='store', help="DHIS2 username")
+    parser.add_argument('-p', dest='password', action='store', help="DHIS2 password")
     parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
                         help='DHIS2 API version e.g. -v=24')
     parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,

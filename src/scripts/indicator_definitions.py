@@ -73,11 +73,11 @@ def object_map(dhis):
 def parse_args():
     parser = argparse.ArgumentParser(description="Create CSV with indicator definitions/expressions")
     parser.add_argument('-s', dest='server', action='store',
-                        help="DHIS2 server URL without /api/, e.g. -s='play.dhis2.org/demo'", required=True)
+                        help="DHIS2 server URL without /api/, e.g. -s='play.dhis2.org/demo'")
     parser.add_argument('-f', dest='indicator_filter', action='store',
                         help="Indicator filter, e.g. -f='name:^like:HIV'", required=False)
-    parser.add_argument('-u', dest='username', action='store', help="DHIS2 username", required=True)
-    parser.add_argument('-p', dest='password', action='store', help="DHIS2 password", required=True)
+    parser.add_argument('-u', dest='username', action='store', help="DHIS2 username")
+    parser.add_argument('-p', dest='password', action='store', help="DHIS2 password")
     parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
                         help='DHIS2 API version e.g. -v=24')
     parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,

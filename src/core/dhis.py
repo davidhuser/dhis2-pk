@@ -9,22 +9,26 @@ from datetime import datetime
 
 import requests
 
-from src.core.helpers import shareable_object_types, all_object_types
+from src.core.static import shareable_object_types, all_object_types
 from src.core.logger import *
 
 
-class Dhis(object):
-    """Core class for accessing DHIS2 web API"""
+class ConfigException(Exception):
+    pass
 
-    public_access = {
-        'none': '--------',
-        'readonly': 'r-------',
-        'readwrite': 'rw------'
-    }
+
+class Config(object):
 
     def __init__(self, server, username, password, api_version):
+
+        if not server:
+            dish = self.get_dish()
+            server = dish['server']
+            username = dish['username']
+            password = dish['password']
+
         if '/api' in server:
-            print('Please do not specify /api/ in the server argument: e.g. -s=play.dhis2.org/demo')
+            print('Please do not specify /api/ in the server url')
             sys.exit()
         if server.startswith('localhost') or server.startswith('127.0.0.1'):
             server = 'http://{}'.format(server)
@@ -38,8 +42,46 @@ class Dhis(object):
         else:
             self.api_url = '{}/api'.format(server)
         now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        server_name = server.replace('https://', '').replace('.', '-').replace('/', '-')
-        self.file_timestamp = '{}_{}'.format(now, server_name)
+        self.file_timestamp = '{}_{}'.format(now, server.replace('https://', '').replace('.', '-').replace('/', '-'))
+
+    @staticmethod
+    def get_dish():
+
+        print("No Server URL given, searching for dish.json ...")
+
+        fn = 'dish.json'
+        dish_location = ''
+
+        if 'DHIS_HOME' in os.environ:
+            dish_location = os.path.join(os.environ['DHIS_HOME'], fn)
+        else:
+            home_path = os.path.expanduser(os.path.join("~"))
+            for root, dirs, files in os.walk(home_path):
+                if fn in files:
+                    dish_location = os.path.join(root, fn)
+                    break
+        if not dish_location:
+            raise ConfigException("dish.json not found - searches in $DHIS_HOME and in your home folder")
+
+        with open(dish_location, 'r') as f:
+            dish = json.load(f)
+            valid = all(dish['dhis'] and dish['dhis']['baseurl'] and dish['dhis']['username'] and dish['dhis']['password'])
+            if not valid:
+                raise ConfigException("dish.json found at {} but not configured according dish.json format (see github.com/baosystems/dish#Configuration)".format(dish_location))
+
+            return {'baseurl': dish['dhis']['baseurl'], 'username': dish['dhis']['username'], 'password': dish['dhis']['password']}
+
+
+class Dhis(Config):
+
+    public_access = {
+        'none': '--------',
+        'readonly': 'r-------',
+        'readwrite': 'rw------'
+    }
+
+    def __init__(self, server, username, password, api_version):
+        Config.__init__(self, server, username, password, api_version)
 
     def get(self, endpoint, file_type='json', params=None):
         url = '{}/{}.{}'.format(self.api_url, endpoint, file_type)
@@ -47,34 +89,34 @@ class Dhis(object):
         log_debug(u"GET: {} - parameters: {}".format(url, json.dumps(params)))
 
         try:
-            req = requests.get(url, params=params, auth=self.auth)
-        except requests.RequestException as e:
-            self.abort(req)
+            r = requests.get(url, params=params, auth=self.auth)
+        except requests.RequestException:
+            self.abort(r)
 
-        log_debug(u"URL: {}".format(req.url))
+        log_debug(u"URL: {}".format(r.url))
 
-        if req.status_code == 200:
-            log_debug(u"RESPONSE: {}".format(req.text))
+        if r.status_code == 200:
+            log_debug(u"RESPONSE: {}".format(r.text))
             if file_type == 'json':
-                return req.json()
+                return r.json()
             else:
-                return req.text
+                return r.text
         else:
-            self.abort(req)
+            self.abort(r)
 
     def post(self, endpoint, params, payload):
         url = '{}/{}'.format(self.api_url, endpoint)
         log_debug(u"POST: {} \n parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
 
         try:
-            req = requests.post(url, params=params, json=payload, auth=self.auth)
+            r = requests.post(url, params=params, json=payload, auth=self.auth)
         except requests.RequestException as e:
-            self.abort(req)
+            self.abort(r)
 
-        log_debug(req.url)
+        log_debug(r.url)
 
-        if req.status_code != 200:
-            self.abort(req)
+        if r.status_code != 200:
+            self.abort(r)
 
     def get_dhis_version(self):
         """ return DHIS2 verson (e.g. 26) as integer"""
@@ -88,10 +130,9 @@ class Dhis(object):
 
         return int(version.split('.')[1])
 
-    @staticmethod
-    def abort(request):
+    def abort(r):
         msg = u"++++++ ERROR ++++++\n+++HTTP code: {}\n+++URL: {}\n+++RESPONSE: {}"
-        log_info(msg.format(request.status_code, request.url, request.text))
+        log_info(msg.format(r.status_code, r.url, r.text))
         sys.exit()
 
     @staticmethod
