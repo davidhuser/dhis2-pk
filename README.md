@@ -222,7 +222,7 @@ Simply post a CSS file to a server.
 
 ```
 dhis2-pk-post-css -h
-usage: dhis2-pk-post-css [-h] [-s] -c [-u] [-p] [-v] [-d]
+usage: dhis2-pk-post-css [-h] [-s] -c [-u] [-p] [-d]
 
 optional arguments:
   -h, --help      show this help message and exit
@@ -230,7 +230,6 @@ optional arguments:
   -c CSS          CSS file to post
   -u USERNAME     DHIS2 username
   -p PASSWORD     DHIS2 password
-  -v API_VERSION  DHIS2 API version e.g. -v=24
   -d              Writes more info in log file
 
 ```
