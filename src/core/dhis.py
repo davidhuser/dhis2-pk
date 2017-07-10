@@ -9,8 +9,8 @@ from datetime import datetime
 
 import requests
 
-from src.core.static import shareable_object_types, all_object_types
 from src.core.logger import *
+from src.core.static import shareable_object_types, all_object_types
 
 
 class ConfigException(Exception):
@@ -18,7 +18,6 @@ class ConfigException(Exception):
 
 
 class Config(object):
-
     def __init__(self, server, username, password, api_version):
 
         if not server:
@@ -65,15 +64,21 @@ class Config(object):
 
         with open(dish_location, 'r') as f:
             dish = json.load(f)
-            valid = all(dish['dhis'] and dish['dhis']['baseurl'] and dish['dhis']['username'] and dish['dhis']['password'])
+            valid = False
+            try:
+                valid = all([dish['dhis'], dish['dhis']['baseurl'], dish['dhis']['username'], dish['dhis']['password']])
+            except KeyError:
+                pass
             if not valid:
-                raise ConfigException("dish.json found at {} but not configured according dish.json format (see github.com/baosystems/dish#Configuration)".format(dish_location))
+                raise ConfigException(
+                    "dish.json found at {} but not configured according dish.json format "
+                    "(see github.com/baosystems/dish#Configuration)".format(dish_location))
 
-            return {'baseurl': dish['dhis']['baseurl'], 'username': dish['dhis']['username'], 'password': dish['dhis']['password']}
+            return {'baseurl': dish['dhis']['baseurl'], 'username': dish['dhis']['username'],
+                    'password': dish['dhis']['password']}
 
 
 class Dhis(Config):
-
     public_access = {
         'none': '--------',
         'readonly': 'r-------',
@@ -120,9 +125,10 @@ class Dhis(Config):
 
     def post_file(self, endpoint, filename, content_type):
         url = '{}/{}'.format(self.api_url, endpoint)
-        files = {'file': (filename, open(filename, 'rb'), content_type, {'Expires': '0'})}
-        r = requests.post(url, files=files, auth=self.auth)
-        if r.status_code not in (200, 202):
+        headers = {"Content-Type": content_type}
+        fileread = open(filename, 'rb').read()
+        r = requests.post(url, data=fileread, headers=headers, auth=self.auth)
+        if r.status_code not in range(200, 204):
             self.abort(r)
 
     def get_dhis_version(self):
@@ -139,7 +145,7 @@ class Dhis(Config):
 
     @staticmethod
     def abort(r):
-        msg = u"++++++ ERROR ++++++\n+++HTTP code: {}\n+++URL: {}\n+++RESPONSE: {}"
+        msg = u"++++++ ERROR ++++++\nHTTP code: {}\nURL: {}\nRESPONSE:\n{}"
         log_info(msg.format(r.status_code, r.url, r.text))
         sys.exit()
 

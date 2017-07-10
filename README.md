@@ -254,10 +254,12 @@ python setup.py install
 - [x] acronym support for object types (`-t=de`)
 - [x] multiple filter should be added with `&&` instead of `&`
 - [x] new feature: download of metadata
+- [x] read from dish.json file
 - [x] new feature: POST CSS to server
 
 ### Todo
 
 - [ ] Script tests
+- [ ] Color output
 
 
