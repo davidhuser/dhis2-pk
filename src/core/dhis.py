@@ -118,6 +118,13 @@ class Dhis(Config):
         if r.status_code != 200:
             self.abort(r)
 
+    def post_file(self, endpoint, filename, content_type):
+        url = '{}/{}'.format(self.api_url, endpoint)
+        files = {'file': (filename, open(filename, 'rb'), content_type, {'Expires': '0'})}
+        r = requests.post(url, files=files, auth=self.auth)
+        if r.status_code not in (200, 202):
+            self.abort(r)
+
     def get_dhis_version(self):
         """ return DHIS2 verson (e.g. 26) as integer"""
         response = self.get(endpoint='system/info', file_type='json')
@@ -130,6 +137,7 @@ class Dhis(Config):
 
         return int(version.split('.')[1])
 
+    @staticmethod
     def abort(r):
         msg = u"++++++ ERROR ++++++\n+++HTTP code: {}\n+++URL: {}\n+++RESPONSE: {}"
         log_info(msg.format(r.status_code, r.url, r.text))
