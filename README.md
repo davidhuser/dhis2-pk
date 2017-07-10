@@ -234,6 +234,10 @@ optional arguments:
 
 ```
 
+Example (with reading out a `dish.json` file):
+
+`dhis2-pk-post-css -c=style.css`
+
 ---
 
 ### Install from source
