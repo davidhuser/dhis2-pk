@@ -37,8 +37,8 @@ def main():
 
     dhis = Dhis(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
     params1 = {
-        'fields': 'dataViewOrganisationUnits[path],userCredentials[username],name,'
-                  'organisationUnits[path],userGroups[name],userRoles[name]',
+        'fields': 'dataViewOrganisationUnits[path],userCredentials[username,userRoles[name]],name,'
+                  'organisationUnits[path],userGroups[name]',
         'paging': False
     }
     users = dhis.get(endpoint='users', file_type='json', params=params1)
@@ -63,7 +63,7 @@ def main():
                 'name': u['name'],
                 'username': u['userCredentials']['username'],
                 'userGroups': ", ".join([ug['name'] for ug in u['userGroups']]),
-                'userRoles': ", ".join([ug['name'] for ug in u['userRoles']])
+                'userRoles': ", ".join([ur['name'] for ur in u['userCredentials']['userRoles']])
             }
             orgunits = [ou['path'] for ou in u['organisationUnits']]
             export['orgunitPaths'] = "\n".join([replace_path(oumap, elem) for elem in orgunits])
