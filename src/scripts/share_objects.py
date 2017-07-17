@@ -188,10 +188,10 @@ def main():
 
         try:
             log_info(u"({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['name'].encode('utf-8')))
-        except UnicodeEncodeError:
+        except (UnicodeEncodeError, UnicodeDecodeError):
             try:
                 log_info(u"({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['code']))
-            except KeyError:
+            except (UnicodeEncodeError, UnicodeDecodeError, KeyError):
                 log_info(u"({}/{}) [OK] {}".format(counter, no_of_obj, obj['id']))
 
         counter += 1
