@@ -128,7 +128,7 @@ class Dhis(Config):
         log_debug(u"PUT: {} \n parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
 
         try:
-            r = requests.post(url, params=params, json=payload, auth=self.auth)
+            r = requests.put(url, params=params, json=payload, auth=self.auth)
         except requests.RequestException as e:
             self.abort(r)
 
