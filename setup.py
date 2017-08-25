@@ -27,7 +27,8 @@ setup(
             'dhis2-pk-share-objects = src.scripts.share_objects:main',
             'dhis2-pk-metadata-dl = src.scripts.metadata_download:main',
             'dhis2-pk-userinfo = src.scripts.userinfo:main',
-            'dhis2-pk-post-css = src.scripts.post_css:main'
+            'dhis2-pk-post-css = src.scripts.post_css:main',
+            'dhis2-pk-hnqis-orgunit-productivity = src.scripts.hnqis_ou_productivityvalues:main'
         ]
     },
     packages=find_packages(exclude=['tests']),

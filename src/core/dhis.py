@@ -123,6 +123,20 @@ class Dhis(Config):
         if r.status_code != 200:
             self.abort(r)
 
+    def put(self, endpoint, params, payload):
+        url = '{}/{}'.format(self.api_url, endpoint)
+        log_debug(u"PUT: {} \n parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
+
+        try:
+            r = requests.post(url, params=params, json=payload, auth=self.auth)
+        except requests.RequestException as e:
+            self.abort(r)
+
+        log_debug(r.url)
+
+        if r.status_code != 200:
+            self.abort(r)
+
     def post_file(self, endpoint, filename, content_type):
         url = '{}/{}'.format(self.api_url, endpoint)
         headers = {"Content-Type": content_type}
