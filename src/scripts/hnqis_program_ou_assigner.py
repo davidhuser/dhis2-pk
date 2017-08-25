@@ -34,13 +34,17 @@ def main():
 
     dhis = Dhis(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
 
-    #if '.psi-mis.org' not in args.server:
-    #    log_info("This script is intended only for *.psi-mis.org")
-    #    sys.exit()
+    if '.psi-mis.org' not in args.server:
+        log_info("This script is intended only for *.psi-mis.org")
+        sys.exit()
 
     with open(args.source_csv) as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
+
+    if not data:
+        log_info("+++ CSV not valid (empty?)")
+        sys.exit()
 
     if not data[0].get('orgunit', None):
         log_info("+++ CSV not valid: CSV must have 'orgunit' header")
@@ -72,9 +76,6 @@ def main():
                         program_orgunit_map[k] = list()
                     program_orgunit_map[k].append(a['orgunit'])
 
-    print("\n")
-    print(json.dumps(program_orgunit_map))
-
     print("REPLACING Orgunit<->Program assignment...")
 
     metadata_payload = []
@@ -93,7 +94,6 @@ def main():
 
     final['programs'] = metadata_payload
 
-    dhis.validate(obj_type='program', payload=final)
     params_post = {
         "mergeMode": "REPLACE",
         "strategy": "UPDATE"
