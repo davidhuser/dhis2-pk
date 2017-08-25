@@ -1,4 +1,5 @@
 from copy import deepcopy
+import re
 
 shareable = {
     'userGroups': ['usergroups', 'ug', 'usergroup'],
@@ -53,6 +54,11 @@ def all_object_types():
     all_objects['organisationUnits'] = ['ou', 'orgunit', 'orgunits']
     all_objects['validationRules'] = ['validationrules', 'validationrule']
     return dict((v, k) for k in all_objects for v in all_objects[k])
+
+
+def valid_uid(uid):
+    """Check if string matches DHIS2 UID pattern"""
+    return re.compile("[A-Za-z][A-Za-z0-9]{10}").match(uid)
 
 properties_to_remove = {
     'created',

@@ -61,6 +61,8 @@ def main():
             }
         }
         ou_obj['attributeValues'].append(payload)
+
+        dhis.validate(obj_type='organisationUnit', payload=ou_obj)
         dhis.put('organisationUnits/{}'.format(orgunit_uid), params=None, payload=ou_obj)
 
         print("{} / {} - OrgUnit: {} Value: {} for ProductivityAttribute {}".format(cnt, len(data), orgunit_uid,

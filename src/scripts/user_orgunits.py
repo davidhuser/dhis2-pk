@@ -9,16 +9,11 @@ and its sub-organisation units and prints them with their UID.
 
 import argparse
 import unicodecsv as csv
-import re
 import sys
 
 from src.core.dhis import Dhis
+from src.core.static import valid_uid
 from src.core.logger import *
-
-
-def valid_uid(uid):
-    """Check if string matches DHIS2 UID pattern"""
-    return re.compile("[A-Za-z][A-Za-z0-9]{10}").match(uid)
 
 
 def parse_args():

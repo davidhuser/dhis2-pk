@@ -28,7 +28,8 @@ setup(
             'dhis2-pk-metadata-dl = src.scripts.metadata_download:main',
             'dhis2-pk-userinfo = src.scripts.userinfo:main',
             'dhis2-pk-post-css = src.scripts.post_css:main',
-            'dhis2-pk-hnqis-orgunit-productivity = src.scripts.hnqis_ou_productivityvalues:main'
+            'dhis2-pk-hnqis-orgunit-productivity = src.scripts.hnqis_ou_productivityvalues:main',
+            'dhis2-pk-hnqis-program-orgunit-assigner = src.scripts.hnqis_program_ou_assigner:main'
         ]
     },
     packages=find_packages(exclude=['tests']),

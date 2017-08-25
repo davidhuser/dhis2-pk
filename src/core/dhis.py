@@ -147,6 +147,20 @@ class Dhis(Config):
         else:
             return r.text
 
+    def validate(self, obj_type, payload):
+        url = '{}/schemas/{}'.format(self.api_url, obj_type)
+        log_debug(u"VALIDATE: {} \n payload: {}".format(url, json.dumps(payload)))
+
+        try:
+            r = requests.post(url, json=payload, auth=self.auth)
+        except requests.RequestException as e:
+            self.abort(r)
+
+        log_debug(r.url)
+
+        if r.status_code != 200:
+            self.abort(r)
+
     def get_dhis_version(self):
         """ return DHIS2 verson (e.g. 26) as integer"""
         response = self.get(endpoint='system/info', file_type='json')
