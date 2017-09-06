@@ -116,7 +116,7 @@ class Dhis(Config):
         try:
             r = requests.post(url, params=params, json=payload, auth=self.auth)
         except requests.RequestException as e:
-            self.abort(r)
+            self.abort(e)
 
         log_debug(r.url)
 
@@ -130,12 +130,10 @@ class Dhis(Config):
         try:
             r = requests.put(url, params=params, json=payload, auth=self.auth)
         except requests.RequestException as e:
-            self.abort(r)
-
-        log_debug(r.url)
-
-        if r.status_code != 200:
-            self.abort(r)
+            self.abort(e)
+        else:
+            if r.status_code != 200:
+                self.abort(r)
 
     def post_file(self, endpoint, filename, content_type):
         url = '{}/{}'.format(self.api_url, endpoint)
@@ -154,12 +152,10 @@ class Dhis(Config):
         try:
             r = requests.post(url, json=payload, auth=self.auth)
         except requests.RequestException as e:
-            self.abort(r)
-
-        log_debug(r.url)
-
-        if r.status_code != 200:
-            self.abort(r)
+            self.abort(e)
+        else:
+            if r.status_code != 200:
+                self.abort(r)
 
     def get_dhis_version(self):
         """ return DHIS2 verson (e.g. 26) as integer"""
