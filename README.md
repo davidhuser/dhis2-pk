@@ -17,7 +17,7 @@ Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2
 
 ## Usage
 
-* You can either pass arguments for a server / username / password or it make it read from a `dish.json` file as described in [**baosystems/dish2**](https://github.com/baosystems/dish2#configuration).
+* Either pass arguments for a server / username / password or it make it read from a `dish.json` file as described in [baosystems/dish2](https://github.com/baosystems/dish2#configuration).
 * Get help on using arguments, e.g.`dhis2-pk-share-objects --help`
 * In the help text, `[-v]` means an optional argument
 * Logs to a file: `dhis2-pk.log`
