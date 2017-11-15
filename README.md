@@ -1,4 +1,4 @@
-# dhis2-pocket-knife [![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Build Status](https://travis-ci.org/davidhuser/dhis2-pocket-knife.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pocket-knife) [![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
+# dhis2-pocket-knife [![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Build Status](https://travis-ci.org/davidhuser/dhis2-pk.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pk) [![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
 
 
 Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org). Features:
@@ -17,7 +17,7 @@ Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2
 
 ## Usage
 
-* You can either pass arguments for a server / username / password or it make it read from a `dish.json` file as described in [**baosystems/dish2**](https://github.com/baosystems/dish2#configuration).
+* Either pass arguments for a server / username / password or it make it read from a `dish.json` file as described in [baosystems/dish2](https://github.com/baosystems/dish2#configuration).
 * Get help on using arguments, e.g.`dhis2-pk-share-objects --help`
 * In the help text, `[-v]` means an optional argument
 * Logs to a file: `dhis2-pk.log`
