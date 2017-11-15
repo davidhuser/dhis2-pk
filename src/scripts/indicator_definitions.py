@@ -29,43 +29,43 @@ def object_map(dhis):
     params1 = {'paging': False}
     resp1 = dhis.get(endpoint='indicatorTypes', file_type='json', params=params1)
     for elem in resp1['indicatorTypes']:
-        uid_mapping[elem['id']] = {'desc': elem['displayName']}
+        uid_mapping[elem['id']] = {'desc': u"{}".format(elem['displayName'])}
 
     params2 = {'fields': 'id,name,value', 'paging': False}
     resp2 = dhis.get(endpoint='constants', file_type='json', params=params2)
     for elem in resp2['constants']:
-        uid_mapping[elem['id']] = {'desc': "[Name: {} - Value: {}]".format(elem['name'], elem['value'])}
+        uid_mapping[elem['id']] = {'desc': u"[Name: {} - Value: {}]".format(elem['name'], elem['value'])}
 
     params3 = {'fields': 'id,name,organisationUnits', 'paging': False}
     resp3 = dhis.get(endpoint='organisationUnitGroups', file_type='json', params=params3)
     for elem in resp3['organisationUnitGroups']:
         uid_mapping[elem['id']] = {
-            'desc': "[Name: {} - OUG Size: {}]".format(elem['name'], len(elem['organisationUnits']))}
+            'desc': u"[Name: {} - OUG Size: {}]".format(elem['name'], len(elem['organisationUnits']))}
 
     params4 = {'fields': 'id,name', 'paging': False}
     resp4 = dhis.get(endpoint='dataElements', file_type='json', params=params4)
     for elem in resp4['dataElements']:
-        uid_mapping[elem['id']] = {'desc': elem['name']}
+        uid_mapping[elem['id']] = {'desc': u"{}".format(elem['name'])}
 
     params5 = {'fields': 'id,name', 'paging': False}
     resp5 = dhis.get(endpoint='categoryOptionCombos', file_type='json', params=params5)
     for elem in resp5['categoryOptionCombos']:
-        uid_mapping[elem['id']] = {'desc': elem['name']}
+        uid_mapping[elem['id']] = {'desc': u"{}".format(elem['name'])}
 
     params6 = {'fields': 'id,name', 'paging': False}
     resp6 = dhis.get(endpoint='programs', file_type='json', params=params6)
     for elem in resp6['programs']:
-        uid_mapping[elem['id']] = {'desc': elem['name']}
+        uid_mapping[elem['id']] = {'desc': u"{}".format(elem['name'])}
 
     params7 = {'fields': 'id,name', 'paging': False}
     resp7 = dhis.get(endpoint='programIndicators', file_type='json', params=params7)
     for elem in resp7['programIndicators']:
-        uid_mapping[elem['id']] = {'desc': elem['name']}
+        uid_mapping[elem['id']] = {'desc': u"{}".format(elem['name'])}
 
     params8 = {'fields': 'id,name', 'paging': False}
     resp8 = dhis.get(endpoint='trackedEntityAttributes', file_type='json', params=params8)
     for elem in resp8['trackedEntityAttributes']:
-        uid_mapping[elem['id']] = {'desc': elem['name']}
+        uid_mapping[elem['id']] = {'desc': u"{}".format(elem['name'])}
 
     return uid_mapping
 
