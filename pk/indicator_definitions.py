@@ -7,12 +7,12 @@ Creates a CSV with indicator definitions (names of dataelement.catoptioncombo, c
 """
 
 import argparse
-import sys
 
 import unicodecsv as csv
-
-from src.core.dhis import Dhis
-from src.core.logger import *
+from logzero import logger
+from core.log import init_logger
+from core.exceptions import ClientException
+from core.dhis import Dhis
 
 
 def replace_definitions(definition, obj_map):
@@ -101,14 +101,15 @@ def analyze_result(indicators, indicator_filter):
     no_of_indicators = len(indicators['indicators'])
     if no_of_indicators == 0:
         if indicator_filter:
-            msg = u"No indicators found - check your filter."
+            msg = "No indicators found - check your filter."
         else:
-            msg = u"No indicators found - are there any?"
+            msg = "No indicators found - are there any?"
+        raise ClientException(msg)
     else:
         if indicator_filter:
-            msg = u"Found {} indicators with filter {}".format(no_of_indicators, indicator_filter)
+            msg = "Found {} indicators with filter {}".format(no_of_indicators, indicator_filter)
         else:
-            msg = u"Found {} indicators".format(no_of_indicators)
+            msg = "Found {} indicators".format(no_of_indicators)
     return msg
 
 
@@ -122,8 +123,8 @@ def write_to_csv(indicators, object_mapping, file_name):
         for ind in indicators['indicators']:
             num = replace_definitions(ind['numerator'], object_mapping)
             den = replace_definitions(ind['denominator'], object_mapping)
-            log_debug(u"Replaced numerators: {}".format(num))
-            log_debug(u"Replaced denominators: {}".format(den))
+            logger.debug(u"Replaced numerators: {}".format(num))
+            logger.debug(u"Replaced denominators: {}".format(den))
 
             uid = ind['id']
             name = ind['name']
@@ -144,7 +145,7 @@ def write_to_csv(indicators, object_mapping, file_name):
                     elem = str(elem)
             writer.writerow(row)
 
-        log_info(u"+++ Success! CSV file exported to {}".format(file_name))
+        logger.info("Success! CSV file exported to {}".format(file_name))
 
 
 def main():
@@ -152,17 +153,14 @@ def main():
 
     dhis = Dhis(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
     init_logger(args.debug)
-    log_start_info(__file__)
 
     indicators = dhis.get(endpoint='indicators', file_type='json', params=get_params(args.indicator_filter))
 
     message = analyze_result(indicators, args.indicator_filter)
-    log_info(message)
-    if message.startswith('No indicators'):
-        sys.exit()
-    log_info(u"Downloading other UIDs <-> Names...")
+    logger.info(message)
+    logger.info("Downloading other UIDs <-> Names...")
     object_mapping = object_map(dhis)
-    file_name = u'indicators-{}.csv'.format(dhis.file_timestamp)
+    file_name = 'indicators-{}.csv'.format(dhis.file_timestamp)
     write_to_csv(indicators, object_mapping, file_name)
 
 

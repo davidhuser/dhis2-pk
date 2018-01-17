@@ -4,9 +4,10 @@ import argparse
 import re
 
 import unicodecsv as csv
+from logzero import logger
 
-from src.core.dhis import Dhis
-from src.core.logger import *
+from core.dhis import Dhis
+from core.log import init_logger
 
 
 def parse_args():
@@ -33,7 +34,6 @@ def replace_path(oumap, path):
 def main():
     args = parse_args()
     init_logger(args.debug)
-    log_start_info(__file__)
 
     dhis = Dhis(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
     params1 = {
@@ -72,7 +72,7 @@ def main():
             export['dataViewOrgunitPaths'] = "\n".join([replace_path(oumap, elem) for elem in dvorgunits])
 
             writer.writerow(export)
-        log_info(u"+++ Success! CSV file exported to {}".format(file_name))
+        logger.info("Success! CSV file exported to {}".format(file_name))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import pytest
 
-from src.core.dhis import Dhis
+from pk.core.dhis import Dhis
+from pk.core.exceptions import ClientException
 
 
 @pytest.fixture()
@@ -63,5 +64,5 @@ def test_localhost_ip(dhis_localhost_ip):
 
 
 def test_url_with_api():
-    with pytest.raises(SystemExit):
+    with pytest.raises(ClientException):
         Dhis(server='play.dhis2.org/demo/api', username='admin', password='district', api_version=None)

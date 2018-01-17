@@ -1,7 +1,9 @@
 import argparse
 
-from src.core.dhis import Dhis
-from src.core.logger import *
+from logzero import logger
+
+from core.log import init_logger
+from pk.core.dhis import Dhis
 
 """
 post-css
@@ -25,12 +27,10 @@ def parse_args():
 def main():
     args = parse_args()
     init_logger(args.debug)
-    log_start_info(__file__)
     dhis = Dhis(server=args.server, username=args.username, password=args.password, api_version=None)
 
-    p = dhis.post_file(endpoint='files/style', filename=args.css, content_type='text/css')
-    print("{} CSS posted to {}. Clear your caches.".format(args.css, dhis.api_url))
-    print(p)
+    dhis.post_file(endpoint='files/style', filename=args.css, content_type='text/css')
+    logger.info("{} CSS posted to {}. Clear your caches.".format(args.css, dhis.api_url))
 
 
 if __name__ == "__main__":

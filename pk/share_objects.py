@@ -13,9 +13,10 @@ import json
 import sys
 
 from six import iteritems
-
-from src.core.dhis import Dhis
-from src.core.logger import *
+from logzero import logger
+from core.log import init_logger
+from core.dhis import Dhis
+from core.exceptions import ClientException
 
 public_access = {
     'none': '--------',
@@ -39,18 +40,17 @@ class Sharer(Dhis):
             root_junction = 'AND'
 
         endpoint = 'userGroups'
-        print(("+++ GET {} with filter [rootJunction: {}] {} ({})".format(endpoint, root_junction, filter_list, access)))
+        logger.info(("GET {} with filter [rootJunction: {}] [{}] ({})".format(endpoint, root_junction, ' '.join(filter_list), access)))
         response = self.get(endpoint=endpoint, file_type='json', params=params)
 
         if len(response['userGroups']) > 0:
             # zip it into a dict { id: name, id:name }
             ugmap = {ug['id']: ug['name'] for ug in response['userGroups']}
             for (key, value) in iteritems(ugmap):
-                log_info(u"{} - {}".format(key, value))
+                logger.info(u"{} - {}".format(key, value))
             return ugmap.keys()
         else:
-            log_info(u"+++ No userGroup(s) found. Check your filter / DHIS2")
-            sys.exit()
+            raise ClientException("No userGroup(s) found. Check your filter / DHIS2")
 
     def get_objects(self, objects, objects_filter, delimiter):
 
@@ -62,20 +62,20 @@ class Sharer(Dhis):
 
         if delimiter == '||':
             params['rootJunction'] = 'OR'
-            print_junction = "+++ GET {} with filters [rootJunction: OR] {}"
+            print_junction = "GET {} with filters [rootJunction: OR] {}"
         elif len(objects_filter) > 1:
-            print_junction = "+++ GET {} with filters [rootJunction: AND] {}"
+            print_junction = "GET {} with filters [rootJunction: AND] {}"
         else:
-            print_junction = "+++ GET {} with filter {}"
+            print_junction = "GET {} with filter {}"
 
-        print(print_junction.format(objects, objects_filter))
+        logger.info(print_junction.format(objects, objects_filter))
         response = self.get(endpoint=objects, file_type='json', params=params)
 
         if response:
             if len(response[objects]) > 0:
                 return response
-        log_info(u'+++ No objects found. Wrong filter?')
-        log_debug(u'objects: {}'.format(objects.encode('utf-8')))
+        logger.warning('No objects found. Wrong filter?')
+        logger.debug('objects: {}'.format(objects))
         sys.exit()
 
     def share_object(self, sharing_object):
@@ -164,7 +164,8 @@ def parse_args():
     parser.add_argument('-a', dest='publicaccess', action='store', required=True, choices=public_access.keys(),
                         help="publicAccess (with login), e.g. -a=readwrite")
     parser.add_argument('-k', dest='keep', action='store_true', required=False,
-                        help="keep current sharing & only replace as specified")
+                        help="keep current sharing & only replace if not congruent to prevent change to lastUpdated field")
+    parser.add_argument('-l', dest='logging_to_file', action='store', required=False, help="Path to Log file (level: INFO)")
     parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
                         help='DHIS2 API version e.g. -v=24')
     parser.add_argument('-u', dest='username', action='store', help='DHIS2 username, e.g. -u=admin')
@@ -177,7 +178,7 @@ def parse_args():
 def filter_delimiter(argument, dhis_version):
     if '||' in argument:
         if dhis_version < 25:
-            sys.exit("rootJunction 'OR' is only supported 2.25 onwards. Nothing shared.")
+            raise ClientException("rootJunction 'OR' is only supported 2.25 onwards. Nothing shared.")
         return '||'
     else:
         return '&&'
@@ -185,8 +186,7 @@ def filter_delimiter(argument, dhis_version):
 
 def main():
     args = parse_args()
-    init_logger(args.debug)
-    log_start_info(__file__)
+    init_logger(args.logging_to_file, args.debug)
     dhis = Sharer(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
 
     dhis_version = dhis.get_dhis_version()
@@ -225,19 +225,19 @@ def main():
         skip = False
         # strip name to match API (e.g. dataElements -> dataElement)
         if object_type == 'categories':
-            object_type_singular = 'category'
+            ot_single = 'category'
         else:
-            object_type_singular = object_type[:-1]
+            ot_single = object_type[:-1]
 
         # create a SharingDefinition based on command-line arguments
         submitted = SharingDefinition(uid=obj['id'],
-                                      object_type=object_type_singular,
+                                      object_type=ot_single,
                                       public_access=public_access[args.publicaccess],
                                       usergroup_accesses=list(user_group_accesses))
         if args.keep:
             # create a SharingDefinition based on what is already on the server
             existing = SharingDefinition(uid=obj['id'],
-                                         object_type=object_type_singular,
+                                         object_type=ot_single,
                                          public_access=obj['publicAccess'])
             if obj.get('userGroupAccesses'):
                 existing.usergroup_accesses = [UserGroupAccess(uid=x['id'], access=x['access']) for x in obj['userGroupAccesses']]
@@ -245,20 +245,25 @@ def main():
             if existing == submitted:
                 skip = True
 
+        status_message = u"{} ({}/{}) - {} - {}"
+        identifier = ''
         if not skip:
             # apply sharing
             dhis.share_object(submitted)
-
             try:
-                log_info(u"({}/{}) [OK] {} {}".format(i, no_of_obj, obj['id'], obj['name'].encode('utf-8')))
-            except (UnicodeEncodeError, UnicodeDecodeError):
+                identifier = obj['name']
+            except KeyError:
                 try:
-                    log_info(u"({}/{}) [OK] {} {}".format(i, no_of_obj, obj['id'], obj['code']))
-                except (UnicodeEncodeError, UnicodeDecodeError, KeyError):
-                    log_info(u"({}/{}) [OK] {}".format(i, no_of_obj, obj['id']))
-
-        sys.exit()
+                    identifier = obj['code']
+                except KeyError:
+                    identifier = ''
+            finally:
+                logger.info(status_message.format(ot_single, i, no_of_obj, obj['id'], identifier))
+        else:
+            logger.debug(status_message.format(ot_single, i, no_of_obj, obj['id'], identifier) +
+                         " not re-shared to prevent updating lastUpdated field")
 
 
 if __name__ == "__main__":
     main()
+

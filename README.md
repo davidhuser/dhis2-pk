@@ -1,11 +1,10 @@
-# dhis2-pocket-knife [![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Build Status](https://travis-ci.org/davidhuser/dhis2-pk.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pk) [![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
+# dhis2-pocket-knife [![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
 
 
 Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org). Features:
 
 * [Mass sharing of objects via filtering](#mass-sharing-of-objects-via-filtering)
 * [Readable indicator definition to CSV](#readable-indicator-definition-to-csv)
-* [Download Metadata to JSON, XML or CSV](#download-metadata-to-json-or-xml-or-csv)
 * [User information to CSV](#export-user-info-to-csv)
 * [Post CSS file](#post-css-file)
 
@@ -20,7 +19,6 @@ Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2
 * Either pass arguments for a server / username / password or it make it read from a `dish.json` file as described in [baosystems/dish2](https://github.com/baosystems/dish2#configuration).
 * Get help on using arguments, e.g.`dhis2-pk-share-objects --help`
 * In the help text, `[-v]` means an optional argument
-* Logs to a file: `dhis2-pk.log`
 
 ---
 
@@ -64,6 +62,11 @@ arguments:
                        
   -a {readwrite,none,readonly}
                         Public Access (with login), e.g. -a=readwrite
+  
+  -k                    keep current sharing & only replace if not congruent to arguments
+                        to prevent change to lastUpdated field
+  
+  -l LOGGING_TO_FILE    Path to Log file (level: INFO)
                         
   -v API_VERSION        DHIS2 API version e.g. -v=24
                         (if omitted, <URL>/api/endpoint will be used)
@@ -78,6 +81,7 @@ arguments:
 It's also possible to use acronyms/abbreviations like `-t=de` for dataElements, or `-t=ds` for dataSets, or `-t=catcombo` for Category Combinations
 
 - userGroups
+- userRoles
 - sqlViews
 - constants
 - optionSets
@@ -157,40 +161,6 @@ dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district
 ```
 ---
 
-## Download metadata to JSON or XML or CSV
-
-**Script name:** `dhis-pk-metadata-dl`
-
-* It uses the metadata export feature (for 2.23+ versions) described in the [docs](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_export)
-* It defaults to use JSON, but can be overriden by using `-y=xml` or `-y=csv`
-* Note that CSV should not be used for direct import to DHIS2 as it may break things.
-* You can use any common term for a type, e.g. `-t=ou` of `-t=CatCombos`
-
-### Usage
-
-```
-dhis2-pk-metadata-dl -h
-usage: dhis2-pk-metadata-dl [-h] [-s] -t [-f] [-e] [-y] [-z] [-u] [-p] [-d]
-                                                         
-optional arguments:
-  -h, --help         show this help message and exit
-  -s SERVER          Server, e.g. play.dhis2.org/demo
-  -t OBJECT_TYPE     DHIS2 object type to get, e.g. -t=dataElements
-  -f OBJECT_FILTER   Object filter, e.g. -f='name:like:Acute'
-  -e FIELDS          Fields to include, e.g. -f='id,name'
-  -y {json,xml,csv}  File format, defaults to JSON
-  -z COMPRESS        Compress/zip download (for XML and JSON only)
-  -u USERNAME        DHIS2 username
-  -p PASSWORD        DHIS2 password
-  -d                 Debug flag - writes more info to log file
-```
-
-Example (try it out against DHIS2 demo instance):
-```
-dhis2-pk-metadata-dl -s=play.dhis2.org/demo -u=admin -p=district -t=dataElements -f='name:like:Acute'
-```
-
----
 ## Export user info to CSV
 
 Write information about users (paths of organisationUnits, userGroup membership) to a CSV file.
@@ -243,7 +213,7 @@ Example (with reading out a `dish.json` file):
 ### Install from source
 
 ```
-wget https://github.com/davidhuser/dhis2-pocket-knife/archive/master.zip
+wget https://github.com/davidhuser/dhis2-pk/archive/master.zip
 unzip master.zip
 cd dhis2-pocket-knife
 python setup.py install
@@ -257,13 +227,14 @@ python setup.py install
 - [x] added indicator expression script
 - [x] acronym support for object types (`-t=de`)
 - [x] multiple filter should be added with `&&` instead of `&`
-- [x] new feature: download of metadata
 - [x] read from dish.json file
 - [x] new feature: POST CSS to server
+- [x] sharing: honor existing sharing settings and only update when different to arguments
+- [x] color output
+- [x] file logging
 
 ### Todo
 
 - [ ] Script tests
-- [ ] Color output
 
 
