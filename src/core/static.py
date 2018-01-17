@@ -3,6 +3,7 @@ import re
 
 shareable = {
     'userGroups': ['usergroups', 'ug', 'usergroup'],
+    'userRoles': ['userroles', 'ur', 'userrole'],
     'sqlViews': ['sqlviews', 'sqlview'],
     'constants': ['constants', 'constant'],
     'optionSets': ['optionsets', 'optionset', 'os'],

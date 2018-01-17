@@ -5,10 +5,11 @@ from __future__ import print_function
 """
 share-objects
 ~~~~~~~~~~~~~~~~~
-Assigns sharing to shareable DHIS2 objects like userGroups and publicAccess by  calling the /api/sharing endpoint.
+Assigns sharing to shareable DHIS2 objects like userGroups and publicAccess by calling the /api/sharing endpoint.
 """
 
 import argparse
+import json
 import sys
 
 from six import iteritems
@@ -16,12 +17,16 @@ from six import iteritems
 from src.core.dhis import Dhis
 from src.core.logger import *
 
+public_access = {
+    'none': '--------',
+    'readonly': 'r-------',
+    'readwrite': 'rw------'
+}
+
 
 class Sharer(Dhis):
-    """Inherited from core Dhis class to extend functionalities"""
 
     def get_usergroup_uids(self, filter_list, access, delimiter):
-        """Get UID(s) of userGroup(s) based on object filter"""
         params = {
             'fields': 'id,name',
             'paging': False,
@@ -33,9 +38,8 @@ class Sharer(Dhis):
         else:
             root_junction = 'AND'
 
-        print(("\n+++ GET userGroup(s) for filter (rootJunction: {}) {} ({})".format(root_junction, filter_list, access)))
-
         endpoint = 'userGroups'
+        print(("+++ GET {} with filter [rootJunction: {}] {} ({})".format(endpoint, root_junction, filter_list, access)))
         response = self.get(endpoint=endpoint, file_type='json', params=params)
 
         if len(response['userGroups']) > 0:
@@ -49,21 +53,22 @@ class Sharer(Dhis):
             sys.exit()
 
     def get_objects(self, objects, objects_filter, delimiter):
-        """Returns filtered DHIS2 objects"""
 
         params = {
-            'fields': 'id,name,code',
+            'fields': 'id,name,code,publicAccess,userGroupAccesses',
             'filter': objects_filter,
             'paging': False
         }
 
         if delimiter == '||':
-            root_junction = 'OR'
-            params['rootJunction'] = root_junction
+            params['rootJunction'] = 'OR'
+            print_junction = "+++ GET {} with filters [rootJunction: OR] {}"
+        elif len(objects_filter) > 1:
+            print_junction = "+++ GET {} with filters [rootJunction: AND] {}"
         else:
-            root_junction = 'AND'
+            print_junction = "+++ GET {} with filter {}"
 
-        print("\n+++ GET {} with filter(s) [rootJunction: {}] {}".format(objects, root_junction, objects_filter))
+        print(print_junction.format(objects, objects_filter))
         response = self.get(endpoint=objects, file_type='json', params=params)
 
         if response:
@@ -73,16 +78,75 @@ class Sharer(Dhis):
         log_debug(u'objects: {}'.format(objects.encode('utf-8')))
         sys.exit()
 
-    def share_object(self, pload, pmeters):
-        """Share object by using sharing enpoint"""
-        self.post(endpoint="sharing", params=pmeters, payload=pload)
+    def share_object(self, sharing_object):
+        params = {'type': sharing_object.object_type, 'id': sharing_object.uid}
+        data = sharing_object.to_json()
+        self.post(endpoint="sharing", params=params, payload=data)
 
     def get_object_type(self, argument):
         return super(Sharer, self).get_shareable_object_type(argument)
 
 
+class SharingDefinition(object):
+
+    def __init__(self, uid, object_type, public_access, usergroup_accesses=None):
+        self.uid = uid
+        self.object_type = object_type
+        self.public_access = public_access
+        self.usergroup_accesses = usergroup_accesses
+        self.external_access = False
+        self.user = {}
+
+    def __eq__(self, other):
+        return (self.uid == other.uid and
+                self.object_type == other.object_type and
+                self.public_access == other.public_access and
+                self.usergroup_accesses == other.usergroup_accesses)
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash((self.uid, self.object_type, self.public_access, self.usergroup_accesses))
+
+    def __repr__(self):
+        return u"{} {} {} {}".format(self.object_type, self.uid, self.public_access, self.usergroup_accesses)
+
+    def to_json(self):
+        return {
+            'object': {
+                'publicAccess': self.public_access,
+                'externalAccess': self.external_access,
+                'user': self.user,
+                'userGroupAccesses': [x.to_json() for x in self.usergroup_accesses]
+            }
+        }
+
+
+class UserGroupAccess(object):
+
+    def __init__(self, uid, access):
+        self.uid = uid
+        self.access = access
+
+    def __eq__(self, other):
+        return self.uid == other.uid and self.access == other.access
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash((self.uid, self.access))
+
+    def __repr__(self):
+        return json.dumps(self.to_json())
+
+    def to_json(self):
+        return {"id": self.uid, "access": self.access}
+
+
 def parse_args():
-    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f [-w] [-r] -a [-v] [-u] [-p] [-d]',
+    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f [-w] [-r] -a [-k] [-v] [-u] [-p] [-d]',
                                      description="PURPOSE: Share DHIS2 objects (dataElements, programs, ...) "
                                                  "with userGroups")
     parser.add_argument('-s', dest='server', action='store', help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'")
@@ -97,8 +161,10 @@ def parse_args():
     parser.add_argument('-r', dest='usergroup_readonly', action='store', required=False,
                         help="UserGroup filter for Read-Only access, (add "
                              "multiple filters with '&&') e.g. -r='id:eq:aBc123XyZ0u'")
-    parser.add_argument('-a', dest='publicaccess', action='store', required=True, choices=Dhis.public_access.keys(),
+    parser.add_argument('-a', dest='publicaccess', action='store', required=True, choices=public_access.keys(),
                         help="publicAccess (with login), e.g. -a=readwrite")
+    parser.add_argument('-k', dest='keep', action='store_true', required=False,
+                        help="keep current sharing & only replace as specified")
     parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
                         help='DHIS2 API version e.g. -v=24')
     parser.add_argument('-u', dest='username', action='store', help='DHIS2 username, e.g. -u=admin')
@@ -109,7 +175,6 @@ def parse_args():
 
 
 def filter_delimiter(argument, dhis_version):
-
     if '||' in argument:
         if dhis_version < 25:
             sys.exit("rootJunction 'OR' is only supported 2.25 onwards. Nothing shared.")
@@ -129,7 +194,7 @@ def main():
     # get the real valid object type name
     object_type = dhis.get_object_type(args.object_type)
 
-    user_group_accesses = []
+    user_group_accesses = set()
     if args.usergroup_readwrite:
         delimiter = filter_delimiter(args.usergroup_readwrite, dhis_version)
         # split filter of arguments into list
@@ -137,11 +202,7 @@ def main():
         # get UIDs of usergroups with RW access
         readwrite_usergroup_uids = dhis.get_usergroup_uids(rw_ug_filter_list, 'readwrite', delimiter)
         for ug in readwrite_usergroup_uids:
-            acc = {
-                'id': ug,
-                'access': dhis.public_access['readwrite']
-            }
-            user_group_accesses.append(acc)
+            user_group_accesses.add(UserGroupAccess(uid=ug, access=public_access['readwrite']))
 
     if args.usergroup_readonly:
         delimiter = filter_delimiter(args.usergroup_readonly, dhis_version)
@@ -149,11 +210,7 @@ def main():
         # get UID(s) of usergroups with RO access
         readonly_usergroup_uids = dhis.get_usergroup_uids(ro_ug_filter_list, 'readonly', delimiter)
         for ug in readonly_usergroup_uids:
-            acc = {
-                'id': ug,
-                'access': dhis.public_access['readonly']
-            }
-            user_group_accesses.append(acc)
+            user_group_accesses.add(UserGroupAccess(uid=ug, access=public_access['readonly']))
 
     # split arguments for multiple filters for to-be-shared objects
     delimiter = filter_delimiter(args.filter, dhis_version)
@@ -163,38 +220,45 @@ def main():
     data = dhis.get_objects(object_type, object_filter_list, delimiter)
 
     no_of_obj = len(data[object_type])
-    counter = 1
-    for obj in data[object_type]:
-        payload = {
-            'object': {
-                'publicAccess': dhis.public_access[args.publicaccess],
-                'externalAccess': False,
-                'user': {},
-                'userGroupAccesses': user_group_accesses
-            }
-        }
+    for i, obj in enumerate(data[object_type], 1):
+
+        skip = False
         # strip name to match API (e.g. dataElements -> dataElement)
         if object_type == 'categories':
             object_type_singular = 'category'
         else:
             object_type_singular = object_type[:-1]
-        parameters = {
-            'type': object_type_singular,
-            'id': obj['id']
-        }
 
-        # apply sharing
-        dhis.share_object(payload, parameters)
+        # create a SharingDefinition based on command-line arguments
+        submitted = SharingDefinition(uid=obj['id'],
+                                      object_type=object_type_singular,
+                                      public_access=public_access[args.publicaccess],
+                                      usergroup_accesses=list(user_group_accesses))
+        if args.keep:
+            # create a SharingDefinition based on what is already on the server
+            existing = SharingDefinition(uid=obj['id'],
+                                         object_type=object_type_singular,
+                                         public_access=obj['publicAccess'])
+            if obj.get('userGroupAccesses'):
+                existing.usergroup_accesses = [UserGroupAccess(uid=x['id'], access=x['access']) for x in obj['userGroupAccesses']]
 
-        try:
-            log_info(u"({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['name'].encode('utf-8')))
-        except (UnicodeEncodeError, UnicodeDecodeError):
+            if existing == submitted:
+                skip = True
+
+        if not skip:
+            # apply sharing
+            dhis.share_object(submitted)
+
             try:
-                log_info(u"({}/{}) [OK] {} {}".format(counter, no_of_obj, obj['id'], obj['code']))
-            except (UnicodeEncodeError, UnicodeDecodeError, KeyError):
-                log_info(u"({}/{}) [OK] {}".format(counter, no_of_obj, obj['id']))
+                log_info(u"({}/{}) [OK] {} {}".format(i, no_of_obj, obj['id'], obj['name'].encode('utf-8')))
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                try:
+                    log_info(u"({}/{}) [OK] {} {}".format(i, no_of_obj, obj['id'], obj['code']))
+                except (UnicodeEncodeError, UnicodeDecodeError, KeyError):
+                    log_info(u"({}/{}) [OK] {}".format(i, no_of_obj, obj['id']))
 
-        counter += 1
+        sys.exit()
+
 
 if __name__ == "__main__":
     main()

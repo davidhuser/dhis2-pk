@@ -79,11 +79,6 @@ class Config(object):
 
 
 class Dhis(Config):
-    public_access = {
-        'none': '--------',
-        'readonly': 'r-------',
-        'readwrite': 'rw------'
-    }
 
     def __init__(self, server, username, password, api_version):
         Config.__init__(self, server, username, password, api_version)
