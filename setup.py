@@ -89,10 +89,10 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'dhis2-pk-indicator-definitions = pk.indicator_definitions:main',
-            'dhis2-pk-share-objects = pk.share_objects:main',
+            'dhis2-pk-indicator-definitions = pk.indicators:main',
+            'dhis2-pk-share-objects = pk.share:main',
             'dhis2-pk-userinfo = pk.userinfo:main',
-            'dhis2-pk-post-css = pk.post_css:main'
+            'dhis2-pk-post-css = pk.css:main'
         ]
     },
     classifiers=[
@@ -100,7 +100,9 @@ setup(
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7'
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6'
     ],
     packages=find_packages(exclude=['tests']),
     test_suite='pytest',

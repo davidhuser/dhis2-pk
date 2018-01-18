@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import print_function
 
@@ -14,9 +15,9 @@ import sys
 
 from six import iteritems
 from logzero import logger
-from pk.core.log import init_logger
-from pk.core.dhis import Dhis
-from pk.core.exceptions import ClientException
+import core.log as log
+import core.dhis as dhis
+import core.exceptions as exceptions
 
 public_access = {
     'none': '--------',
@@ -25,7 +26,7 @@ public_access = {
 }
 
 
-class Sharer(Dhis):
+class DhisAccessShare(dhis.DhisAccess):
 
     def get_usergroup_uids(self, filter_list, access, delimiter):
         params = {
@@ -40,7 +41,8 @@ class Sharer(Dhis):
             root_junction = 'AND'
 
         endpoint = 'userGroups'
-        logger.info(("GET {} with filter [rootJunction: {}] [{}] ({})".format(endpoint, root_junction, ' '.join(filter_list), access)))
+        logger.info(u"GET {} with filter [rootJunction: {}] [{}] ({})"
+                    .format(endpoint, root_junction, '{} '.format(root_junction).join(filter_list), access))
         response = self.get(endpoint=endpoint, file_type='json', params=params)
 
         if len(response['userGroups']) > 0:
@@ -50,7 +52,7 @@ class Sharer(Dhis):
                 logger.info(u"{} - {}".format(key, value))
             return ugmap.keys()
         else:
-            raise ClientException("No userGroup(s) found. Check your filter / DHIS2")
+            raise exceptions.ClientException("No userGroup(s) found. Check your filter / DHIS2")
 
     def get_objects(self, objects, objects_filter, delimiter):
 
@@ -62,11 +64,11 @@ class Sharer(Dhis):
 
         if delimiter == '||':
             params['rootJunction'] = 'OR'
-            print_junction = "GET {} with filters [rootJunction: OR] {}"
+            print_junction = u"GET {} with filters [rootJunction: OR] {}"
         elif len(objects_filter) > 1:
-            print_junction = "GET {} with filters [rootJunction: AND] {}"
+            print_junction = u"GET {} with filters [rootJunction: AND] {}"
         else:
-            print_junction = "GET {} with filter {}"
+            print_junction = u"GET {} with filter {}"
 
         logger.info(print_junction.format(objects, objects_filter))
         response = self.get(endpoint=objects, file_type='json', params=params)
@@ -75,7 +77,7 @@ class Sharer(Dhis):
             if len(response[objects]) > 0:
                 return response
         logger.warning('No objects found. Wrong filter?')
-        logger.debug('objects: {}'.format(objects))
+        logger.debug(u'objects: {}'.format(objects))
         sys.exit()
 
     def share_object(self, sharing_object):
@@ -84,7 +86,7 @@ class Sharer(Dhis):
         self.post(endpoint="sharing", params=params, payload=data)
 
     def get_object_type(self, argument):
-        return super(Sharer, self).get_shareable_object_type(argument)
+        return super(DhisAccessShare, self).get_shareable_object_type(argument)
 
 
 class SharingDefinition(object):
@@ -181,7 +183,7 @@ def parse_args():
 def filter_delimiter(argument, dhis_version):
     if '||' in argument:
         if dhis_version < 25:
-            raise ClientException("rootJunction 'OR' is only supported 2.25 onwards. Nothing shared.")
+            raise exceptions.ClientException("rootJunction 'OR' is only supported 2.25 onwards. Nothing shared.")
         return '||'
     else:
         return '&&'
@@ -189,13 +191,13 @@ def filter_delimiter(argument, dhis_version):
 
 def main():
     args = parse_args()
-    init_logger(args.logging_to_file, args.debug)
-    dhis = Sharer(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
+    log.init(args.logging_to_file, args.debug)
+    api = DhisAccessShare(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
 
-    dhis_version = dhis.get_dhis_version()
+    dhis_version = api.get_dhis_version()
 
     # get the real valid object type name
-    object_type = dhis.get_object_type(args.object_type)
+    object_type = api.get_object_type(args.object_type)
 
     user_group_accesses = set()
     if args.usergroup_readwrite:
@@ -203,7 +205,7 @@ def main():
         # split filter of arguments into list
         rw_ug_filter_list = args.usergroup_readwrite.split(delimiter)
         # get UIDs of usergroups with RW access
-        readwrite_usergroup_uids = dhis.get_usergroup_uids(rw_ug_filter_list, 'readwrite', delimiter)
+        readwrite_usergroup_uids = api.get_usergroup_uids(rw_ug_filter_list, 'readwrite', delimiter)
         for ug in readwrite_usergroup_uids:
             user_group_accesses.add(UserGroupAccess(uid=ug, access=public_access['readwrite']))
 
@@ -211,7 +213,7 @@ def main():
         delimiter = filter_delimiter(args.usergroup_readonly, dhis_version)
         ro_ug_filter_list = args.usergroup_readonly.split(delimiter)
         # get UID(s) of usergroups with RO access
-        readonly_usergroup_uids = dhis.get_usergroup_uids(ro_ug_filter_list, 'readonly', delimiter)
+        readonly_usergroup_uids = api.get_usergroup_uids(ro_ug_filter_list, 'readonly', delimiter)
         for ug in readonly_usergroup_uids:
             user_group_accesses.add(UserGroupAccess(uid=ug, access=public_access['readonly']))
 
@@ -220,7 +222,7 @@ def main():
     object_filter_list = args.filter.split(delimiter)
 
     # pull objects for which to apply sharing
-    data = dhis.get_objects(object_type, object_filter_list, delimiter)
+    data = api.get_objects(object_type, object_filter_list, delimiter)
 
     no_of_obj = len(data[object_type])
     for i, obj in enumerate(data[object_type], 1):
@@ -252,7 +254,7 @@ def main():
         print_prop = ''
         if not skip:
             # apply sharing
-            dhis.share_object(submitted)
+            api.share_object(submitted)
             try:
                 print_prop = obj['name']
             except KeyError:

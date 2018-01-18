@@ -14,7 +14,7 @@ def create_folders(file_path):
                 raise
 
 
-def init_logger(logging_to_file='s', debug=False):
+def init(logging_to_file='s', debug=False):
     log_format = '%(color)s[%(asctime)s %(levelname)s]%(end_color)s %(message)s'
     formatter = logzero.LogFormatter(fmt=log_format)
     logzero.setup_default_logger(formatter=formatter)

@@ -10,9 +10,9 @@ import argparse
 
 import unicodecsv as csv
 from logzero import logger
-from pk.core.log import init_logger
-from pk.core.exceptions import ClientException
-from pk.core.dhis import Dhis
+import core.log as log
+import core.exceptions as exceptions
+import core.dhis as dhis
 
 
 def replace_definitions(definition, obj_map):
@@ -22,48 +22,48 @@ def replace_definitions(definition, obj_map):
     return definition
 
 
-def object_map(dhis):
+def object_map(api):
     """get all relevant objects from the server and put it in a single dictionary"""
     uid_mapping = {}
 
     params1 = {'paging': False}
-    resp1 = dhis.get(endpoint='indicatorTypes', file_type='json', params=params1)
+    resp1 = api.get(endpoint='indicatorTypes', file_type='json', params=params1)
     for elem in resp1['indicatorTypes']:
         uid_mapping[elem['id']] = {'desc': u"{}".format(elem['displayName'])}
 
     params2 = {'fields': 'id,name,value', 'paging': False}
-    resp2 = dhis.get(endpoint='constants', file_type='json', params=params2)
+    resp2 = api.get(endpoint='constants', file_type='json', params=params2)
     for elem in resp2['constants']:
         uid_mapping[elem['id']] = {'desc': u"[Name: {} - Value: {}]".format(elem['name'], elem['value'])}
 
     params3 = {'fields': 'id,name,organisationUnits', 'paging': False}
-    resp3 = dhis.get(endpoint='organisationUnitGroups', file_type='json', params=params3)
+    resp3 = api.get(endpoint='organisationUnitGroups', file_type='json', params=params3)
     for elem in resp3['organisationUnitGroups']:
         uid_mapping[elem['id']] = {
             'desc': u"[Name: {} - OUG Size: {}]".format(elem['name'], len(elem['organisationUnits']))}
 
     params4 = {'fields': 'id,name', 'paging': False}
-    resp4 = dhis.get(endpoint='dataElements', file_type='json', params=params4)
+    resp4 = api.get(endpoint='dataElements', file_type='json', params=params4)
     for elem in resp4['dataElements']:
         uid_mapping[elem['id']] = {'desc': u"{}".format(elem['name'])}
 
     params5 = {'fields': 'id,name', 'paging': False}
-    resp5 = dhis.get(endpoint='categoryOptionCombos', file_type='json', params=params5)
+    resp5 = api.get(endpoint='categoryOptionCombos', file_type='json', params=params5)
     for elem in resp5['categoryOptionCombos']:
         uid_mapping[elem['id']] = {'desc': u"{}".format(elem['name'])}
 
     params6 = {'fields': 'id,name', 'paging': False}
-    resp6 = dhis.get(endpoint='programs', file_type='json', params=params6)
+    resp6 = api.get(endpoint='programs', file_type='json', params=params6)
     for elem in resp6['programs']:
         uid_mapping[elem['id']] = {'desc': u"{}".format(elem['name'])}
 
     params7 = {'fields': 'id,name', 'paging': False}
-    resp7 = dhis.get(endpoint='programIndicators', file_type='json', params=params7)
+    resp7 = api.get(endpoint='programIndicators', file_type='json', params=params7)
     for elem in resp7['programIndicators']:
         uid_mapping[elem['id']] = {'desc': u"{}".format(elem['name'])}
 
     params8 = {'fields': 'id,name', 'paging': False}
-    resp8 = dhis.get(endpoint='trackedEntityAttributes', file_type='json', params=params8)
+    resp8 = api.get(endpoint='trackedEntityAttributes', file_type='json', params=params8)
     for elem in resp8['trackedEntityAttributes']:
         uid_mapping[elem['id']] = {'desc': u"{}".format(elem['name'])}
 
@@ -104,7 +104,7 @@ def analyze_result(indicators, indicator_filter):
             msg = "No indicators found - check your filter."
         else:
             msg = "No indicators found - are there any?"
-        raise ClientException(msg)
+        raise exceptions.ClientException(msg)
     else:
         if indicator_filter:
             msg = "Found {} indicators with filter {}".format(no_of_indicators, indicator_filter)
@@ -151,16 +151,16 @@ def write_to_csv(indicators, object_mapping, file_name):
 def main():
     args = parse_args()
 
-    dhis = Dhis(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
-    init_logger(args.debug)
+    api = dhis.DhisAccess(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
+    log.init(args.debug)
 
-    indicators = dhis.get(endpoint='indicators', file_type='json', params=get_params(args.indicator_filter))
+    indicators = api.get(endpoint='indicators', file_type='json', params=get_params(args.indicator_filter))
 
     message = analyze_result(indicators, args.indicator_filter)
     logger.info(message)
     logger.info("Downloading other UIDs <-> Names...")
-    object_mapping = object_map(dhis)
-    file_name = 'indicators-{}.csv'.format(dhis.file_timestamp)
+    object_mapping = object_map(api)
+    file_name = 'indicators-{}.csv'.format(api.file_timestamp)
     write_to_csv(indicators, object_mapping, file_name)
 
 

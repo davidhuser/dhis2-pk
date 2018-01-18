@@ -1,7 +1,7 @@
 import pytest
 
 from pk.core.exceptions import ClientException
-from pk.share_objects import SharingDefinition, UserGroupAccess, filter_delimiter
+from pk.share import SharingDefinition, UserGroupAccess, filter_delimiter
 
 
 @pytest.fixture()

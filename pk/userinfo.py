@@ -6,8 +6,8 @@ import re
 import unicodecsv as csv
 from logzero import logger
 
-from pk.core.dhis import Dhis
-from pk.core.log import init_logger
+import core.dhis as dhis
+import core.log as log
 
 
 def parse_args():
@@ -33,24 +33,24 @@ def replace_path(oumap, path):
 
 def main():
     args = parse_args()
-    init_logger(args.debug)
+    log.init(args.debug)
 
-    dhis = Dhis(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
+    api = dhis.DhisAccess(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
     params1 = {
         'fields': 'dataViewOrganisationUnits[path],userCredentials[username,userRoles[name]],name,'
                   'organisationUnits[path],userGroups[name]',
         'paging': False
     }
-    users = dhis.get(endpoint='users', file_type='json', params=params1)
+    users = api.get(endpoint='users', file_type='json', params=params1)
 
     params2 = {
         'fields': 'id,name',
         'paging': False
     }
-    orgunits = dhis.get(endpoint='organisationUnits', file_type='json', params=params2)
+    orgunits = api.get(endpoint='organisationUnits', file_type='json', params=params2)
     oumap = {ou['id']: ou['name'] for ou in orgunits['organisationUnits']}
 
-    file_name = "userinfo-{}.csv".format(dhis.file_timestamp)
+    file_name = "userinfo-{}.csv".format(api.file_timestamp)
 
     with open(file_name, 'wb') as csvfile:
         fieldnames = ['name', 'username', 'userGroups', 'userRoles', 'orgunitPaths', 'dataViewOrgunitPaths']
