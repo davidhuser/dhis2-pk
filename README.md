@@ -63,7 +63,7 @@ arguments:
   -a {readwrite,none,readonly}
                         Public Access (with login), e.g. -a=readwrite
   
-  -k                    keep current sharing & only replace if not congruent to arguments
+  -k KEEP CURRENT       keep current sharing & only replace if not congruent to arguments
                         to prevent change to lastUpdated field
   
   -l LOGGING_TO_FILE    Path to Log file (level: INFO)
