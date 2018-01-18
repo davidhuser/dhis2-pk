@@ -98,7 +98,8 @@ class SharingDefinition(object):
         self.user = {}
 
     def __eq__(self, other):
-        return (self.uid == other.uid and
+        return (self.__class__ == other.__class__ and
+                self.uid == other.uid and
                 self.object_type == other.object_type and
                 self.public_access == other.public_access and
                 self.usergroup_accesses == other.usergroup_accesses)
@@ -109,7 +110,7 @@ class SharingDefinition(object):
     def __hash__(self):
         return hash((self.uid, self.object_type, self.public_access, self.usergroup_accesses))
 
-    def __repr__(self):
+    def __str__(self):
         return u"{} {} {} {}".format(self.object_type, self.uid, self.public_access, self.usergroup_accesses)
 
     def to_json(self):
@@ -130,7 +131,9 @@ class UserGroupAccess(object):
         self.access = access
 
     def __eq__(self, other):
-        return self.uid == other.uid and self.access == other.access
+        return (self.__class__ == other.__class__ and
+                self.uid == other.uid and
+                self.access == other.access)
 
     def __ne__(self, other):
         return not self == other
@@ -138,7 +141,7 @@ class UserGroupAccess(object):
     def __hash__(self):
         return hash((self.uid, self.access))
 
-    def __repr__(self):
+    def __str__(self):
         return json.dumps(self.to_json())
 
     def to_json(self):
@@ -221,7 +224,7 @@ def main():
 
     no_of_obj = len(data[object_type])
     for i, obj in enumerate(data[object_type], 1):
-
+        uid = obj['id']
         skip = False
         # strip name to match API (e.g. dataElements -> dataElement)
         if object_type == 'categories':
@@ -230,13 +233,13 @@ def main():
             ot_single = object_type[:-1]
 
         # create a SharingDefinition based on command-line arguments
-        submitted = SharingDefinition(uid=obj['id'],
+        submitted = SharingDefinition(uid=uid,
                                       object_type=ot_single,
                                       public_access=public_access[args.publicaccess],
                                       usergroup_accesses=list(user_group_accesses))
         if args.keep:
             # create a SharingDefinition based on what is already on the server
-            existing = SharingDefinition(uid=obj['id'],
+            existing = SharingDefinition(uid=uid,
                                          object_type=ot_single,
                                          public_access=obj['publicAccess'])
             if obj.get('userGroupAccesses'):
@@ -246,21 +249,21 @@ def main():
                 skip = True
 
         status_message = u"{} ({}/{}) - {} - {}"
-        identifier = ''
+        print_prop = ''
         if not skip:
             # apply sharing
             dhis.share_object(submitted)
             try:
-                identifier = obj['name']
+                print_prop = obj['name']
             except KeyError:
                 try:
-                    identifier = obj['code']
+                    print_prop = obj['code']
                 except KeyError:
-                    identifier = ''
+                    print_prop = ''
             finally:
-                logger.info(status_message.format(ot_single, i, no_of_obj, obj['id'], identifier))
+                logger.info(status_message.format(ot_single, i, no_of_obj, uid, print_prop))
         else:
-            logger.debug(status_message.format(ot_single, i, no_of_obj, obj['id'], identifier) +
+            logger.debug(status_message.format(ot_single, i, no_of_obj, uid, print_prop) +
                          " not re-shared to prevent updating lastUpdated field")
 
 
