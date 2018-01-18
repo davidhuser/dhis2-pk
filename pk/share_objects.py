@@ -14,9 +14,9 @@ import sys
 
 from six import iteritems
 from logzero import logger
-from core.log import init_logger
-from core.dhis import Dhis
-from core.exceptions import ClientException
+from pk.core.log import init_logger
+from pk.core.dhis import Dhis
+from pk.core.exceptions import ClientException
 
 public_access = {
     'none': '--------',

@@ -6,8 +6,8 @@ import re
 import unicodecsv as csv
 from logzero import logger
 
-from core.dhis import Dhis
-from core.log import init_logger
+from pk.core.dhis import Dhis
+from pk.core.log import init_logger
 
 
 def parse_args():

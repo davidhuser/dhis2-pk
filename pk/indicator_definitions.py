@@ -10,9 +10,9 @@ import argparse
 
 import unicodecsv as csv
 from logzero import logger
-from core.log import init_logger
-from core.exceptions import ClientException
-from core.dhis import Dhis
+from pk.core.log import init_logger
+from pk.core.exceptions import ClientException
+from pk.core.dhis import Dhis
 
 
 def replace_definitions(definition, obj_map):

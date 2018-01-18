@@ -2,7 +2,7 @@ import argparse
 
 from logzero import logger
 
-from core.log import init_logger
+from pk.core.log import init_logger
 from pk.core.dhis import Dhis
 
 """
