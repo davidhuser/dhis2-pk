@@ -31,7 +31,7 @@ Apply [sharing](https://docs.dhis2.org/master/en/user/html/dhis2_user_manual_en_
 **Example:** "Share all data elements with name starting with `All` but not those with `cough`" with two different user groups while public access should be `read and write`. Do not re-share if it's the same to prevent an update to lastUpdated field.
 
 `
-dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -k -f='name:^like:All&&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district`
+dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -k -f='name:$like:All&&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district`
 
 #### Usage
 ```
@@ -66,7 +66,7 @@ arguments:
   -k KEEP CURRENT       keep current sharing & only replace if not congruent to arguments
                         to prevent change to lastUpdated field
   
-  -l LOGGING_TO_FILE    Path to Log file (level: INFO)
+  -l LOGGING_TO_FILE    Path to Log file (default level: INFO, pass -d for DEBUG)
                         
   -v API_VERSION        DHIS2 API version e.g. -v=24
                         (if omitted, <URL>/api/endpoint will be used)
@@ -120,7 +120,7 @@ It's also possible to use acronyms/abbreviations like `-t=de` for dataElements, 
 ##### Example (try it out against DHIS2 demo instance):
 
 ```
-dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:^like:All&&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district -v=24 -d
+dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:$like:All&&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district -v=24 -d
 ```
 ---
 ## Readable indicator definition to CSV

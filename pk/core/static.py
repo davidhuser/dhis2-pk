@@ -1,6 +1,8 @@
 from copy import deepcopy
 import re
 
+newest_dhis = 29
+
 shareable = {
     'userGroups': ['usergroups', 'ug', 'usergroup'],
     'userRoles': ['userroles', 'ur', 'userrole'],

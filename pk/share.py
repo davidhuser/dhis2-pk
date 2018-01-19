@@ -183,10 +183,15 @@ def parse_args():
     return parser.parse_args()
 
 
-def filter_delimiter(argument, dhis_version):
+def validate_filter(argument, dhis_version):
+    if '^' in argument:
+        if dhis_version >= 28:
+            raise exceptions.ClientException("operator '^' is replaced with '$' in 2.28 onwards. Nothing shared.")
     if '||' in argument:
         if dhis_version < 25:
             raise exceptions.ClientException("rootJunction 'OR' is only supported 2.25 onwards. Nothing shared.")
+        if '&&' in argument:
+            raise exceptions.ClientException("Filter can't have both '&&' and '||'. Nothing shared")
         return '||'
     else:
         return '&&'
@@ -205,7 +210,7 @@ def main():
 
     user_group_accesses = set()
     if args.usergroup_readwrite:
-        delimiter = filter_delimiter(args.usergroup_readwrite, dhis_version)
+        delimiter = validate_filter(args.usergroup_readwrite, dhis_version)
         # split filter of arguments into list
         rw_ug_filter_list = args.usergroup_readwrite.split(delimiter)
         # get UIDs of usergroups with RW access
@@ -214,7 +219,7 @@ def main():
             user_group_accesses.add(UserGroupAccess(uid=ug, access=permissions['readwrite']))
 
     if args.usergroup_readonly:
-        delimiter = filter_delimiter(args.usergroup_readonly, dhis_version)
+        delimiter = validate_filter(args.usergroup_readonly, dhis_version)
         ro_ug_filter_list = args.usergroup_readonly.split(delimiter)
         # get UID(s) of usergroups with RO access
         readonly_usergroup_uids = api.get_usergroup_uids(ro_ug_filter_list, 'readonly', delimiter)
@@ -222,7 +227,7 @@ def main():
             user_group_accesses.add(UserGroupAccess(uid=ug, access=permissions['readonly']))
 
     # split arguments for multiple filters for to-be-shared objects
-    delimiter = filter_delimiter(args.filter, dhis_version)
+    delimiter = validate_filter(args.filter, dhis_version)
     object_filter_list = args.filter.split(delimiter)
 
     # pull objects for which to apply sharing
@@ -255,34 +260,34 @@ def main():
                     uga = set(UserGroupAccess(uid=x['id'], access=x['access']) for x in obj['userGroupAccesses'])
                 except KeyError:
                     overwrite = True
-                    logger.warn("")
                 else:
                     existing.usergroup_accesses = uga
 
             if not overwrite and existing == submitted:
                 skip = True
 
-        status_message = u"{} ({}/{}) - {} - {}"
+        status_message = u"({}/{}) {} {} {}"
         print_prop = ''
         if not skip:
             # apply sharing
             api.share_object(submitted)
             try:
-                print_prop = obj['name']
+                print_prop = "'{}'".format(obj['name'])
             except KeyError:
                 try:
-                    print_prop = obj['code']
+                    print_prop = "'{}'".format(obj['code'])
                 except KeyError:
                     print_prop = ''
             finally:
                 if overwrite:
-                    logger.info(status_message.format(ot_single, i, no_of_obj, uid, print_prop))
+                    logger.warning(status_message.format(i, no_of_obj, ot_single, uid, print_prop) +
+                                   " was overwritten because userGroupAccess.publicAccess or "
+                                   "userGroupAccess.UID was missing")
                 else:
-                    logger.info(status_message.format(ot_single, i, no_of_obj, uid, print_prop) +
-                                " was overwritten because userGroupAccess.publicAccess or "
-                                "userGroupAccess.UID was missing")
+                    logger.info(status_message.format(i, no_of_obj, ot_single, uid, print_prop))
+
         else:
-            logger.warn(status_message.format(ot_single, i, no_of_obj, uid, print_prop) +
+            logger.warn(status_message.format(i, no_of_obj, ot_single, uid, print_prop) +
                         " not re-shared to prevent updating lastUpdated field")
 
 

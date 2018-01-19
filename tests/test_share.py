@@ -1,7 +1,8 @@
 import pytest
 
 from pk.core.exceptions import ClientException
-from pk.share import SharingDefinition, UserGroupAccess, filter_delimiter
+from pk.share import SharingDefinition, UserGroupAccess, validate_filter
+from pk.core.static import newest_dhis
 
 
 @pytest.fixture()
@@ -79,14 +80,29 @@ def test_sharingdefinitions_set(sharingdefinitions):
     assert len(set(sharingdefinitions)) == 5  # don't count the copy
 
 
-def test_filter_delimiter_dhis224():
+def test_filter_delimiter():
     argument = 'name:like:ABC||name:like:XYZ'
-    dhis_version = 24
-    with pytest.raises(ClientException):
-        filter_delimiter(argument, dhis_version)
-    dhis_version = 25
-    res = filter_delimiter(argument, dhis_version)
-    assert res == '||'
+    for version in range(22, 24):
+        with pytest.raises(ClientException):
+            validate_filter(argument, version)
+
+    for version in range(25, newest_dhis):
+        assert '||' == validate_filter(argument, version)
+
+    argument = 'name:^like:ABC'
+    for version in range(28, newest_dhis):
+        with pytest.raises(ClientException):
+            validate_filter(argument, version)
+
+    argument = 'name:^like:CDB||name:like:EFG'
+    for version in range(28, newest_dhis):
+        with pytest.raises(ClientException):
+            validate_filter(argument, version)
+
+    argument = 'name:like:ABC||name:like:CDE&&name:like:EFG'
+    for version in range(22, newest_dhis):
+        with pytest.raises(ClientException):
+            validate_filter(argument, version)
 
 
 @pytest.fixture()
@@ -124,3 +140,19 @@ def sharingdefinitions_multi_uga():
     assert sd0 != sd2
     assert sd2 == sd3
 
+
+@pytest.fixture()
+def sharingdefinitions_changed_order():
+    uid = 'dataElement1'
+    object_type = 'dataElements'
+    public_access = 'readwrite'
+
+    uga1 = UserGroupAccess(uid='userGroup222', access='readwrite')
+    uga2 = UserGroupAccess(uid='userGroup333', access='read')
+    sd0 = SharingDefinition(uid, object_type, public_access, {uga1, uga2})
+
+    uga1 = UserGroupAccess(uid='userGroup222', access='readwrite')
+    uga2 = UserGroupAccess(uid='userGroup333', access='read')
+    sd1 = SharingDefinition(uid, object_type, public_access, {uga2, uga1})
+
+    assert sd0 == sd1
