@@ -32,7 +32,7 @@ class DhisAccess(object):
         except requests.exceptions.HTTPError as e:
             raise APIException(e)
         else:
-            logger.debug("RESPONSE: {}".format(r.text))
+            logger.debug(u"RESPONSE: {}".format(r.text))
             if file_type == 'json':
                 return r.json()
             else:
@@ -84,7 +84,7 @@ class DhisAccess(object):
         except requests.exceptions.HTTPError as e:
             raise APIException(e)
         else:
-            logger.debug("RESPONSE: {}".format(r.text))
+            logger.debug(u"RESPONSE: {}".format(r.text))
 
     def get_dhis_version(self):
         """ return DHIS2 version (e.g. 26) as integer"""

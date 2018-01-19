@@ -14,7 +14,7 @@ def create_folders(file_path):
                 raise
 
 
-def init(logging_to_file='s', debug=False):
+def init(logging_to_file='', debug=False):
     log_format = '%(color)s[%(asctime)s %(levelname)s]%(end_color)s %(message)s'
     formatter = logzero.LogFormatter(fmt=log_format)
     logzero.setup_default_logger(formatter=formatter)
@@ -24,9 +24,10 @@ def init(logging_to_file='s', debug=False):
 
         # 5 files max 10MB each
         logzero.logfile(logging_to_file, loglevel=logging.INFO, maxBytes=1e7, backupCount=5)
+    else:
+        logzero.logfile(None)
+
     if debug:
         logzero.loglevel(logging.DEBUG)
-        logzero.logfile(None)
     else:
         logzero.loglevel(logging.INFO)
-        logzero.logfile(None)

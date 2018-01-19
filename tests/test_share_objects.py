@@ -16,35 +16,35 @@ def sharingdefinitions():
     uid = 'dataElement1'
     object_type = 'dataElements'
     public_access = 'readwrite'
-    usergroup_access = UserGroupAccess(uid='userGroup111', access='readwrite')
+    usergroup_access = {UserGroupAccess(uid='userGroup111', access='readwrite')}
     sd1 = SharingDefinition(uid, object_type, public_access, usergroup_access)
 
     # different usergroup
     uid = 'dataElement1'
     object_type = 'dataElements'
     public_access = 'readwrite'
-    usergroup_access = UserGroupAccess(uid='userGroup222', access='readwrite')
+    usergroup_access = {UserGroupAccess(uid='userGroup222', access='readwrite')}
     sd2 = SharingDefinition(uid, object_type, public_access, usergroup_access)
 
     # different usergroup access
     uid = 'dataElement1'
     object_type = 'dataElements'
     public_access = 'readwrite'
-    usergroup_access = UserGroupAccess(uid='userGroup222', access='read')
+    usergroup_access = {UserGroupAccess(uid='userGroup222', access='read')}
     sd3 = SharingDefinition(uid, object_type, public_access, usergroup_access)
 
     # different object type
     uid = 'dataElement1'
     object_type = 'categoryOptions'
     public_access = 'readwrite'
-    usergroup_access = UserGroupAccess(uid='userGroup222', access='read')
+    usergroup_access = {UserGroupAccess(uid='userGroup222', access='read')}
     sd4 = SharingDefinition(uid, object_type, public_access, usergroup_access)
 
     # copy of above
     uid = 'dataElement1'
     object_type = 'categoryOptions'
     public_access = 'readwrite'
-    usergroup_access = UserGroupAccess(uid='userGroup222', access='read')
+    usergroup_access = {UserGroupAccess(uid='userGroup222', access='read')}
     sd4_copy = SharingDefinition(uid, object_type, public_access, usergroup_access)
 
     return sd0, sd1, sd2, sd3, sd4, sd4_copy
@@ -75,6 +75,7 @@ def test_sharingdefinitions_equal(sharingdefinitions):
 
 
 def test_sharingdefinitions_set(sharingdefinitions):
+    assert len(sharingdefinitions) == 6
     assert len(set(sharingdefinitions)) == 5  # don't count the copy
 
 
@@ -86,3 +87,40 @@ def test_filter_delimiter_dhis224():
     dhis_version = 25
     res = filter_delimiter(argument, dhis_version)
     assert res == '||'
+
+
+@pytest.fixture()
+def sharingdefinitions_multi_uga():
+    # no userGroup sharing
+    uid = 'dataElement1'
+    object_type = 'dataElements'
+    public_access = 'readwrite'
+    sd0 = SharingDefinition(uid, object_type, public_access)
+
+    # multiple usergroups 1
+    uid = 'dataElement1'
+    object_type = 'dataElements'
+    public_access = 'readwrite'
+
+    uga1 = UserGroupAccess(uid='userGroup222', access='readwrite')
+    uga2 = UserGroupAccess(uid='userGroup333', access='read')
+    sd1 = SharingDefinition(uid, object_type, public_access, {uga1, uga2})
+
+    # multiple usergroups 2
+    uid = 'dataElement1'
+    object_type = 'dataElements'
+    public_access = 'readwrite'
+
+    uga3 = UserGroupAccess(uid='userGroup222', access='readwrite')
+    uga4 = UserGroupAccess(uid='userGroup444', access='readwrite')
+    sd2 = SharingDefinition(uid, object_type, public_access, {uga3, uga4})
+
+    uga5 = UserGroupAccess(uid='userGroup222', access='readwrite')
+    uga6 = UserGroupAccess(uid='userGroup444', access='readwrite')
+    sd3 = SharingDefinition(uid, object_type, public_access, {uga5, uga6})
+
+    assert sd0 != sd1
+    assert sd1 != sd2
+    assert sd0 != sd2
+    assert sd2 == sd3
+
