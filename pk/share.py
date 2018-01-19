@@ -152,7 +152,7 @@ class UserGroupAccess(object):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f [-w] [-r] -a [-k] [-v] [-u] [-p] [-d]',
+    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f [-w] [-r] -a [-k] [-l] [-v] [-u] [-p] [-d]',
                                      description="PURPOSE: Share DHIS2 objects (dataElements, programs, ...) "
                                                  "with userGroups")
     parser.add_argument('-s', dest='server', action='store', help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'")
@@ -171,9 +171,9 @@ def parse_args():
                         help="publicAccess (with login), e.g. -a=readwrite")
     parser.add_argument('-k', dest='keep', action='store_true', required=False,
                         help="keep current sharing & only replace if not congruent to prevent change "
-                             "to lastUpdated field")
+                             "to lastUpdated field, e.g. -k")
     parser.add_argument('-l', dest='logging_to_file', action='store', required=False,
-                        help="Path to Log file (level: INFO)")
+                        help="Path to Log file (default level: INFO, pass -d for DEBUG), e.g. l='/var/log/pk.log'")
     parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
                         help='DHIS2 API version e.g. -v=24')
     parser.add_argument('-u', dest='username', action='store', help='DHIS2 username, e.g. -u=admin')
@@ -262,9 +262,7 @@ def main():
                     overwrite = True
                 else:
                     existing.usergroup_accesses = uga
-
-            if not overwrite and existing == submitted:
-                skip = True
+            skip = not overwrite and existing == submitted
 
         status_message = u"({}/{}) {} {} {}"
         print_prop = ''
