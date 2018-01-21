@@ -31,10 +31,10 @@ Apply [sharing](https://docs.dhis2.org/master/en/user/html/dhis2_user_manual_en_
 **Example:** "Share all data elements with name starting with `All` but not those with `WHOMCH`" with two different user groups while public access should be `read and write`. Do not re-share if it's the same to prevent an update to lastUpdated field.
 
 `
--s=play.dhis2.org/dev -t=dataElements -k -f='name:$like:All&&name:!like:WHOMCH' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district
+dhis2-pk-share-objects -s=play.dhis2.org/dev -t=dataElements -k -f='name:$like:All&&name:!like:WHOMCH' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district
 `
 
-![Screenshot](https://i.imgur.com/vMNKshi.png)
+![Screenshot](https://i.imgur.com/9pUCd9r.png)
 
 #### Usage
 ```
