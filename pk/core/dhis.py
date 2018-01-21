@@ -88,7 +88,9 @@ class Dhis(object):
             logger.debug(u"RESPONSE: {}".format(r.text))
 
     def dhis_version(self):
-        """ return DHIS2 version (e.g. 26) as integer"""
+        """
+        :return: DHIS2 Version as Integer (e.g. 28)
+        """
         response = self.get(endpoint='system/info', file_type='json')
 
         # remove -SNAPSHOT for play.dhis2.org/dev
@@ -102,6 +104,10 @@ class Dhis(object):
             raise APIException("Could not parse DHIS2 version into an Integer")
 
     def shareable_objects(self):
+        """
+        Returns object classes which can be shared
+        :return: dict { object name (singular) : object name (plural) }
+        """
         params = {
             'fields': 'name,plural,shareable'
         }
@@ -110,6 +116,11 @@ class Dhis(object):
         return d
 
     def match_shareable(self, argument):
+        """
+        Match to a valid shareable object. Raise Exception if not found.
+        :param argument: Argument for object type desired to share
+        :return: tuple(singular, plural) of shareable object type
+        """
         shareable = self.shareable_objects()
         for name, plural in six.iteritems(shareable):
             if argument in (name, plural):

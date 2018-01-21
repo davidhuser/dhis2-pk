@@ -94,6 +94,7 @@ def test_filter_delimiter(dhis_accesses):
 
     for version in range(25, newest_dhis):
         assert '||' in dhis.set_delimiter(argument, version=version)
+        assert 'OR' in dhis.set_delimiter(argument, version=version)
 
     argument = 'name:^like:ABC'
     for version in range(28, newest_dhis):
@@ -109,6 +110,11 @@ def test_filter_delimiter(dhis_accesses):
     for version in range(22, newest_dhis):
         with pytest.raises(ClientException):
             dhis.set_delimiter(argument, version=version)
+
+    argument = 'name:like:ABC&&code:!eq:5&5'
+    for version in range(22, newest_dhis):
+        assert '&&' in dhis.set_delimiter(argument, version=version)
+        assert 'AND' in dhis.set_delimiter(argument, version=version)
 
 
 @pytest.fixture()

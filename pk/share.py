@@ -11,7 +11,6 @@ Assigns sharing to shareable DHIS2 objects like userGroups and publicAccess by c
 
 import argparse
 import json
-import sys
 
 from six import iteritems
 from logzero import logger
@@ -27,9 +26,7 @@ permissions = {
 
 
 class DhisAccess(dhis.Dhis):
-
-    def __init__(self, server, username, password, api_version):
-        dhis.Dhis.__init__(self, server, username, password, api_version)
+    """Class for accessing DHIS2"""
 
     def share_object(self, sharing_object):
         params = {'type': sharing_object.object_type, 'id': sharing_object.uid}
@@ -41,7 +38,7 @@ class DhisAccess(dhis.Dhis):
         Operator and rootJunction Alias validation
         :param argument: Argument as received from parser
         :param version: optional dhis2 version as Integer
-        :return: rootJunction alias = delimiter
+        :return: tuple(delimiter, rootJunction)
         """
         if not version:
             version = super(DhisAccess, self).dhis_version()
@@ -54,79 +51,87 @@ class DhisAccess(dhis.Dhis):
             if '&&' in argument:
                 raise exceptions.ArgumentException("Not allowed to combine delimiters '&&' and '||'. Nothing shared")
             return '||', 'OR'
-        else:
-            return '&&', 'AND'
+
+        return '&&', 'AND'
 
 
 class UserGroupHandler(object):
+    """Class for handling UserGroups (readonly and readwrite)"""
 
-    def __init__(self, api, args):
+    def __init__(self, api, usergroup_readwrite, usergroup_readonly):
         self.user_group_accesses = set()
         self.api = api
-        self.fill_args(("readwrite", args.usergroup_readwrite), ("readonly", args.usergroup_readonly))
+        self.fill_args(("readwrite", usergroup_readwrite), ("readonly", usergroup_readonly))
 
     def get_usergroup_uids(self, permission, filter_list, root_junction):
+        """
+        Get UserGroup UIDs
+        :param permission: readwrite or readonly (for printing)
+        :param filter_list: List of filters, e.g. ['name:like:ABC', 'code:eq:XYZ']
+        :param root_junction: AND or OR
+        :return: List of UserGroup UIDs
+        """
         params = {
             'fields': 'id,name',
             'paging': False,
             'filter': filter_list
         }
 
-        endpoint = 'userGroups'
-        logger.info(u"{} {} with filter [{}]".format(permission.upper(), endpoint, " {} ".format(root_junction).join(filter_list)))
-        response = self.api.get(endpoint=endpoint, file_type='json', params=params)
+        if root_junction == 'OR':
+            params['rootJunction'] = root_junction
 
+        endpoint = 'userGroups'
+        logger.info(u"{} {} with filter [{}]".format(permission.upper(), endpoint,
+                                                     " {} ".format(root_junction).join(filter_list)))
+        response = self.api.get(endpoint=endpoint, file_type='json', params=params)
         if len(response['userGroups']) > 0:
-            ugmap = {ug['id']: ug['name'] for ug in response['userGroups']}
-            for (key, value) in iteritems(ugmap):
+            usergroup_dict = {ug['id']: ug['name'] for ug in response['userGroups']}
+            for (key, value) in iteritems(usergroup_dict):
                 logger.info(u"- {} {}".format(key, value))
-            return ugmap.keys()
+            return usergroup_dict.keys()
         else:
             raise exceptions.UserGroupNotFoundException("No userGroup(s) found. Check your filter / DHIS2")
 
     def fill_args(self, *args):
+        """ Set UserGroupAccesses for readonly and readwrite
+        :param args: Tuple of (permission, filter)
+        """
         for permission, group in args:
-            delimiter, root_junction = self.api.set_delimiter(group)
-            filter_list = group.split(delimiter)
-            usergroups = self.get_usergroup_uids(permission, filter_list, delimiter)
-            for ug in usergroups:
-                self.user_group_accesses.add(UserGroupAccess(uid=ug, access=permissions[permission]))
+            if group:
+                delimiter, root_junction = self.api.set_delimiter(group)
+                filter_list = group.split(delimiter)
+                usergroups = self.get_usergroup_uids(permission, filter_list, root_junction)
+                for ug in usergroups:
+                    self.user_group_accesses.add(UserGroupAccess(uid=ug, access=permissions[permission]))
 
 
 class ObjectHandler(object):
+    """Class for handling DHIS2 objects which should be shared"""
 
-    def __init__(self, api, args):
+    def __init__(self, api, object_type, object_filter, object_public_access):
         self.api = api
-        self.obj_name, self.obj_plural = self.get_object_type(args.object_type)
-        self.delimiter, self.root_junction = self.api.set_delimiter(args.filter)
-        self.object_filter = args.filter
-        self.public_access = args.public_access
+        self.obj_name, self.obj_plural = self.get_object_type(object_type)
+        self.delimiter, self.root_junction = self.api.set_delimiter(object_filter)
+        self.object_filter = object_filter
+        self.public_access = object_public_access
         self.container = self.get_objects().get(self.obj_plural)
 
     def get_object_type(self, argument):
         return self.api.match_shareable(argument)
 
     def get_objects(self):
-
+        logger.info("PUBLIC ACCESS: {}".format(self.public_access))
         split = self.object_filter.split(self.delimiter)
         params = {
             'fields': 'id,name,code,publicAccess,userGroupAccesses',
             'filter': split,
             'paging': False
         }
-
         if self.root_junction == 'OR':
             params['rootJunction'] = self.root_junction
-        if len(self.object_filter) > 1:
-            print_msg = u"sharing {} with filters [{}] ..."
-        else:
-            print_msg = u"sharing {} with filter [{}] ..."
-
+        print_msg = u"sharing {} with filter [{}] ..."
         logger.info(print_msg.format(self.obj_plural, " {} ".format(self.root_junction).join(split)))
-        logger.info("PUBLIC ACCESS: {}".format(self.public_access))
-
         response = self.api.get(endpoint=self.obj_plural, file_type='json', params=params)
-
         if response:
             if len(response[self.obj_plural]) > 0:
                 return response
@@ -227,47 +232,64 @@ def parse_args():
     return parser.parse_args()
 
 
+def skip_or_overwrite(argument_keep, object_type, obj, submitted):
+    """
+    Determine if object should be skipped or overwritten
+    :param argument_keep: False if it should re-shared
+    :param object_type: type of DHIS2 object
+    :param obj: the existing object on the server to assess
+    :param submitted: ObjectSharing object sourced from arguments
+    :return: Tuple(Skip object, overwrite object)
+    """
+    if argument_keep:
+        overwrite = False
+        existing = None
+        try:
+            # check if publicAccess property is existing (might be missing)
+            pub_access = obj['publicAccess']
+        except KeyError:
+            overwrite = True
+        else:
+            # create a ObjectSharing based on what is already on the server
+            existing = ObjectSharing(uid=obj['id'], object_type=object_type, pub_access=pub_access)
+            if obj.get('userGroupAccesses'):
+                try:
+                    # check if access property of userGroupAccess is existing (it might be missing)
+                    uga = set(UserGroupAccess(uid=x['id'], access=x['access']) for x in obj['userGroupAccesses'])
+                except KeyError:
+                    overwrite = True
+                else:
+                    existing.usergroup_accesses = uga
+        if existing == submitted:
+            return True, False
+        if overwrite:
+            return False, True
+    return False, False
+
+
 def main():
     args = parse_args()
     log.init(args.logging_to_file, args.debug)
     api = DhisAccess(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
 
-    usergroups = UserGroupHandler(api, args)
-    objects = ObjectHandler(api, args)
+    usergroups = UserGroupHandler(api, args.usergroup_readwrite, args.usergroup_readonly)
+    objects = ObjectHandler(api, args.object_type, args.filter, args.public_access)
 
     no_of_obj = len(objects.container)
     for i, obj in enumerate(objects.container, 1):
-        uid = obj['id']
-        skip = False
-
-        # create a ObjectSharing based on command-line arguments
-        submitted = ObjectSharing(uid=uid,
+        submitted = ObjectSharing(uid=obj['id'],
                                   object_type=objects.obj_name,
                                   pub_access=permissions[args.public_access],
                                   usergroup_accesses=usergroups.user_group_accesses)
-        if args.keep:
-            overwrite = False
-            existing = None
-            try:
-                pub_access = obj['publicAccess']
-            except KeyError:
-                overwrite = True
-            else:
-                # create a ObjectSharing based on what is already on the server
-                existing = ObjectSharing(uid=uid, object_type=objects.obj_name, pub_access=pub_access)
-                if obj.get('userGroupAccesses'):
-                    try:
-                        # check if access property of userGroupAccess is existing (it might be missing)
-                        uga = set(UserGroupAccess(uid=x['id'], access=x['access']) for x in obj['userGroupAccesses'])
-                    except KeyError:
-                        overwrite = True
-                    else:
-                        existing.usergroup_accesses = uga
-            skip = not overwrite and existing == submitted
+
+        skip_it, overwrite_it = skip_or_overwrite(args.keep, objects.obj_name, obj, submitted)
 
         status_message = u"{}/{} {} {} {}"
         print_prop = ''
-        if not skip:
+        if skip_it:
+            logger.warn(status_message.format(i, no_of_obj, objects.obj_name, obj['id'],
+                                              print_prop) + "not re-shared to prevent updating lastUpdated field")
+        else:
             # apply sharing
             api.share_object(submitted)
             try:
@@ -277,18 +299,17 @@ def main():
                     print_prop = "'{}'".format(obj['code'])
                 except KeyError:
                     print_prop = ''
-            finally:
-                if overwrite:
-                    logger.warning(status_message.format(i, no_of_obj, objects.obj_name, uid, print_prop) +
-                                   " was overwritten because userGroupAccess.publicAccess or "
-                                   "userGroupAccess.UID or object.publicAccess was missing")
-                else:
-                    logger.info(status_message.format(i, no_of_obj, objects.obj_name, uid, print_prop))
-
-        else:
-            logger.warn(status_message.format(i, no_of_obj, objects.obj_name, uid, print_prop) +
-                        "not re-shared to prevent updating lastUpdated field")
+            if overwrite_it:
+                logger.warning(status_message.format(i, no_of_obj, objects.obj_name, obj['id'],
+                                                     print_prop) + " overwritten because userGroupAccess.publicAccess "
+                                                                   "or userGroupAccess.UID "
+                                                                   "or object.publicAccess was missing")
+            else:
+                logger.info(status_message.format(i, no_of_obj, objects.obj_name, obj['id'], print_prop))
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.warn("Aborted.")
