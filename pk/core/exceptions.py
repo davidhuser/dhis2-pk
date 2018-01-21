@@ -21,3 +21,15 @@ class APIException(DHIS2PocketKnifeException):
 
 class ClientException(DHIS2PocketKnifeException):
     """Indicate exceptions that don't involve interaction with DHIS2's API."""
+
+
+class ArgumentException(ClientException):
+    """ Indicate exception triggered by faulty arguments"""
+
+
+class UserGroupNotFoundException(ArgumentException):
+    """ User Group not found on DHIS2"""
+
+
+class ObjectNotFoundException(ArgumentException):
+    """ Share-able object not found"""

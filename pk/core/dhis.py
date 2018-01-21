@@ -7,17 +7,18 @@ import json
 
 import requests
 from logzero import logger
+import six
 
 from .config import Config
 from .exceptions import APIException, ClientException
-from .static import shareable_object_types, all_object_types
 
 
-class DhisAccess(object):
+class Dhis(object):
 
     def __init__(self, server, username, password, api_version):
         cfg = Config(server, username, password, api_version)
         self.api_url = cfg.api_url
+        self.dhis_version = self.dhis_version
         self.auth = cfg.auth
         self.session = requests.Session()
         self.file_timestamp = cfg.file_timestamp
@@ -86,37 +87,31 @@ class DhisAccess(object):
         else:
             logger.debug(u"RESPONSE: {}".format(r.text))
 
-    def get_dhis_version(self):
+    def dhis_version(self):
         """ return DHIS2 version (e.g. 26) as integer"""
         response = self.get(endpoint='system/info', file_type='json')
 
-        # remove -snapshot for play.dhis2.org/dev
-        snapshot = '-SNAPSHOT'
-        version = response.get('version')
-        if snapshot in version:
-            version = version.replace(snapshot, '')
-        return int(version.split('.')[1])
+        # remove -SNAPSHOT for play.dhis2.org/dev
+        version = response.get('version').replace('-SNAPSHOT', '')
+        try:
+            self.dhis_version = int(version.split('.')[1])
+            if self.dhis_version < 22:
+                logger.warning("Using DHIS2 Version < 2.22...")
+            return self.dhis_version
+        except ValueError:
+            raise APIException("Could not parse DHIS2 version into an Integer")
 
-    @staticmethod
-    def get_shareable_object_type(passed_name):
-        obj_types = shareable_object_types()
-        valid_obj_name1 = obj_types.get(passed_name.lower(), None)
-        if valid_obj_name1 is None:
-            valid_obj_name2 = obj_types.get(passed_name[:-1].lower(), None)
-            if valid_obj_name2 is None:
-                raise ClientException(u"Could not find a shareable object type for -t='{}'".format(passed_name))
-            else:
-                return valid_obj_name2
-        return valid_obj_name1
+    def shareable_objects(self):
+        params = {
+            'fields': 'name,plural,shareable'
+        }
+        r = self.get(endpoint='schemas', params=params)
+        d = {x['name']: x['plural'] for x in r['schemas'] if x['shareable']}
+        return d
 
-    @staticmethod
-    def get_all_object_type(passed_name):
-        obj_types = all_object_types()
-        valid_obj_name1 = obj_types.get(passed_name.lower(), None)
-        if valid_obj_name1 is None:
-            valid_obj_name2 = obj_types.get(passed_name[:-1].lower(), None)
-            if valid_obj_name2 is None:
-                raise ClientException(u"Could not find a valid object type for -t='{}'".format(passed_name))
-            else:
-                return valid_obj_name2
-        return valid_obj_name1
+    def match_shareable(self, argument):
+        shareable = self.shareable_objects()
+        for name, plural in six.iteritems(shareable):
+            if argument in (name, plural):
+                return name, plural
+        raise ClientException(u"No shareable object type for '{}'. Shareable are: {}".format(argument, '\n'.join(shareable.values())))
