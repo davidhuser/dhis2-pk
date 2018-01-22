@@ -46,8 +46,7 @@ arguments:
   
   -s SERVER             DHIS2 server URL without /api/, e.g. -s='play.dhis2.org/demo'
   
-  -t {see shareable types below}
-                        DHIS2 object type to apply sharing, e.g. -t=sqlViews or -t=DE
+  -t OBJECT TYPE        DHIS2 object type to apply sharing, e.g. -t=sqlViews or -t=dataElement
                         
   -f FILTER             Filter on objects with DHIS2 field filter
                         (add multiple filters with '&&' or use rootJunction OR (instead of AND) by using '||')
@@ -71,54 +70,13 @@ arguments:
   
   -l LOGGING_TO_FILE    Path to Log file (default level: INFO, pass -d for DEBUG), e.g. l='/var/log/pk.log'
                         
-  -v API_VERSION        DHIS2 API version e.g. -v=24
+  -v API_VERSION        DHIS2 API version e.g. -v=28
                         (if omitted, <URL>/api/endpoint will be used)
   -u USERNAME           DHIS2 username, e.g. -u=admin
   -p PASSWORD           DHIS2 password, e.g. -p=district
   -d                    Debug flag - writes more info to log file
 
 ```
-
-### Shareable objects:
-
-It's also possible to use acronyms/abbreviations like `-t=de` for dataElements, or `-t=ds` for dataSets, or `-t=catcombo` for Category Combinations
-
-- userGroups
-- userRoles
-- sqlViews
-- constants
-- optionSets
-- optionGroups
-- optionGroupSets
-- legendSets
-- organisationUnitGroups
-- organisationUnitGroupSets
-- categoryOptions
-- categoryOptionGroups
-- categoryOptionGroupSets
-- categories
-- categoryCombos
-- dataElements
-- dataElementGroups
-- dataElementGroupSets
-- indicators
-- indicatorGroups
-- indicatorGroupSets
-- dataSets
-- dataApprovalLevels
-- validationRuleGroups
-- interpretations
-- trackedEntityAttributes
-- programs
-- eventCharts
-- eventReports
-- programIndicators
-- maps
-- documents
-- reports
-- charts
-- reportTables
-- dashboards
 
 ##### Example (try it out against DHIS2 demo instance):
 
@@ -149,10 +107,10 @@ usage: dhis2-pk-indicator-definitions [-h] [-s] [-f] [-u] [-p] [-v] [-d]
 optional arguments:
   -h, --help           show this help message and exit
   -s SERVER            DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo
-  -f INDICATOR_FILTER  Indicator filter, e.g. -f='name:^like:HIV'
+  -f INDICATOR_FILTER  Indicator filter, e.g. -f='name:$like:HIV'
   -u USERNAME          DHIS2 username
   -p PASSWORD          DHIS2 password
-  -v API_VERSION       DHIS2 API version e.g. -v=24
+  -v API_VERSION       DHIS2 API version e.g. -v=28
   -d                   Debug flag - writes more info to log file
 ```
 ### Indicator variables
@@ -180,7 +138,7 @@ optional arguments:
   -s SERVER       DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo
   -u USERNAME     DHIS2 username
   -p PASSWORD     DHIS2 password
-  -v API_VERSION  DHIS2 API version e.g. -v=24
+  -v API_VERSION  DHIS2 API version e.g. -v=28
   -d              Writes more info in log file
 
 ```
@@ -228,7 +186,6 @@ python setup.py install
 - [x] multiple filters for userGroups
 - [x] API version as optional
 - [x] added indicator expression script
-- [x] acronym support for object types (`-t=de`)
 - [x] multiple filter should be added with `&&` instead of `&`
 - [x] read from dish.json file
 - [x] new feature: POST CSS to server

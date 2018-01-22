@@ -209,13 +209,13 @@ def parse_args():
                         help="DHIS2 object type to apply sharing, e.g. -t=sqlViews")
     parser.add_argument('-f', dest='filter', action='store', required=True,
                         help="Filter on objects with DHIS2 field filter (add "
-                             "multiple filters with '&&') e.g. -f='name:like:ABC'")
+                             "multiple filters with '&&' or '||') e.g. -f='name:like:ABC||code:eq:X'")
     parser.add_argument('-w', dest='usergroup_readwrite', action='store', required=False,
                         help="UserGroup filter for Read-Write access (add "
-                             "multiple filters with '&&') e.g. -w='name:$ilike:aUserGroup7&&id:!eq:aBc123XyZ0u'")
+                             "multiple filters with '&&' or '||') e.g. -w='name:$ilike:aUserGroup7&&id:!eq:aBc123XyZ0u'")
     parser.add_argument('-r', dest='usergroup_readonly', action='store', required=False,
                         help="UserGroup filter for Read-Only access, (add "
-                             "multiple filters with '&&') e.g. -r='id:eq:aBc123XyZ0u'")
+                             "multiple filters with '&&' or '||') e.g. -r='id:eq:aBc123XyZ0u'")
     parser.add_argument('-a', dest='public_access', action='store', required=True, choices=permissions.keys(),
                         help="publicAccess (with login), e.g. -a=readwrite")
     parser.add_argument('-k', dest='keep', action='store_true', required=False,
@@ -224,7 +224,7 @@ def parse_args():
     parser.add_argument('-l', dest='logging_to_file', action='store', required=False,
                         help="Path to Log file (default level: INFO, pass -d for DEBUG), e.g. l='/var/log/pk.log'")
     parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
-                        help='DHIS2 API version e.g. -v=24')
+                        help='DHIS2 API version e.g. -v=28')
     parser.add_argument('-u', dest='username', action='store', help='DHIS2 username, e.g. -u=admin')
     parser.add_argument('-p', dest='password', action='store', help='DHIS2 password, e.g. -p=district')
     parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
