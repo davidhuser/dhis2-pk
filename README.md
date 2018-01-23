@@ -49,26 +49,30 @@ arguments:
   -t OBJECT TYPE        DHIS2 object type to apply sharing, e.g. -t=sqlViews or -t=dataElement
                         
   -f FILTER             Filter on objects with DHIS2 field filter
-                        (add multiple filters with '&&' or use rootJunction OR (instead of AND) by using '||')
+                        add multiple filters with '&&' (rootJunction AND)
+                        or '||' (rootJunction OR)
                         e.g. -f='name:like:ABC||name:like:XYZ'
                         
   -w USERGROUP_READWRITE
                         UserGroup filter for Read-Write access
-                        (add multiple filters with '&&' or use rootJunction OR (instead of AND) by using '||'))
+                        add multiple filters with '&&' (rootJunction AND)
+                        or '||' (rootJunction OR)
                         e.g. -w='name:$ilike:aUserGroup7&&id:!eq:aBc123XyZ0u'
                         
   -r USERGROUP_READONLY
                         UserGroup filter for Read-Only access
-                        (add multiple filters with '&&' or use rootJunction OR (instead of AND) by using '||'))
+                        add multiple filters with '&&' (rootJunction AND)
+                        or '||' (rootJunction OR)
                         e.g. -r='id:eq:aBc123XyZ0u'
                        
   -a {readwrite,none,readonly}
                         Public Access (with login), e.g. -a=readwrite
   
-  -k KEEP CURRENT       keep current sharing & only replace if not congruent to arguments
+  -k KEEP_CURRENT       Keep current sharing & only replace if not congruent to arguments
                         to prevent change to lastUpdated field
   
-  -l LOGGING_TO_FILE    Path to Log file (default level: INFO, pass -d for DEBUG), e.g. l='/var/log/pk.log'
+  -l LOGGING_TO_FILE    Path to Log file (default level: INFO, pass -d for DEBUG)
+                        e.g. l='/var/log/pk.log'
                         
   -v API_VERSION        DHIS2 API version e.g. -v=28
                         (if omitted, <URL>/api/endpoint will be used)
