@@ -34,7 +34,7 @@ Apply [sharing](https://docs.dhis2.org/master/en/user/html/dhis2_user_manual_en_
 dhis2-pk-share-objects -s=play.dhis2.org/dev -t=dataElements -k -f='name:$like:All&&name:!like:WHOMCH' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district
 `
 
-![Screenshot](https://i.imgur.com/sDNorLT.png)
+![Screenshot](https://i.imgur.com/1Rab0Zl.png)
 
 #### Usage
 ```
