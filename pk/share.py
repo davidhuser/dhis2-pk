@@ -293,12 +293,12 @@ def main():
             # apply sharing
             api.share_object(submitted)
             try:
-                print_prop = "'{}'".format(obj['name'])
+                print_prop = u"'{}'".format(obj['name'])
             except KeyError:
                 try:
-                    print_prop = "'{}'".format(obj['code'])
+                    print_prop = u"'{}'".format(obj['code'])
                 except KeyError:
-                    print_prop = ''
+                    print_prop = u''
             if overwrite_it:
                 logger.warning(status_message.format(i, no_of_obj, objects.obj_name, obj['id'],
                                                      print_prop) + " overwritten because userGroupAccess.publicAccess "
