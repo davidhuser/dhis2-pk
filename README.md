@@ -1,4 +1,4 @@
-# dhis2-pocket-knife [![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
+# dhis2-pocket-knife [![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Build](https://travis-ci.org/davidhuser/dhis2-pk.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pk) [![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
 
 
 Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org). Features:
@@ -39,7 +39,7 @@ dhis2-pk-share-objects -s=play.dhis2.org/dev -t=dataElements -k -f='name:$like:A
 #### Usage
 ```
 dhis2-pk-share-objects --help
-usage: dhis2-pk-share-objects [-h] [-s] -t -f [-w] [-r] -a [-k] [-l] [-v] [-u] [-p] [-d]
+usage: dhis2-pk-share-objects [-h] [-s] -t -f [-w] [-r] -a [-o] [-l] [-v] [-u] [-p] [-d]
 
 arguments:
   -h, --help            show this help message and exit
@@ -68,8 +68,8 @@ arguments:
   -a {readwrite,none,readonly}
                         Public Access (with login), e.g. -a=readwrite
   
-  -k KEEP_CURRENT       Keep current sharing & only replace if not congruent to arguments
-                        to prevent change to lastUpdated field
+  -o OVERWRITE          Overwrite sharing flag - updates 'lastUpdated' field 
+                        of all shared objects, otherwise it only updates if changed
   
   -l LOGGING_TO_FILE    Path to Log file (default level: INFO, pass -d for DEBUG)
                         e.g. l='/var/log/pk.log'

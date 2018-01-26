@@ -18,6 +18,8 @@ class Dhis(object):
     def __init__(self, server, username, password, api_version):
         cfg = Config(server, username, password, api_version)
         self.api_url = cfg.api_url
+        if 'play.dhis2.org' in self.api_url:
+            logger.warning("Sharing may not work as expected on play.dhis2.org")
         self.dhis_version = self.dhis_version
         self.auth = cfg.auth
         self.session = requests.Session()
@@ -103,11 +105,16 @@ class Dhis(object):
         Returns object classes which can be shared
         :return: dict { object name (singular) : object name (plural) }
         """
+        # TODO check shareable in release
+        if self.dhis_version >= 29:
+            shareable = 'dataShareable'
+        else:
+            shareable = 'shareable'
         params = {
-            'fields': 'name,plural,shareable'
+            'fields': 'name,plural,{}'.format(shareable)
         }
         r = self.get(endpoint='schemas', params=params)
-        d = {x['name']: x['plural'] for x in r['schemas'] if x['shareable']}
+        d = {x['name']: x['plural'] for x in r['schemas'] if x[shareable]}
         return d
 
     def match_shareable(self, argument):
@@ -120,4 +127,4 @@ class Dhis(object):
         for name, plural in iteritems(shareable):
             if argument in (name, plural):
                 return name, plural
-        raise ClientException(u"No shareable object type for '{}'. Shareable are: {}".format(argument, '\n'.join(shareable.values())))
+        raise ClientException(u"No shareable object type for '{}'.\nShareable are: {}".format(argument, '\n'.join(shareable.values())))
