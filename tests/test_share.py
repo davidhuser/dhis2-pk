@@ -1,8 +1,8 @@
 import pytest
 
 from pk.core.exceptions import ClientException
-from pk.share import DhisAccess, ObjectSharing, UserGroupAccess
 from pk.core.static import newest_dhis
+from pk.share import DhisAccess, ObjectSharing, UserGroupAccess, skip, permissions
 
 
 @pytest.fixture()
@@ -11,42 +11,42 @@ def sharingdefinitions():
     uid = 'dataElement1'
     object_type = 'dataElements'
     public_access = 'readwrite'
-    sd0 = ObjectSharing(uid, object_type, public_access)
+    sd0 = ObjectSharing(uid, object_type, permissions[public_access])
 
     # usergroup sharing
     uid = 'dataElement1'
     object_type = 'dataElements'
     public_access = 'readwrite'
-    usergroup_access = {UserGroupAccess(uid='userGroup111', access='readwrite')}
-    sd1 = ObjectSharing(uid, object_type, public_access, usergroup_access)
+    usergroup_access = {UserGroupAccess(uid='userGroup111', access=permissions['readwrite'])}
+    sd1 = ObjectSharing(uid, object_type, permissions[public_access], usergroup_access)
 
     # different usergroup
     uid = 'dataElement1'
     object_type = 'dataElements'
     public_access = 'readwrite'
-    usergroup_access = {UserGroupAccess(uid='userGroup222', access='readwrite')}
-    sd2 = ObjectSharing(uid, object_type, public_access, usergroup_access)
+    usergroup_access = {UserGroupAccess(uid='userGroup222', access=permissions['readwrite'])}
+    sd2 = ObjectSharing(uid, object_type, permissions[public_access], usergroup_access)
 
     # different usergroup access
     uid = 'dataElement1'
     object_type = 'dataElements'
     public_access = 'readwrite'
-    usergroup_access = {UserGroupAccess(uid='userGroup222', access='read')}
-    sd3 = ObjectSharing(uid, object_type, public_access, usergroup_access)
+    usergroup_access = {UserGroupAccess(uid='userGroup222', access=permissions['readonly'])}
+    sd3 = ObjectSharing(uid, object_type, permissions[public_access], usergroup_access)
 
     # different object type
     uid = 'dataElement1'
     object_type = 'categoryOptions'
     public_access = 'readwrite'
-    usergroup_access = {UserGroupAccess(uid='userGroup222', access='read')}
-    sd4 = ObjectSharing(uid, object_type, public_access, usergroup_access)
+    usergroup_access = {UserGroupAccess(uid='userGroup222', access=permissions['readonly'])}
+    sd4 = ObjectSharing(uid, object_type, permissions[public_access], usergroup_access)
 
     # copy of above
     uid = 'dataElement1'
     object_type = 'categoryOptions'
     public_access = 'readwrite'
-    usergroup_access = {UserGroupAccess(uid='userGroup222', access='read')}
-    sd4_copy = ObjectSharing(uid, object_type, public_access, usergroup_access)
+    usergroup_access = {UserGroupAccess(uid='userGroup222', access=permissions['readonly'])}
+    sd4_copy = ObjectSharing(uid, object_type, permissions[public_access], usergroup_access)
 
     return sd0, sd1, sd2, sd3, sd4, sd4_copy
 
@@ -123,29 +123,29 @@ def sharingdefinitions_multi_uga():
     uid = 'dataElement1'
     object_type = 'dataElements'
     public_access = 'readwrite'
-    sd0 = ObjectSharing(uid, object_type, public_access)
+    sd0 = ObjectSharing(uid, object_type, permissions[public_access])
 
     # multiple usergroups 1
     uid = 'dataElement1'
     object_type = 'dataElements'
     public_access = 'readwrite'
 
-    uga1 = UserGroupAccess(uid='userGroup222', access='readwrite')
-    uga2 = UserGroupAccess(uid='userGroup333', access='read')
-    sd1 = ObjectSharing(uid, object_type, public_access, {uga1, uga2})
+    uga1 = UserGroupAccess(uid='userGroup222', access=permissions['readwrite'])
+    uga2 = UserGroupAccess(uid='userGroup333', access=permissions['readonly'])
+    sd1 = ObjectSharing(uid, object_type, permissions[public_access], {uga1, uga2})
 
     # multiple usergroups 2
     uid = 'dataElement1'
     object_type = 'dataElements'
     public_access = 'readwrite'
 
-    uga3 = UserGroupAccess(uid='userGroup222', access='readwrite')
-    uga4 = UserGroupAccess(uid='userGroup444', access='readwrite')
-    sd2 = ObjectSharing(uid, object_type, public_access, {uga3, uga4})
+    uga3 = UserGroupAccess(uid='userGroup222', access=permissions['readwrite'])
+    uga4 = UserGroupAccess(uid='userGroup444', access=permissions['readwrite'])
+    sd2 = ObjectSharing(uid, object_type, permissions[public_access], {uga3, uga4})
 
-    uga5 = UserGroupAccess(uid='userGroup222', access='readwrite')
-    uga6 = UserGroupAccess(uid='userGroup444', access='readwrite')
-    sd3 = ObjectSharing(uid, object_type, public_access, {uga5, uga6})
+    uga5 = UserGroupAccess(uid='userGroup222', access=permissions['readwrite'])
+    uga6 = UserGroupAccess(uid='userGroup444', access=permissions['readwrite'])
+    sd3 = ObjectSharing(uid, object_type, permissions[public_access], {uga5, uga6})
 
     assert sd0 != sd1
     assert sd1 != sd2
@@ -159,12 +159,124 @@ def sharingdefinitions_changed_order():
     object_type = 'dataElements'
     public_access = 'readwrite'
 
-    uga1 = UserGroupAccess(uid='userGroup222', access='readwrite')
-    uga2 = UserGroupAccess(uid='userGroup333', access='read')
-    sd0 = ObjectSharing(uid, object_type, public_access, {uga1, uga2})
+    uga1 = UserGroupAccess(uid='userGroup222', access=permissions['readwrite'])
+    uga2 = UserGroupAccess(uid='userGroup333', access=permissions['readonly'])
+    sd0 = ObjectSharing(uid, object_type, permissions[public_access], {uga1, uga2})
 
-    uga1 = UserGroupAccess(uid='userGroup222', access='readwrite')
-    uga2 = UserGroupAccess(uid='userGroup333', access='read')
-    sd1 = ObjectSharing(uid, object_type, public_access, {uga2, uga1})
+    uga1 = UserGroupAccess(uid='userGroup222', access=permissions['readwrite'])
+    uga2 = UserGroupAccess(uid='userGroup333', access=permissions['readonly'])
+    sd1 = ObjectSharing(uid, object_type, permissions[public_access], {uga2, uga1})
 
     assert sd0 == sd1
+
+
+def test_skip():
+    uid = 'dataElement1'
+    object_type = 'dataElements'
+    public_access = 'readwrite'
+
+    existing = {
+        "id": uid,
+        "publicAccess": permissions[public_access],
+        "userGroupAccesses": [
+            {
+                "id": "userGroup222",
+                "access": permissions['readwrite']
+            },
+            {
+                "id": "userGroup333",
+                "access": permissions['readonly']
+            }
+        ]
+    }
+
+    uga1 = UserGroupAccess(uid='userGroup222', access=permissions['readwrite'])
+    uga2 = UserGroupAccess(uid='userGroup333', access=permissions['readonly'])
+    submitted = ObjectSharing(uid, object_type, permissions[public_access], {uga1, uga2})
+
+    skip_it = skip(overwrite=False, object_type=object_type, obj=existing, submitted=submitted)
+    assert skip_it is True
+
+
+def test_skip_2():
+    uid = 'dataElement1'
+    object_type = 'dataElements'
+    public_access = 'readwrite'
+
+    existing = {
+        "id": uid,
+        "publicAccess": permissions[public_access],
+        "userGroupAccesses": [
+            {
+                "id": "userGroup222",
+                "access": permissions['readonly']
+            },
+            {
+                "id": "userGroup333",
+                "access": permissions['readonly']
+            }
+        ]
+    }
+
+    uga1 = UserGroupAccess(uid='userGroup222', access=permissions['readwrite'])
+    uga2 = UserGroupAccess(uid='userGroup333', access=permissions['readonly'])
+    submitted = ObjectSharing(uid, object_type, permissions[public_access], {uga1, uga2})
+
+    skip_it = skip(overwrite=False, object_type=object_type, obj=existing, submitted=submitted)
+    assert skip_it is False
+
+
+def test_skip_3():
+    uid = 'dataElement1'
+    object_type = 'dataElements'
+    public_access = 'readwrite'
+
+    existing = {
+        "id": uid,
+        "publicAccess": permissions[public_access],
+        "userGroupAccesses": [
+            {
+                "id": "userGroup222",
+                "access": permissions['readwrite']
+            },
+            {
+                "id": "userGroup333",
+                "access": permissions['readonly']
+            }
+        ]
+    }
+
+    uga1 = UserGroupAccess(uid='userGroup222', access=permissions['readwrite'])
+    uga2 = UserGroupAccess(uid='userGroup333', access=permissions['readonly'])
+    submitted = ObjectSharing(uid, object_type, permissions[public_access], {uga1, uga2})
+
+    skip_it = skip(overwrite=True, object_type=object_type, obj=existing, submitted=submitted)
+    assert skip_it is False
+
+
+def test_skip_4():
+    uid = 'dataElement1'
+    object_type = 'dataElements'
+    public_access = 'readwrite'
+
+    existing = {
+        "id": uid,
+        "publicAccess": permissions['readonly'],
+        "userGroupAccesses": [
+            {
+                "id": "userGroup222",
+                "access": permissions['readwrite']
+            },
+            {
+                "id": "userGroup333",
+                "access": permissions['readonly']
+            }
+        ]
+    }
+
+    uga1 = UserGroupAccess(uid='userGroup222', access=permissions['readwrite'])
+    uga2 = UserGroupAccess(uid='userGroup333', access=permissions['readonly'])
+    submitted = ObjectSharing(uid, object_type, permissions[public_access], {uga1, uga2})
+
+    skip_it = skip(overwrite=True, object_type=object_type, obj=existing, submitted=submitted)
+    assert skip_it is False

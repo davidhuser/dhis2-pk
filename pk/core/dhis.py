@@ -7,7 +7,7 @@ import json
 
 import requests
 from logzero import logger
-import six
+from six import iteritems
 
 from .config import Config
 from .exceptions import APIException, ClientException
@@ -25,13 +25,12 @@ class Dhis(object):
 
     def get(self, endpoint, file_type='json', params=None):
         url = '{}/{}.{}'.format(self.api_url, endpoint, file_type)
-
         logger.debug(u"GET: {} - parameters: {}".format(url, json.dumps(params)))
-        r = self.session.get(url, params=params, auth=self.auth)
+        r = self.session.get(url=url, params=params, auth=self.auth)
         try:
             r.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            raise APIException(e)
+        except requests.RequestException as e:
+            raise APIException(e, r.text)
         else:
             logger.debug(u"RESPONSE: {}".format(r.text))
             if file_type == 'json':
@@ -42,24 +41,22 @@ class Dhis(object):
     def post(self, endpoint, params, payload):
         url = '{}/{}'.format(self.api_url, endpoint)
         logger.debug(u"POST: {} \n parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
-
-        r = self.session.post(url, params=params, json=payload, auth=self.auth)
+        r = self.session.post(url=url, params=params, json=payload, auth=self.auth)
         try:
             r.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            raise APIException(e)
+        except requests.RequestException as e:
+            raise APIException(e, r.text)
         else:
             logger.debug(u"RESPONSE: {}".format(r.text))
 
     def put(self, endpoint, params, payload):
         url = '{}/{}'.format(self.api_url, endpoint)
         logger.debug(u"PUT: {} \n parameters: {} \n payload: {}".format(url, json.dumps(params), json.dumps(payload)))
-
-        r = self.session.put(url, params=params, json=payload, auth=self.auth)
+        r = self.session.put(url=url, params=params, json=payload, auth=self.auth)
         try:
             r.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            raise APIException(e)
+        except requests.RequestException as e:
+            raise APIException(e, r.text)
         else:
             logger.debug(u"RESPONSE: {}".format(r.text))
 
@@ -67,23 +64,22 @@ class Dhis(object):
         url = '{}/{}'.format(self.api_url, endpoint)
         headers = {"Content-Type": content_type}
         file_read = open(filename, 'rb').read()
-        r = self.session.post(url, data=file_read, headers=headers, auth=self.auth)
+        r = self.session.post(url=url, data=file_read, headers=headers, auth=self.auth)
         try:
             r.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            raise APIException(e)
+        except requests.RequestException as e:
+            raise APIException(e, r.text)
         else:
             logger.debug(u"RESPONSE: {}".format(r.text))
 
     def validate(self, obj_type, payload):
         url = '{}/schemas/{}'.format(self.api_url, obj_type)
         logger.debug(u"VALIDATE: {} payload: {}".format(url, json.dumps(payload)))
-
-        r = self.session.post(url, json=payload, auth=self.auth)
+        r = self.session.post(url=url, json=payload, auth=self.auth)
         try:
             r.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            raise APIException(e)
+        except requests.RequestException as e:
+            raise APIException(e, r.text)
         else:
             logger.debug(u"RESPONSE: {}".format(r.text))
 
@@ -91,17 +87,16 @@ class Dhis(object):
         """
         :return: DHIS2 Version as Integer (e.g. 28)
         """
-        response = self.get(endpoint='system/info', file_type='json')
-
+        response = self.get('system/info')
         # remove -SNAPSHOT for play.dhis2.org/dev
         version = response.get('version').replace('-SNAPSHOT', '')
         try:
             self.dhis_version = int(version.split('.')[1])
             if self.dhis_version < 22:
-                logger.warning("Using DHIS2 Version < 2.22...")
+                logger.warning("Using DHIS2 Version < 2.22... Use at your own risk.")
             return self.dhis_version
         except ValueError:
-            raise APIException("Could not parse DHIS2 version into an Integer")
+            raise APIException("DHIS2 version '{}' not valid".format(response.get('version')))
 
     def shareable_objects(self):
         """
@@ -122,7 +117,7 @@ class Dhis(object):
         :return: tuple(singular, plural) of shareable object type
         """
         shareable = self.shareable_objects()
-        for name, plural in six.iteritems(shareable):
+        for name, plural in iteritems(shareable):
             if argument in (name, plural):
                 return name, plural
         raise ClientException(u"No shareable object type for '{}'. Shareable are: {}".format(argument, '\n'.join(shareable.values())))

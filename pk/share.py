@@ -83,14 +83,15 @@ class UserGroupHandler(object):
         endpoint = 'userGroups'
         logger.info(u"{} {} with filter [{}]".format(permission.upper(), endpoint,
                                                      " {} ".format(root_junction).join(filter_list)))
-        response = self.api.get(endpoint=endpoint, file_type='json', params=params)
+        response = self.api.get(endpoint, params=params)
         if len(response['userGroups']) > 0:
             usergroup_dict = {ug['id']: ug['name'] for ug in response['userGroups']}
             for (key, value) in iteritems(usergroup_dict):
                 logger.info(u"- {} {}".format(key, value))
             return usergroup_dict.keys()
         else:
-            raise exceptions.UserGroupNotFoundException("No userGroup(s) found. Check your filter / DHIS2")
+            logger.debug(endpoint, params)
+            raise exceptions.UserGroupNotFoundException("No userGroup(s) found. Check filter, rootJunction or DHIS2")
 
     def fill_args(self, *args):
         """ Set UserGroupAccesses for readonly and readwrite
@@ -131,11 +132,12 @@ class ObjectHandler(object):
             params['rootJunction'] = self.root_junction
         print_msg = u"sharing {} with filter [{}] ..."
         logger.info(print_msg.format(self.obj_plural, " {} ".format(self.root_junction).join(split)))
-        response = self.api.get(endpoint=self.obj_plural, file_type='json', params=params)
+        response = self.api.get(self.obj_plural, params=params)
         if response:
             if len(response[self.obj_plural]) > 0:
                 return response
-        logger.exception('No objects found. Wrong filter?')
+            else:
+                raise exceptions.ClientException('No objects found. Check filter, rootJunction or DHIS2')
 
 
 class ObjectSharing(object):
@@ -143,6 +145,8 @@ class ObjectSharing(object):
     def __init__(self, uid, object_type, pub_access, usergroup_accesses=set()):
         self.uid = uid
         self.object_type = object_type
+        if pub_access not in permissions.values():
+            raise exceptions.ClientException("Access not valid: {} Should be: {}".format(pub_access, permissions.values()))
         self.public_access = pub_access
         self.usergroup_accesses = usergroup_accesses
         self.external_access = False
@@ -180,6 +184,8 @@ class UserGroupAccess(object):
 
     def __init__(self, uid, access):
         self.uid = uid
+        if access not in permissions.values():
+            raise exceptions.ClientException("Access not valid: {} Should be: {}".format(access, permissions.values()))
         self.access = access
 
     def __eq__(self, other):
@@ -201,70 +207,109 @@ class UserGroupAccess(object):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f [-w] [-r] -a [-k] [-l] [-v] [-u] [-p] [-d]',
+    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f [-w] [-r] -a [-o] [-l] [-v] [-u] [-p] [-d]',
                                      description="PURPOSE: Share DHIS2 objects (dataElements, programs, ...) "
                                                  "with userGroups")
-    parser.add_argument('-s', dest='server', action='store', help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'")
-    parser.add_argument('-t', dest='object_type', action='store', required=True,
+    parser.add_argument('-s',
+                        dest='server',
+                        action='store',
+                        help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'"
+                        )
+    parser.add_argument('-t',
+                        dest='object_type',
+                        action='store',
+                        required=True,
                         help="DHIS2 object type to apply sharing, e.g. -t=sqlViews")
-    parser.add_argument('-f', dest='filter', action='store', required=True,
-                        help="Filter on objects with DHIS2 field filter (add "
-                             "multiple filters with '&&' or '||') e.g. -f='name:like:ABC||code:eq:X'")
-    parser.add_argument('-w', dest='usergroup_readwrite', action='store', required=False,
-                        help="UserGroup filter for Read-Write access (add "
-                             "multiple filters with '&&' or '||') e.g. -w='name:$ilike:aUserGroup7&&id:!eq:aBc123XyZ0u'")
-    parser.add_argument('-r', dest='usergroup_readonly', action='store', required=False,
+    parser.add_argument('-f',
+                        dest='filter',
+                        action='store',
+                        required=True,
+                        help="Filter on objects with DHIS2 field filter (add multiple filters with '&&' or '||') "
+                             "e.g. -f='name:like:ABC||code:eq:X'")
+    parser.add_argument('-w',
+                        dest='usergroup_readwrite',
+                        action='store',
+                        required=False,
+                        help="UserGroup filter for Read-Write access (add multiple filters with '&&' or '||') "
+                             "e.g. -w='name:$ilike:aUserGroup7&&id:!eq:aBc123XyZ0u'")
+    parser.add_argument('-r',
+                        dest='usergroup_readonly',
+                        action='store',
+                        required=False,
                         help="UserGroup filter for Read-Only access, (add "
                              "multiple filters with '&&' or '||') e.g. -r='id:eq:aBc123XyZ0u'")
-    parser.add_argument('-a', dest='public_access', action='store', required=True, choices=permissions.keys(),
+    parser.add_argument('-a',
+                        dest='public_access',
+                        action='store',
+                        required=True,
+                        choices=permissions.keys(),
                         help="publicAccess (with login), e.g. -a=readwrite")
-    parser.add_argument('-k', dest='keep', action='store_true', required=False,
-                        help="keep current sharing & only replace if not congruent to prevent change "
-                             "to lastUpdated field, e.g. -k")
-    parser.add_argument('-l', dest='logging_to_file', action='store', required=False,
+    parser.add_argument('-o',
+                        dest='overwrite',
+                        action='store_true',
+                        required=False,
+                        default=False,
+                        help="overwrite sharing - updates 'lastUpdated' field of all shared objects")
+    parser.add_argument('-l',
+                        dest='logging_to_file',
+                        action='store',
+                        required=False,
                         help="Path to Log file (default level: INFO, pass -d for DEBUG), e.g. l='/var/log/pk.log'")
-    parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
+    parser.add_argument('-v',
+                        dest='api_version',
+                        action='store',
+                        required=False, type=int,
                         help='DHIS2 API version e.g. -v=28')
-    parser.add_argument('-u', dest='username', action='store', help='DHIS2 username, e.g. -u=admin')
-    parser.add_argument('-p', dest='password', action='store', help='DHIS2 password, e.g. -p=district')
-    parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
+    parser.add_argument('-u',
+                        dest='username',
+                        action='store',
+                        help='DHIS2 username, e.g. -u=admin')
+    parser.add_argument('-p',
+                        dest='password',
+                        action='store',
+                        help='DHIS2 password, e.g. -p=district')
+    parser.add_argument('-d',
+                        dest='debug',
+                        action='store_true',
+                        default=False,
+                        required=False,
                         help="Debug flag - writes more info to log file, e.g. -d")
     return parser.parse_args()
 
 
-def skip_or_overwrite(argument_keep, object_type, obj, submitted):
+def skip(overwrite, object_type, obj, submitted):
     """
     Determine if object should be skipped or overwritten
-    :param argument_keep: False if it should re-shared
+    :param overwrite: if it should be overwritten regardless of existing objects
     :param object_type: type of DHIS2 object
     :param obj: the existing object on the server to assess
     :param submitted: ObjectSharing object sourced from arguments
     :return: Tuple(Skip object, overwrite object)
     """
-    if argument_keep:
-        overwrite = False
-        existing = None
-        try:
-            # check if publicAccess property is existing (might be missing)
-            pub_access = obj['publicAccess']
-        except KeyError:
-            overwrite = True
-        else:
-            # create a ObjectSharing based on what is already on the server
-            existing = ObjectSharing(uid=obj['id'], object_type=object_type, pub_access=pub_access)
-            if obj.get('userGroupAccesses'):
-                try:
-                    # check if access property of userGroupAccess is existing (it might be missing)
-                    uga = set(UserGroupAccess(uid=x['id'], access=x['access']) for x in obj['userGroupAccesses'])
-                except KeyError:
-                    overwrite = True
-                else:
-                    existing.usergroup_accesses = uga
-        if existing == submitted:
-            return True, False
-        if overwrite:
-            return False, True
-    return False, False
+    existing = None
+    try:
+        # check if publicAccess property is existing (might be missing)
+        pub_access = obj['publicAccess']
+    except KeyError:
+        logger.warning("{}'s publicAccess corrected: {}".format(object_type, obj['id']))
+        overwrite = True
+        pass
+    else:
+        # create a ObjectSharing based on what is already on the server
+        existing = ObjectSharing(uid=obj['id'], object_type=object_type, pub_access=pub_access)
+        if obj.get('userGroupAccesses'):
+            try:
+                # check if access property of userGroupAccess is existing (it might be missing)
+                uga = set(UserGroupAccess(uid=x['id'], access=x['access']) for x in obj['userGroupAccesses'])
+            except KeyError:
+                logger.warning("UserGroupAccess.access corrected for {} {}".format(object_type, obj['id']))
+                overwrite = True
+                pass
+            else:
+                existing.usergroup_accesses = uga
+    if overwrite:
+        return False
+    return existing == submitted
 
 
 def main():
@@ -282,30 +327,22 @@ def main():
                                   pub_access=permissions[args.public_access],
                                   usergroup_accesses=usergroups.user_group_accesses)
 
-        skip_it, overwrite_it = skip_or_overwrite(args.keep, objects.obj_name, obj, submitted)
+        # check if it should be skipped. Also checks for missing fields required for sharing (publicAccess, ...)
+        skip_it = skip(args.overwrite, objects.obj_name, obj, submitted)
 
         status_message = u"{}/{} {} {} {}"
-        print_prop = ''
-        if skip_it:
-            logger.warn(status_message.format(i, no_of_obj, objects.obj_name, obj['id'],
-                                              print_prop) + "not re-shared to prevent updating lastUpdated field")
-        else:
-            # apply sharing
-            api.share_object(submitted)
+        try:
+            print_prop = u"'{}'".format(obj['name'])
+        except KeyError:
             try:
-                print_prop = u"'{}'".format(obj['name'])
+                print_prop = u"'{}'".format(obj['code'])
             except KeyError:
-                try:
-                    print_prop = u"'{}'".format(obj['code'])
-                except KeyError:
-                    print_prop = u''
-            if overwrite_it:
-                logger.warning(status_message.format(i, no_of_obj, objects.obj_name, obj['id'],
-                                                     print_prop) + " overwritten because userGroupAccess.publicAccess "
-                                                                   "or userGroupAccess.UID "
-                                                                   "or object.publicAccess was missing")
-            else:
-                logger.info(status_message.format(i, no_of_obj, objects.obj_name, obj['id'], print_prop))
+                print_prop = u''
+        if not skip_it:
+            api.share_object(submitted)
+            logger.info(status_message.format(i, no_of_obj, objects.obj_name, obj['id'], print_prop))
+        else:
+            logger.warning("skipped: " + status_message.format(i, no_of_obj, objects.obj_name, obj['id'], print_prop))
 
 
 if __name__ == "__main__":

@@ -10,9 +10,12 @@ from logzero import logger
 class DHIS2PocketKnifeException(Exception):
     """The base dhis2-pk Exception that all other exception classes extend."""
 
-    def __init__(self, message):
+    def __init__(self, message, response=None):
         self.message = message
-        logger.exception(message)
+        if response:
+            logger.exception("{}\n{}".format(message, response))
+        else:
+            logger.exception(message)
 
 
 class APIException(DHIS2PocketKnifeException):
