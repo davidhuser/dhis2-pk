@@ -55,8 +55,7 @@ class DhisAccess(dhis.Dhis):
 
     def share_object(self, sharing_object):
         params = {'type': sharing_object.object_type, 'id': sharing_object.uid}
-        data = sharing_object.to_json()
-        self.post(endpoint="sharing", params=params, payload=data)
+        self.post('sharing', params=params, payload=sharing_object.to_json())
 
     def set_delimiter(self, argument, version=None):
         """
@@ -105,12 +104,12 @@ class UserGroupAccess(object):
         return {"id": self.uid, "access": self.access.__repr__()}
 
 
-class UserGroupHandler(object):
+class UserGroupsHandler(object):
     """Class for handling existing UserGroups (readonly and readwrite)"""
 
     def __init__(self, api, usergroup_readwrite, usergroup_readonly):
-        self.user_group_accesses = set()
         self.api = api
+        self.accesses = set()
         self.fill_args(("readwrite", usergroup_readwrite), ("readonly", usergroup_readonly))
 
     def get_usergroup_uids(self, permission, filter_list, root_junction):
@@ -153,26 +152,31 @@ class UserGroupHandler(object):
                 filter_list = group.split(delimiter)
                 usergroups = self.get_usergroup_uids(permission, filter_list, root_junction)
                 for ug in usergroups:
-                    self.user_group_accesses.add(UserGroupAccess(uid=ug, access=permission))
+                    self.accesses.add(UserGroupAccess(uid=ug, access=permission))
 
 
-class ObjectHandler(object):
-    """Class for handling multiple DHIS2 objects from a single object type (e.g. dataElements)"""
+class ObjectsHandler(object):
+    """Class for handling a collection of DHIS2 objects from a single object type (e.g. dataElements)"""
 
-    def __init__(self, api, object_type, object_filter, object_public_access):
+    def __init__(self, api, obj_type, obj_filter, obj_public_access):
         self.api = api
-        self.obj_name, self.obj_plural = self.get_object_type(object_type)
-        self.delimiter, self.root_junction = self.api.set_delimiter(object_filter)
-        self.object_filter = object_filter
-        self.public_access = object_public_access
-        self.container = self.get_objects().get(self.obj_plural)
+        self.singular, self.plural = self.get_object_type(obj_type)
+        self.delimiter, self.root_junction = self.api.set_delimiter(obj_filter)
+        self.obj_filter = obj_filter
+        self.public_access = obj_public_access
+        self.elements = self.get_objects.get(self.plural)
 
     def get_object_type(self, argument):
+        """
+        Find a shareable DHIS2 class
+        :param argument:
+        :return:
+        """
         return self.api.match_shareable(argument)
 
     def get_objects(self):
         logger.info("PUBLIC ACCESS: {}".format(self.public_access))
-        split = self.object_filter.split(self.delimiter)
+        split = self.obj_filter.split(self.delimiter)
         params = {
             'fields': 'id,name,code,publicAccess,userGroupAccesses',
             'filter': split,
@@ -181,13 +185,13 @@ class ObjectHandler(object):
         if self.root_junction == 'OR':
             params['rootJunction'] = self.root_junction
         print_msg = u"sharing {} with filter [{}] ..."
-        logger.info(print_msg.format(self.obj_plural, " {} ".format(self.root_junction).join(split)))
-        response = self.api.get(self.obj_plural, params=params)
+        logger.info(print_msg.format(self.plural, " {} ".format(self.root_junction).join(split)))
+        response = self.api.get(self.plural, params=params)
         if response:
-            if len(response[self.obj_plural]) > 0:
+            if len(response[self.plural]) > 0:
                 return response
             else:
-                raise exceptions.ClientException('No objects found. Check filter, rootJunction or DHIS2')
+                raise exceptions.ClientException('No {} found. Check filter, rootJunction or DHIS2'.format(self.plural))
 
 
 class ObjectSharing(object):
@@ -229,34 +233,34 @@ class ObjectSharing(object):
         }
 
 
-def skip(overwrite, object_type, obj, new):
+def skip(overwrite, object_type, elem, new):
     """
-    Determine if object should be skipped or overwritten
+    Determine if object should be skipped or overwritten by comparing the state on the server
+    with the state as submitted
     :param overwrite: if it should be overwritten regardless of existing objects
     :param object_type: type of DHIS2 object
-    :param obj: the existing object on the server to assess
+    :param elem: the existing object on the server to assess
     :param new: ObjectSharing object sourced from arguments
-    :return: Tuple(Skip object, overwrite object)
+    :return: True if skip, False if overwrite
     """
     existing = None
     try:
         # check if publicAccess property is existing (might be missing)
-        pub_access = obj['publicAccess']
+        pub_access = elem['publicAccess']
     except KeyError:
         logger.warning("Fix: Added 'publicAccess' for {} {} to value [{}]"
-                       .format(object_type, obj['id'], new.public_access))
+                       .format(object_type, elem['id'], new.public_access))
         overwrite = True
     else:
         # create a ObjectSharing based on what is already on the server
-        existing = ObjectSharing(uid=obj['id'], object_type=object_type, pub_access=pub_access)
-        if obj.get('userGroupAccesses'):
+        existing = ObjectSharing(uid=elem['id'], object_type=object_type, pub_access=pub_access)
+        if elem.get('userGroupAccesses'):
             try:
                 # check if access property of userGroupAccess is existing (it might be missing)
-                uga = set(UserGroupAccess(uid=x['id'], access=x['access']) for x in obj['userGroupAccesses'])
+                uga = set(UserGroupAccess(uid=x['id'], access=x['access']) for x in elem['userGroupAccesses'])
             except KeyError:
-                logger.warning("Fix: Added 'UserGroupAccess.access' corrected for {} {} to value [{}]"
-                               .format(object_type, obj['id'],
-                                       ', '.join([x.to_json() for x in new.usergroup_accesses])))
+                fixed_usergroups = ', '.join([x.to_json() for x in new.usergroup_accesses])
+                logger.warning("Fix: Added 'UserGroupAccess.access' for {} {} to value [{}]".format(object_type, elem['id'], fixed_usergroups))
                 overwrite = True
             else:
                 existing.usergroup_accesses = uga
@@ -336,36 +340,39 @@ def parse_args():
     return parser.parse_args()
 
 
+def get_identifier(obj):
+    try:
+        identifier = u"'{}'".format(obj['name'])
+    except KeyError:
+        try:
+            identifier = u"'{}'".format(obj['code'])
+        except KeyError:
+            identifier = u''
+    return identifier
+
+
 def main():
     args = parse_args()
     log.init(args.logging_to_file, args.debug)
     api = DhisAccess(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
 
-    usergroups = UserGroupHandler(api, args.usergroup_readwrite, args.usergroup_readonly)
-    objects = ObjectHandler(api, args.object_type, args.filter, args.public_access)
+    usergroups = UserGroupsHandler(api, args.usergroup_readwrite, args.usergroup_readonly)
+    objects = ObjectsHandler(api, args.object_type, args.filter, args.public_access)
 
-    no_of_obj = len(objects.container)
-    for i, obj in enumerate(objects.container, 1):
-        submitted = ObjectSharing(uid=obj['id'],
-                                  object_type=objects.obj_name,
-                                  pub_access=args.public_access,
-                                  usergroup_accesses=usergroups.user_group_accesses)
+    no_of_obj = len(objects.elements)
+    for i, elem in enumerate(objects.elements, 1):
+        new = ObjectSharing(uid=elem['id'],
+                            object_type=objects.singular,
+                            pub_access=args.public_access,
+                            usergroup_accesses=usergroups.accesses)
 
-        # check if it should be skipped. Also checks for missing fields required for sharing (publicAccess, ...)
-        skip_it = skip(args.overwrite, objects.obj_name, obj, submitted)
-        status_message = u"{}/{} {} {} {}"
-        try:
-            print_prop = u"'{}'".format(obj['name'])
-        except KeyError:
-            try:
-                print_prop = u"'{}'".format(obj['code'])
-            except KeyError:
-                print_prop = u''
-        if not skip_it:
-            api.share_object(submitted)
-            logger.info(status_message.format(i, no_of_obj, objects.obj_name, obj['id'], print_prop))
+        identifier = get_identifier(elem)
+        pointer = u"{0}/{1} {2} {3}".format(i, no_of_obj, objects.singular, elem['id'])
+        if not skip(args.overwrite, objects.singular, elem, new):
+            logger.info("{0} {1}".format(pointer, identifier))
+            api.share_object(new)
         else:
-            logger.warning("skipped: " + status_message.format(i, no_of_obj, objects.obj_name, obj['id'], print_prop))
+            logger.warning("skipped: {0} {1}".format(pointer, identifier))
 
 
 if __name__ == "__main__":

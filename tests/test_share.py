@@ -194,7 +194,7 @@ def test_skip():
     uga2 = UserGroupAccess(uid='userGroup333', access='r-------')
     submitted = ObjectSharing(uid, object_type, public_access, {uga1, uga2})
 
-    skip_it = skip(overwrite=False, object_type=object_type, obj=existing, new=submitted)
+    skip_it = skip(overwrite=False, object_type=object_type, elem=existing, new=submitted)
     assert skip_it is True
 
 
@@ -222,7 +222,7 @@ def test_skip_2():
     uga2 = UserGroupAccess(uid='userGroup333', access='r-------')
     submitted = ObjectSharing(uid, object_type, public_access, {uga1, uga2})
 
-    skip_it = skip(overwrite=False, object_type=object_type, obj=existing, new=submitted)
+    skip_it = skip(overwrite=False, object_type=object_type, elem=existing, new=submitted)
     assert skip_it is False
 
 
@@ -250,7 +250,7 @@ def test_skip_3():
     uga2 = UserGroupAccess(uid='userGroup333', access='r-------')
     submitted = ObjectSharing(uid, object_type, public_access, {uga1, uga2})
 
-    skip_it = skip(overwrite=True, object_type=object_type, obj=existing, new=submitted)
+    skip_it = skip(overwrite=True, object_type=object_type, elem=existing, new=submitted)
     assert skip_it is False
 
 
@@ -278,7 +278,7 @@ def test_skip_4():
     uga2 = UserGroupAccess(uid='userGroup333', access='r-------')
     submitted = ObjectSharing(uid, object_type, public_access, {uga1, uga2})
 
-    skip_it = skip(overwrite=True, object_type=object_type, obj=existing, new=submitted)
+    skip_it = skip(overwrite=True, object_type=object_type, elem=existing, new=submitted)
     assert skip_it is False
 
 
