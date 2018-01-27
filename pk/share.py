@@ -112,6 +112,18 @@ class UserGroupsHandler(object):
         self.accesses = set()
         self.fill_args(("readwrite", usergroup_readwrite), ("readonly", usergroup_readonly))
 
+    def fill_args(self, *args):
+        """ Set UserGroupAccesses for readonly and readwrite
+        :param args: Tuple of (permission, filter)
+        """
+        for permission, group in args:
+            if group:
+                delimiter, root_junction = self.api.set_delimiter(group)
+                filter_list = group.split(delimiter)
+                usergroups = self.get_usergroup_uids(permission, filter_list, root_junction)
+                for ug in usergroups:
+                    self.accesses.add(UserGroupAccess(uid=ug, access=permission))
+
     def get_usergroup_uids(self, permission, filter_list, root_junction):
         """
         Get UserGroup UIDs
@@ -142,18 +154,6 @@ class UserGroupsHandler(object):
             logger.debug(endpoint, params)
             raise exceptions.UserGroupNotFoundException("No userGroup(s) found. Check filter, rootJunction or DHIS2")
 
-    def fill_args(self, *args):
-        """ Set UserGroupAccesses for readonly and readwrite
-        :param args: Tuple of (permission, filter)
-        """
-        for permission, group in args:
-            if group:
-                delimiter, root_junction = self.api.set_delimiter(group)
-                filter_list = group.split(delimiter)
-                usergroups = self.get_usergroup_uids(permission, filter_list, root_junction)
-                for ug in usergroups:
-                    self.accesses.add(UserGroupAccess(uid=ug, access=permission))
-
 
 class ObjectsHandler(object):
     """Class for handling a collection of DHIS2 objects from a single object type (e.g. dataElements)"""
@@ -164,7 +164,7 @@ class ObjectsHandler(object):
         self.delimiter, self.root_junction = self.api.set_delimiter(obj_filter)
         self.obj_filter = obj_filter
         self.public_access = obj_public_access
-        self.elements = self.get_objects.get(self.plural)
+        self.elements = self.get_objects().get(self.plural)
 
     def get_object_type(self, argument):
         """
@@ -233,12 +233,11 @@ class ObjectSharing(object):
         }
 
 
-def skip(overwrite, object_type, elem, new):
+def skip(overwrite, elem, new):
     """
     Determine if object should be skipped or overwritten by comparing the state on the server
     with the state as submitted
-    :param overwrite: if it should be overwritten regardless of existing objects
-    :param object_type: type of DHIS2 object
+    :param overwrite: if it should be overwritten regardless of congruent state
     :param elem: the existing object on the server to assess
     :param new: ObjectSharing object sourced from arguments
     :return: True if skip, False if overwrite
@@ -249,18 +248,19 @@ def skip(overwrite, object_type, elem, new):
         pub_access = elem['publicAccess']
     except KeyError:
         logger.warning("Fix: Added 'publicAccess' for {} {} to value [{}]"
-                       .format(object_type, elem['id'], new.public_access))
+                       .format(new.object_type, elem['id'], new.public_access))
         overwrite = True
     else:
         # create a ObjectSharing based on what is already on the server
-        existing = ObjectSharing(uid=elem['id'], object_type=object_type, pub_access=pub_access)
+        existing = ObjectSharing(elem['id'], new.object_type, pub_access)
         if elem.get('userGroupAccesses'):
             try:
                 # check if access property of userGroupAccess is existing (it might be missing)
-                uga = set(UserGroupAccess(uid=x['id'], access=x['access']) for x in elem['userGroupAccesses'])
+                uga = set(UserGroupAccess(x['id'], x['access']) for x in elem['userGroupAccesses'])
             except KeyError:
                 fixed_usergroups = ', '.join([x.to_json() for x in new.usergroup_accesses])
-                logger.warning("Fix: Added 'UserGroupAccess.access' for {} {} to value [{}]".format(object_type, elem['id'], fixed_usergroups))
+                logger.warning("Fix: Added 'UserGroupAccess.access' for {} {} to [{}]"
+                               .format(new.object_type, elem['id'], fixed_usergroups))
                 overwrite = True
             else:
                 existing.usergroup_accesses = uga
@@ -340,39 +340,33 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_identifier(obj):
+def identifier(obj):
     try:
-        identifier = u"'{}'".format(obj['name'])
+        x = u"'{}'".format(obj['name'])
     except KeyError:
         try:
-            identifier = u"'{}'".format(obj['code'])
+            x = u"'{}'".format(obj['code'])
         except KeyError:
-            identifier = u''
-    return identifier
+            x = u''
+    return x
 
 
 def main():
     args = parse_args()
     log.init(args.logging_to_file, args.debug)
-    api = DhisAccess(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
+    api = DhisAccess(args.server, args.username, args.password, args.api_version)
 
     usergroups = UserGroupsHandler(api, args.usergroup_readwrite, args.usergroup_readonly)
     objects = ObjectsHandler(api, args.object_type, args.filter, args.public_access)
 
-    no_of_obj = len(objects.elements)
     for i, elem in enumerate(objects.elements, 1):
-        new = ObjectSharing(uid=elem['id'],
-                            object_type=objects.singular,
-                            pub_access=args.public_access,
-                            usergroup_accesses=usergroups.accesses)
-
-        identifier = get_identifier(elem)
-        pointer = u"{0}/{1} {2} {3}".format(i, no_of_obj, objects.singular, elem['id'])
-        if not skip(args.overwrite, objects.singular, elem, new):
-            logger.info("{0} {1}".format(pointer, identifier))
+        new = ObjectSharing(elem['id'], objects.singular, args.public_access, usergroups.accesses)
+        pointer = u"{0}/{1} {2} {3}".format(i, len(objects.elements), objects.singular, elem['id'])
+        if not skip(args.overwrite, elem, new):
+            logger.info("{0} {1}".format(pointer, identifier(elem)))
             api.share_object(new)
         else:
-            logger.warning("skipped: {0} {1}".format(pointer, identifier))
+            logger.warning("skipped: {0} {1}".format(pointer, identifier(elem)))
 
 
 if __name__ == "__main__":
