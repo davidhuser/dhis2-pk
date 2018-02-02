@@ -191,7 +191,7 @@ class ObjectsHandler(object):
             if len(response[self.plural]) > 0:
                 return response
             else:
-                logger.warning('No {} found. Check filter, rootJunction or DHIS2'.format(self.plural))
+                logger.warning(u'No {} found. Check filter, rootJunction or DHIS2'.format(self.plural))
                 import sys
                 sys.exit(0)
 
@@ -249,7 +249,7 @@ def skip(overwrite, elem, new):
         # check if publicAccess property is existing (might be missing)
         pub_access = elem['publicAccess']
     except KeyError:
-        logger.warning("Fix: Added 'publicAccess' for {} {} to value [{}]"
+        logger.warning(u"Fix: Added 'publicAccess' for {} {} to value [{}]"
                        .format(new.object_type, elem['id'], new.public_access))
         overwrite = True
     else:
@@ -261,7 +261,7 @@ def skip(overwrite, elem, new):
                 uga = set(UserGroupAccess(x['id'], x['access']) for x in elem['userGroupAccesses'])
             except KeyError:
                 fixed_usergroups = ', '.join([json.dumps(x.to_json()) for x in new.usergroup_accesses])
-                logger.warning("Fix: Added 'UserGroupAccess.access' for {} {} to [{}]"
+                logger.warning(u"Fix: Added 'UserGroupAccess.access' for {} {} to [{}]"
                                .format(new.object_type, elem['id'], fixed_usergroups))
                 overwrite = True
             else:
@@ -365,10 +365,10 @@ def main():
         new = ObjectSharing(elem['id'], objects.singular, args.public_access, usergroups.accesses)
         pointer = u"{0}/{1} {2} {3}".format(i, len(objects.elements), objects.singular, elem['id'])
         if not skip(args.overwrite, elem, new):
-            logger.info("{0} {1}".format(pointer, identifier(elem)))
+            logger.info(u"{0} {1}".format(pointer, identifier(elem)))
             api.share_object(new)
         else:
-            logger.warning("skipped: {0} {1}".format(pointer, identifier(elem)))
+            logger.warning(u"skipped: {0} {1}".format(pointer, identifier(elem)))
 
 
 if __name__ == "__main__":
