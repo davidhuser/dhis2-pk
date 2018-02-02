@@ -191,7 +191,7 @@ class ObjectsHandler(object):
             if len(response[self.plural]) > 0:
                 return response
             else:
-                raise exceptions.ClientException('No {} found. Check filter, rootJunction or DHIS2'.format(self.plural))
+                logger.warning('No {} found. Check filter, rootJunction or DHIS2'.format(self.plural))
 
 
 class ObjectSharing(object):
@@ -258,7 +258,7 @@ def skip(overwrite, elem, new):
                 # check if access property of userGroupAccess is existing (it might be missing)
                 uga = set(UserGroupAccess(x['id'], x['access']) for x in elem['userGroupAccesses'])
             except KeyError:
-                fixed_usergroups = ', '.join([x.to_json() for x in new.usergroup_accesses])
+                fixed_usergroups = ', '.join([json.dumps(x.to_json()) for x in new.usergroup_accesses])
                 logger.warning("Fix: Added 'UserGroupAccess.access' for {} {} to [{}]"
                                .format(new.object_type, elem['id'], fixed_usergroups))
                 overwrite = True
