@@ -192,6 +192,8 @@ class ObjectsHandler(object):
                 return response
             else:
                 logger.warning('No {} found. Check filter, rootJunction or DHIS2'.format(self.plural))
+                import sys
+                sys.exit(0)
 
 
 class ObjectSharing(object):
