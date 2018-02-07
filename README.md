@@ -1,6 +1,5 @@
 # dhis2-pocket-knife [![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Build](https://travis-ci.org/davidhuser/dhis2-pk.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pk) [![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
 
-
 Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org). Features:
 
 * [Mass sharing of objects via filtering](#mass-sharing-of-objects-via-filtering)
@@ -28,13 +27,13 @@ Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2
 
 Apply [sharing](https://docs.dhis2.org/master/en/user/html/dhis2_user_manual_en_full.html#sharing) for DHIS2 metadata objects (dataElements, indicators, programs, ...) through **[metadata object filtering](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)** (for both shareable objects and userGroups).
 
-**Example:** "Share all data elements with name starting with `All` but not those with `WHOMCH`" with two different user groups while public access should be `read and write`. Do not re-share if it's the same to prevent an update to lastUpdated field.
+**Example:** "Share all `Hypertension` data elements with _Read-Write_ access for the `Admin` User Group and _Read_ access for the `Research Group` User Group and disable _Public Access_:
 
 `
-dhis2-pk-share-objects -s=play.dhis2.org/dev -t=dataElements -k -f='name:$like:All&&name:!like:WHOMCH' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district
+dhis2-pk-share-objects -s=play.dhis2.org/dev -u=admin -p=district -t=dataElements -f='name:like:Hypertension' -w='name:like:Admin' -r='name:like:Research Group' -a=none
 `
 
-![Screenshot](https://i.imgur.com/AFD2aid.gif)
+![Screenshot](https://i.imgur.com/oJaoyVj.gif)
 
 #### Usage
 ```
@@ -46,7 +45,7 @@ arguments:
   
   -s SERVER             DHIS2 server URL without /api/, e.g. -s='play.dhis2.org/demo'
   
-  -t OBJECT TYPE        DHIS2 object type to apply sharing, e.g. -t=sqlViews or -t=dataElement
+  -t OBJECT TYPE        DHIS2 object type to apply sharing, e.g. -t=sqlViews or -t=dataElements
                         
   -f FILTER             Filter on objects with DHIS2 field filter
                         add multiple filters with '&&' (rootJunction AND)
@@ -68,7 +67,7 @@ arguments:
   -a {readwrite,none,readonly}
                         Public Access (with login), e.g. -a=readwrite
   
-  -o OVERWRITE          Overwrite sharing flag - updates 'lastUpdated' field 
+  -o OVERWRITE          Overwrite sharing - updates 'lastUpdated' field 
                         of all shared objects, otherwise it only updates if changed
   
   -l LOGGING_TO_FILE    Path to Log file (default level: INFO, pass -d for DEBUG)
@@ -78,15 +77,16 @@ arguments:
                         (if omitted, <URL>/api/endpoint will be used)
   -u USERNAME           DHIS2 username, e.g. -u=admin
   -p PASSWORD           DHIS2 password, e.g. -p=district
-  -d                    Debug flag - writes more info to log file
+  -d                    Debug calls with -d
 
 ```
+Other example:
+Share `Hypertension` dataElements with _Read-Write_ access for `Admin` and `Research Group` User Groups while _Public Access_ should be _Read only_:
 
-##### Example (try it out against DHIS2 demo instance):
+`
+dhis2-pk-share-objects -s=play.dhis2.org/dev -u=admin -p=district -t=dataElements -f='name:like:Hypertension' -w='name:like:Admin||name:like:Research Group' -a=readonly
+`
 
-```
-dhis2-pk-share-objects -s=play.dhis2.org/demo -t=dataElements -f='name:$like:All&&name:!like:cough' -w='name:like:Africare HQ' -r='name:like:Bo District' -a=readwrite -u=admin -p=district -v=24 -d
-```
 ---
 ## Readable indicator definition to CSV
 
@@ -197,8 +197,7 @@ python setup.py install
 - [x] color output
 - [x] file logging
 
-### Todo
+### Todos
 
 - [ ] Script tests
-
-
+- [ ] Interactive sharing
