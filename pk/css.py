@@ -2,9 +2,14 @@ import argparse
 
 from logzero import logger
 
-import core.log as log
-import core.dhis as dhis
-
+try:
+    from pk.core import log
+    from pk.core import dhis
+    from pk.core import exceptions
+except ImportError:
+    from core import log
+    from core import dhis
+    from core import exceptions
 """
 post-css
 ~~~~~~~~~~~~~~~~~
@@ -27,10 +32,10 @@ def parse_args():
 def main():
     args = parse_args()
     log.init(args.debug)
-    api = dhis.DhisAccess(server=args.server, username=args.username, password=args.password, api_version=None)
+    api = dhis.Dhis(server=args.server, username=args.username, password=args.password, api_version=None)
 
     api.post_file(endpoint='files/style', filename=args.css, content_type='text/css')
-    logger.info("{} CSS posted to {}. Clear your caches.".format(args.css, dhis.api_url))
+    logger.info("{} CSS posted to {}. Clear your caches.".format(args.css, api.api_url))
 
 
 if __name__ == "__main__":

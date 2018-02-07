@@ -6,8 +6,14 @@ import re
 import unicodecsv as csv
 from logzero import logger
 
-import core.dhis as dhis
-import core.log as log
+try:
+    from pk.core import log
+    from pk.core import dhis
+    from pk.core import exceptions
+except ImportError:
+    from core import log
+    from core import dhis
+    from core import exceptions
 
 
 def parse_args():
@@ -35,7 +41,7 @@ def main():
     args = parse_args()
     log.init(args.debug)
 
-    api = dhis.DhisAccess(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
+    api = dhis.Dhis(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
     params1 = {
         'fields': 'dataViewOrganisationUnits[path],userCredentials[username,userRoles[name]],name,'
                   'organisationUnits[path],userGroups[name]',

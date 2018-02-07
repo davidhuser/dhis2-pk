@@ -10,9 +10,14 @@ import argparse
 
 import unicodecsv as csv
 from logzero import logger
-import core.log as log
-import core.exceptions as exceptions
-import core.dhis as dhis
+try:
+    from pk.core import log
+    from pk.core import dhis
+    from pk.core import exceptions
+except ImportError:
+    from core import log
+    from core import dhis
+    from core import exceptions
 
 
 def replace_definitions(definition, obj_map):
@@ -151,7 +156,7 @@ def write_to_csv(indicators, object_mapping, file_name):
 def main():
     args = parse_args()
 
-    api = dhis.DhisAccess(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
+    api = dhis.Dhis(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
     log.init(args.debug)
 
     indicators = api.get(endpoint='indicators', file_type='json', params=get_params(args.indicator_filter))

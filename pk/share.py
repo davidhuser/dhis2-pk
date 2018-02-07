@@ -14,9 +14,14 @@ import json
 
 from six import iteritems
 from logzero import logger
-import core.log as log
-import core.dhis as dhis
-import core.exceptions as exceptions
+try:
+    from pk.core import log
+    from pk.core import dhis
+    from pk.core import exceptions
+except ImportError:
+    from core import log
+    from core import dhis
+    from core import exceptions
 
 access = {
     'none': '--------',
