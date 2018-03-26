@@ -43,7 +43,11 @@ def main():
 
     api = dhis.Dhis(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
     params1 = {
-        'fields': 'dataViewOrganisationUnits[path],userCredentials[username,userRoles[name]],name,'
+        'fields': 'dataViewOrganisationUnits[path],'
+                  'userCredentials[username,'
+                  'userRoles[name],'
+                  'userInfo[phoneNumber,firstName,surname]],'
+                  'name,'
                   'organisationUnits[path],userGroups[name]',
         'paging': False
     }
@@ -59,7 +63,8 @@ def main():
     file_name = "userinfo-{}.csv".format(api.file_timestamp)
 
     with open(file_name, 'wb') as csvfile:
-        fieldnames = ['name', 'username', 'userGroups', 'userRoles', 'orgunitPaths', 'dataViewOrgunitPaths']
+        fieldnames = ['name', 'firstName', 'surname', 'username', 'phoneNumber', 'userGroups',
+                      'userRoles', 'orgunitPaths', 'dataViewOrgunitPaths']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, encoding='utf-8', delimiter=',',
                                 quoting=csv.QUOTE_MINIMAL)
 
@@ -67,6 +72,9 @@ def main():
         for u in users['users']:
             export = {
                 'name': u['name'],
+                'firstName': u['userCredentials']['userInfo']['firstName'],
+                'surname': u['userCredentials']['userInfo']['surname'],
+                'phoneNumber': u['userCredentials']['userInfo'].get('phoneNumber', '-'),
                 'username': u['userCredentials']['username'],
                 'userGroups': ", ".join([ug['name'] for ug in u['userGroups']]),
                 'userRoles': ", ".join([ur['name'] for ur in u['userCredentials']['userRoles']])
