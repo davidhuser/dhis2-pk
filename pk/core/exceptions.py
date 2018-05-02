@@ -28,6 +28,7 @@ class ClientException(DHIS2PocketKnifeException):
 
 class ArgumentException(ClientException):
     """ Indicate exception triggered by faulty arguments"""
+    pass
 
 
 class UserGroupNotFoundException(ArgumentException):

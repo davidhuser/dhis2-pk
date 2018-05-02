@@ -20,9 +20,9 @@ class Dhis(object):
         self.api_url = cfg.api_url
         if 'play.dhis2.org' in self.api_url:
             logger.warning("Sharing may not work as expected on play.dhis2.org")
-        self.dhis_version = self.dhis_version
         self.auth = cfg.auth
         self.session = requests.Session()
+        self.dhis_version = self.get_dhis_version()
         self.file_timestamp = cfg.file_timestamp
 
     def get(self, endpoint, file_type='json', params=None):
@@ -85,18 +85,18 @@ class Dhis(object):
         else:
             logger.debug(u"RESPONSE: {}".format(r.text))
 
-    def dhis_version(self):
+    def get_dhis_version(self):
         """
         :return: DHIS2 Version as Integer (e.g. 28)
         """
-        response = self.get('system/info')
+        response = self.get(endpoint='system/info')
         # remove -SNAPSHOT for play.dhis2.org/dev
         version = response.get('version').replace('-SNAPSHOT', '')
         try:
-            self.dhis_version = int(version.split('.')[1])
-            if self.dhis_version < 22:
+            dhis_version = int(version.split('.')[1])
+            if dhis_version < 22:
                 logger.warning("Using DHIS2 Version < 2.22... Use at your own risk.")
-            return self.dhis_version
+            return dhis_version
         except ValueError:
             raise APIException("DHIS2 version '{}' not valid".format(response.get('version')))
 

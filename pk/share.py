@@ -29,18 +29,26 @@ access = {
     'readwrite': 'rw------'
 }
 
+access_short = {
+    'none': '--',
+    'readonly': 'r-',
+    'readwrite': 'rw'
+}
+
 
 class Permission(object):
     """ Class for handling Access strings such as rw------ and readwrite"""
 
-    def __init__(self, term):
-        try:
-            self.permission = access[term]
-        except KeyError:
-            if term in access.values():
-                self.permission = term
-            else:
-                raise exceptions.ClientException("Value not in {}".format(json.dumps(access)))
+    def __init__(self, metadata, data, public):
+
+        if public:
+            print(public)
+            self.permission = access[public]
+        else:
+            try:
+                self.permission = '{}{}----'.format(access_short[metadata], access_short[data])
+            except KeyError:
+                raise exceptions.ClientException("Permission error: metadata: {} data: {}".format(metadata, data))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.permission == other.permission
@@ -53,6 +61,17 @@ class Permission(object):
 
     def __repr__(self):
         return self.permission
+
+
+class PublicPermission(Permission):
+
+    def __init__(self, public):
+        super(PublicPermission, self).__init__(None, None, public)
+
+
+class GroupPermission(Permission):
+    def __init__(self, metadata, data):
+        super(GroupPermission, self).__init__(metadata, data, None)
 
 
 class DhisAccess(dhis.Dhis):
@@ -70,7 +89,7 @@ class DhisAccess(dhis.Dhis):
         :return: tuple(delimiter, rootJunction)
         """
         if not version:
-            version = super(DhisAccess, self).dhis_version()
+            version = self.dhis_version
         if '^' in argument:
             if version >= 28:
                 raise exceptions.ArgumentException("operator '^' is replaced with '$' in 2.28 onwards. Nothing shared.")
@@ -87,9 +106,9 @@ class DhisAccess(dhis.Dhis):
 class UserGroupAccess(object):
     """ Class for handling a UserGroupAccess object linked to a DHIS2 object containing a UserGroup UID and access"""
 
-    def __init__(self, uid, access):
+    def __init__(self, uid, metadata_access, data_access):
         self.uid = uid
-        self.access = Permission(access)
+        self.access = GroupPermission(metadata_access, data_access)
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
@@ -112,24 +131,37 @@ class UserGroupAccess(object):
 class UserGroupsHandler(object):
     """Class for handling existing UserGroups (readonly and readwrite)"""
 
-    def __init__(self, api, usergroup_readwrite, usergroup_readonly):
+    def __init__(self, api, args):
         self.api = api
         self.accesses = set()
-        self.fill_args(("readwrite", usergroup_readwrite), ("readonly", usergroup_readonly))
+        if api.dhis_version >= 29:
+            self.fill_args(api.dhis_version, list((argument[0], argument[1], argument[2]) for argument in args.groups))
+        else:
+            self.fill_args(api.dhis_version, [(args.usergroup_readwrite, "readwrite"), (args.usergroup_readonly, "readonly")])
 
-    def fill_args(self, *args):
+    def fill_args(self, version, *args):
         """ Set UserGroupAccesses for readonly and readwrite
+        :param version: DHIS2 version
         :param args: Tuple of (permission, filter)
         """
-        for permission, group in args:
-            if group:
-                delimiter, root_junction = self.api.set_delimiter(group)
-                filter_list = group.split(delimiter)
-                usergroups = self.get_usergroup_uids(permission, filter_list, root_junction)
+        if not version:
+            logger.exception('version {} cannot be empty'.format(version))
+        for argument_group in args:
+            for group, metadata_permission, data_permission in argument_group:
+                usergroups = []
+                if version >= 29:
+                    usergroups = self.get_usergroup_uids(group)
+                else:
+                    if group:
+                        delimiter, root_junction = self.api.set_delimiter(group)
+                        filter_list = group.split(delimiter)
+                        usergroups = self.get_usergroup_uids(filter_list, root_junction)
                 for ug in usergroups:
-                    self.accesses.add(UserGroupAccess(uid=ug, access=permission))
+                    self.accesses.add(UserGroupAccess(uid=ug,
+                                                      metadata_access=metadata_permission,
+                                                      data_access=data_permission))
 
-    def get_usergroup_uids(self, permission, filter_list, root_junction):
+    def get_usergroup_uids(self, filter_list, root_junction='AND'):
         """
         Get UserGroup UIDs
         :param permission: readwrite or readonly (for printing)
@@ -147,8 +179,8 @@ class UserGroupsHandler(object):
             params['rootJunction'] = root_junction
 
         endpoint = 'userGroups'
-        logger.info(u"{} {} with filter [{}]".format(permission.upper(), endpoint,
-                                                     " {} ".format(root_junction).join(filter_list)))
+        # logger.info(u"{} {} with filter [{}]".format(permission.upper(), endpoint,
+        #                                            " {} ".format(root_junction).join(filter_list)))
         response = self.api.get(endpoint, params=params)
         if len(response['userGroups']) > 0:
             usergroup_dict = {ug['id']: ug['name'] for ug in response['userGroups']}
@@ -196,7 +228,7 @@ class ObjectsHandler(object):
             if len(response[self.plural]) > 0:
                 return response
             else:
-                logger.warning(u'No {} found. Check filter, rootJunction or DHIS2'.format(self.plural))
+                logger.warning(u'No {} found.'.format(self.plural))
                 import sys
                 sys.exit(0)
 
@@ -207,7 +239,7 @@ class ObjectSharing(object):
     def __init__(self, uid, object_type, pub_access, usergroup_accesses=set()):
         self.uid = uid
         self.object_type = object_type
-        self.public_access = Permission(pub_access)
+        self.public_access = PublicPermission(pub_access)
         self.usergroup_accesses = usergroup_accesses
         self.external_access = False
         self.user = {}
@@ -308,6 +340,14 @@ def parse_args():
                         required=False,
                         help="UserGroup filter for Read-Only access, (add "
                              "multiple filters with '&&' or '||') e.g. -r='id:eq:aBc123XyZ0u'")
+
+    parser.add_argument('-g',
+                        dest='groups',
+                        action='append',
+                        required=False,
+                        nargs=3,
+                        help="DHIS2 2.29 syntax: -g <filter> <metadata> <data> - can be repeated for every group")
+
     parser.add_argument('-a',
                         dest='public_access',
                         action='store',
@@ -363,8 +403,14 @@ def main():
     log.init(args.logging_to_file, args.debug)
     api = DhisAccess(args.server, args.username, args.password, args.api_version)
 
-    usergroups = UserGroupsHandler(api, args.usergroup_readwrite, args.usergroup_readonly)
+    if api.dhis_version >= 29:
+        if any([args.usergroup_readwrite, args.usergroup_readonly]) or not args.groups:
+            raise exceptions.ArgumentException("This is a 2.29+ server with new sharing syntax, "
+                                               "use [-g] argument only, not [-w] or [-f]")
+
+    usergroups = UserGroupsHandler(api, args)
     objects = ObjectsHandler(api, args.object_type, args.filter, args.public_access)
+    print(objects.elements)
 
     for i, elem in enumerate(objects.elements, 1):
         new = ObjectSharing(elem['id'], objects.singular, args.public_access, usergroups.accesses)
