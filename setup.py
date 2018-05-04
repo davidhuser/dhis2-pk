@@ -91,7 +91,7 @@ setup(
         'console_scripts': [
             'dhis2-pk-indicator-definitions = pk.indicators:main',
             'dhis2-pk-share-objects = pk.share:main',
-            'dhis2-pk-share = pk.share:main',
+            'dhis2-pk-share = pk.share29:main',
             'dhis2-pk-userinfo = pk.userinfo:main',
             'dhis2-pk-post-css = pk.css:main'
         ]
