@@ -113,7 +113,7 @@ class Permission(object):
         return '{}{}----'.format(m, d)
 
     def __str__(self):
-        return 'METADATA: {}, DATA: {}'.format(self.metadata, self.data)
+        return 'METADATA: {}, DATA: {}, SYM: {}'.format(self.metadata, self.data, self.to_symbol())
 
 
 class ShareableObjectCollection(object):
@@ -123,7 +123,7 @@ class ShareableObjectCollection(object):
         self.name, self.plural = self.get_name(obj_type)
         self.filters = filters
         self.delimiter, self.root_junction = set_delimiter(filters)
-        self.share_data = self.is_data_shareable()
+        self.data_sharing_enabled = self.is_data_shareable()
 
         from_server = self.get_objects().get(self.plural)
         self.elements = set(self.create_obj(from_server))
@@ -214,11 +214,6 @@ class ShareableObject(object):
     def __ne__(self, other):
         return not self == other
 
-    """
-    def __hash__(self):
-        return hash((self.uid, self.obj_type, self.public_access, tuple(self.usergroup_accesses)))
-    """
-
     def __str__(self):
         s = '\n{} {} ({}) PA: {} UGA: {}\n'.format(
             self.obj_type,
@@ -229,12 +224,11 @@ class ShareableObject(object):
         return s
 
     def __repr__(self):
-        s = "<ShareableObject id='{}', publicAccess='{}', userGroupAccess='{}'>".format(self.uid,
-                                                                                        self.public_access.to_symbol(),
-                                                                                        ','.join(
-                                                                                            [json.dumps(x.to_json())
-                                                                                             for x in
-                                                                                             self.usergroup_accesses]))
+        s = "<ShareableObject id='{}'" \
+            " publicAccess='{}'" \
+            " userGroupAccess='{}'>".format(self.uid,
+                                            self.public_access.to_symbol(),
+                                            ','.join([json.dumps(x.to_json()) for x in self.usergroup_accesses]))
         return s
 
     def to_json(self):
@@ -340,7 +334,7 @@ def skip(overwrite, on_server, update):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f [-g] -a [-o] [-l] [-v] [-u] [-p] [-d]',
+    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f -a [-g] [-o] [-l] [-v] [-u] [-p] [-d]',
                                      description="Share DHIS2 objects with userGroups FOR 2.29 SERVERS or newer",
                                      formatter_class=argparse.RawTextHelpFormatter)
 
@@ -371,11 +365,12 @@ def parse_args():
                           action='append',
                           required=True,
                           nargs='+',
-                          metavar='PUBLIC',
+                          metavar='PUBLICACCESS',
                           choices=access.keys(),
                           help=textwrap.dedent('''\
-                          publicAccess (with login). 
-                          Valid choices are: {}
+                            Public Access (with login). 
+                            Valid choices are: {}, e.g. -a readwrite
+                            For sharing DATA, add another choice, e.g. -a readwrite readonly
                           '''.format(', '.join(access.keys()))))
 
     optional = parser.add_argument_group('optional arguments')
@@ -386,11 +381,11 @@ def parse_args():
                           metavar='USERGROUP',
                           nargs='+',
                           help=textwrap.dedent('''\
-                            Usergroup setting: FILTER METADATA [DATA] - can be repeated any number of times."
+                            Usergroup setting: FILTER METADATA [DATA] - can be repeated any number of times.
                             FILTER: Filter all User Groups. See -f for filtering mechanism
                             METADATA: Metadata access for this User Group. See -a for allowed choices
-                            DATA: Data access for this User Group. optional (only for objects that support data sharing). see -a for allowed choices.
-                            Example: -g 'id:eq:OeFJOqprom6' readwrite none 
+                            DATA: Data access for this User Group. See -a for allowed choices.
+                            Example: -g 'id:eq:OeFJOqprom6' readwrite none
                             '''))
     optional.add_argument('-o',
                           dest='overwrite',
@@ -402,6 +397,7 @@ def parse_args():
                           dest='logging_to_file',
                           action='store',
                           required=False,
+                          metavar='FILEPATH',
                           help="Path to Log file (default level: INFO, pass -d for DEBUG), e.g. l='/var/log/pk.log'")
     optional.add_argument('-v',
                           dest='api_version',
@@ -472,36 +468,37 @@ def main():
     usergroups = UserGroupsHandler(api, args.groups)
     coll = ShareableObjectCollection(api, args.object_type, args.filter)
 
-    if not coll.share_data:
+    if coll.data_sharing_enabled:
+        if not public_access.data:
+            logger.error("Public access for DATA is not set - need to set it for {}".format(args.object_type))
+            sys.exit(1)
+        if not all([g.permission.data for g in usergroups.accesses]):
+            logger.error("UserGroup access for DATA is not set - need to set it for {}".format(args.object_type))
+            sys.exit(1)
+    else:
         if public_access.data:
             logger.error("Cannot share DATA with public access for object type '{}'".format(args.object_type))
             sys.exit(1)
-        if [g.permission.data for g in usergroups.accesses]:
+        if any([g.permission.data for g in usergroups.accesses]):
             logger.error("Cannot share DATA with userGroups access for object type '{}'".format(args.object_type))
             sys.exit(1)
-    else:
-        if not public_access.data:
-            logger.error("Public access for DATA is not set")
-            sys.exit(1)
-        if not all([g.permission.data for g in usergroups.accesses]):
-            logger.error("UserGroup access for DATA is not set")
 
-    for i, srv_obj in enumerate(coll.elements, 1):
-        update = ShareableObject(obj_type=srv_obj.obj_type,
-                                 uid=srv_obj.uid,
-                                 name=srv_obj.name,
-                                 code=srv_obj.code,
+    for i, element in enumerate(coll.elements, 1):
+        update = ShareableObject(obj_type=element.obj_type,
+                                 uid=element.uid,
+                                 name=element.name,
+                                 code=element.code,
                                  public_access=public_access,
                                  usergroup_accesses=usergroups.accesses)
 
-        pointer = u"{0}/{1} {2} {3}".format(i, len(coll.elements), coll.name, srv_obj.uid)
+        pointer = u"{0}/{1} {2} {3}".format(i, len(coll.elements), coll.name, element.uid)
 
-        if not skip(args.overwrite, srv_obj, update):
-            logger.info(u"{0} {1}".format(pointer, identifier(srv_obj)))
+        if not skip(args.overwrite, element, update):
+            logger.info(u"{0} {1}".format(pointer, identifier(element)))
             api.share(update)
 
         else:
-            logger.warning(u"Skipped: {0} {1}".format(pointer, identifier(srv_obj)))
+            logger.warning(u"Skipped: {0} {1}".format(pointer, identifier(element)))
 
 
 if __name__ == "__main__":
