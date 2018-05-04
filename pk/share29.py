@@ -76,6 +76,9 @@ class Permission(object):
     def __ne__(self, other):
         return not self == other
 
+    def __hash__(self):
+        return hash((self.metadata, self.data))
+
     @classmethod
     def from_public_args(cls, args):
         metadata = args[0][0]
@@ -122,7 +125,7 @@ class Permission(object):
         return '{}{}----'.format(m, d)
 
     def __str__(self):
-        return 'METADATA: {}, DATA: {}, SYM: {}'.format(self.metadata, self.data, self.to_symbol())
+        return '[metadata:{}] [data:{}] [{}]'.format(self.metadata, self.data, self.to_symbol())
 
 
 class ShareableObjectCollection(object):
@@ -300,10 +303,10 @@ class UserGroupsHandler(object):
                 delimiter, root_junction = set_delimiter(group_filter)
                 filter_list = group_filter.split(delimiter)
                 usergroups = self.get_usergroup_uids(filter_list, root_junction)
-                logger.info(u"UserGroups with filter [{}]".format(" {} ".format(root_junction).join(filter_list)))
+                logger.info(u"User Groups with filter [{}]".format(" {} ".format(root_junction).join(filter_list)))
 
                 for uid, name in iteritems(usergroups):
-                    logger.info(u"- {} {} - {}".format(uid, name, permission))
+                    logger.info(u"- {} '{}' {}".format(uid, name, permission))
                     self.accesses.add(UserGroupAccess(uid, permission))
 
     def get_usergroup_uids(self, filter_list, root_junction='AND'):
@@ -476,7 +479,7 @@ def main():
     api.assert_version(range(29, 31))
 
     public_access = Permission.from_public_args(args.public_access)
-    logger.info("Public access - {}".format(public_access))
+    logger.info("Public access: {}".format(public_access))
 
     usergroups = UserGroupsHandler(api, args.groups)
     coll = ShareableObjectCollection(api, args.object_type, args.filter)
