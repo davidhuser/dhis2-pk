@@ -2,7 +2,8 @@ import pytest
 
 from pk.core.exceptions import ClientException
 from pk.core.static import newest_dhis, valid_uid
-from pk.share import DhisWrapper, Permission, ObjectSharing, UserGroupAccess, skip
+from pk.core.dhis import Dhis
+from pk.share import Permission, ObjectSharing, UserGroupAccess, skip, set_delimiter
 
 
 @pytest.fixture()
@@ -82,39 +83,7 @@ def test_sharingdefinitions_set(sharingdefinitions):
 
 @pytest.fixture()
 def dhis_accesses():
-    return [DhisWrapper('play.dhis2.org/demo', 'admin', 'district', api_version=i) for i in range(22, newest_dhis)]
-
-
-def test_filter_delimiter(dhis_accesses):
-    argument = 'name:like:ABC||name:like:XYZ'
-    dhis = dhis_accesses[0]
-    for version in range(22, 24):
-        with pytest.raises(ClientException):
-            dhis.set_delimiter(argument, version=version)
-
-    for version in range(25, newest_dhis):
-        assert '||' in dhis.set_delimiter(argument, version=version)
-        assert 'OR' in dhis.set_delimiter(argument, version=version)
-
-    argument = 'name:^like:ABC'
-    for version in range(28, newest_dhis):
-        with pytest.raises(ClientException):
-            dhis.set_delimiter(argument, version=version)
-
-    argument = 'name:^like:CDB||name:like:EFG'
-    for version in range(28, newest_dhis):
-        with pytest.raises(ClientException):
-            dhis.set_delimiter(argument, version=version)
-
-    argument = 'name:like:ABC||name:like:CDE&&name:like:EFG'
-    for version in range(22, newest_dhis):
-        with pytest.raises(ClientException):
-            dhis.set_delimiter(argument, version=version)
-
-    argument = 'name:like:ABC&&code:!eq:5&5'
-    for version in range(22, newest_dhis):
-        assert '&&' in dhis.set_delimiter(argument, version=version)
-        assert 'AND' in dhis.set_delimiter(argument, version=version)
+    return [Dhis('play.dhis2.org/demo', 'admin', 'district', api_version=i) for i in range(22, newest_dhis)]
 
 
 @pytest.fixture()

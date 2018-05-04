@@ -27,66 +27,93 @@ except ImportError:
     from core import exceptions
 
 access = {
-    u'rwrw----',
-    u'rwr-----',
-    u'rw------',
-    u'r-rw----',
-    u'r-r-----',
-    u'r-------',
-    u'--rw----',
-    u'--r-----',
-    u'--------'
-}
-
-access_short = {
     'none': u'--',
     'readonly': u'r-',
     'readwrite': u'rw'
 }
 
 
-def permission_converter(value, data=None):
-    if isinstance(value, list):
-        metadata_str = access_short.get(value[0], '--')
-        data_str = '--' if len(value) == 1 else access_short.get(value[1], '--')
-        return u'{}{}----'.format(metadata_str, data_str)
-    elif value in access:
-        return value
-    else:
-        metadata_str = access_short.get(value, '--')
-        data_str = access_short.get(data, '--')
-        return u'{}{}----'.format(metadata_str, data_str)
+def set_delimiter(argument):
+    """
+    Operator and rootJunction Alias validation
+    :param argument: Argument as received from parser
+    :return: tuple(delimiter, rootJunction)
+    """
+    if '^' in argument:
+        raise exceptions.ArgumentException("operator '^' is replaced with '$' in 2.28 onwards. Nothing shared.")
+    if '||' in argument:
+        if '&&' in argument:
+            raise exceptions.ArgumentException("Not allowed to combine delimiters '&&' and '||'. Nothing shared")
+        return '||', 'OR'
+
+    return '&&', 'AND'
 
 
-class DhisWrapper(dhis.Dhis):
-    """Class for accessing DHIS2: validating metadata field filters and actual sharing of objects"""
+class Permission(object):
 
-    def share_object(self, sharing_object):
-        params = {'type': sharing_object.obj_type, 'id': sharing_object.uid}
-        self.post('sharing', params=params, payload=sharing_object.to_json())
+    symbolic_notation = {
+        u'rwrw----',
+        u'rwr-----',
+        u'rw------',
+        u'r-rw----',
+        u'r-r-----',
+        u'r-------',
+        u'--rw----',
+        u'--r-----',
+        u'--------'
+    }
 
-    def assert_version(self):
-        version = self.get_dhis_version()
-        if version < 29:
-            logger.error(u"Minimum DHIS2 version: 2.29 - your version: 2.{}. Use dhis2-pk-share-objects --help".format(
-                version))
-            sys.exit(1)
+    def __init__(self, metadata, data):
+        self.metadata = metadata
+        self.data = data
 
-    @staticmethod
-    def set_delimiter(argument):
-        """
-        Operator and rootJunction Alias validation
-        :param argument: Argument as received from parser
-        :return: tuple(delimiter, rootJunction)
-        """
-        if '^' in argument:
-            raise exceptions.ArgumentException("operator '^' is replaced with '$' in 2.28 onwards. Nothing shared.")
-        if '||' in argument:
-            if '&&' in argument:
-                raise exceptions.ArgumentException("Not allowed to combine delimiters '&&' and '||'. Nothing shared")
-            return '||', 'OR'
+    @classmethod
+    def from_public_args(cls, args):
+        metadata = args[0][0]
+        try:
+            data = args[0][1]
+        except IndexError:
+            data = None
+        return cls(metadata, data)
 
-        return '&&', 'AND'
+    @classmethod
+    def from_symbol(cls, symbol):
+        if symbol not in Permission.symbolic_notation:
+            raise ValueError("Permission symbol {} not valid!".format(symbol))
+        metadata_str = symbol[:2]
+        if metadata_str == 'rw':
+            metadata = 'readwrite'
+        elif metadata_str == 'r-':
+            metadata = 'readonly'
+        else:
+            metadata = None
+
+        data_str = symbol[2:-4]
+        if data_str == 'rw':
+            data = 'readwrite'
+        elif data_str == 'r-':
+            data = 'readonly'
+        else:
+            data = None
+
+        return cls(metadata, data)
+
+    @classmethod
+    def from_group_args(cls, args):
+        metadata = args[1]
+        try:
+            data = args[2]
+        except IndexError:
+            data = None
+        return cls(metadata, data)
+
+    def to_symbol(self):
+        m = access.get(self.metadata, '--')
+        d = access.get(self.data, '--')
+        return '{}{}----'.format(m, d)
+
+    def __str__(self):
+        return 'METADATA: {}, DATA: {}'.format(self.metadata, self.data)
 
 
 class ShareableObjectCollection(object):
@@ -95,7 +122,7 @@ class ShareableObjectCollection(object):
         self.api = api
         self.name, self.plural = self.get_name(obj_type)
         self.filters = filters
-        self.delimiter, self.root_junction = self.api.set_delimiter(filters)
+        self.delimiter, self.root_junction = set_delimiter(filters)
         self.share_data = self.is_data_shareable()
 
         from_server = self.get_objects().get(self.plural)
@@ -153,8 +180,8 @@ class ShareableObjectCollection(object):
                                   uid=elem['id'],
                                   name=elem['name'],
                                   code=elem.get('code'),
-                                  public_access=elem['publicAccess'],
-                                  usergroup_accesses=elem.get('userGroupAccesses'))
+                                  public_access=Permission.from_symbol(elem['publicAccess']),
+                                  usergroup_accesses={UserGroupAccess.from_dict(d) for d in elem['userGroupAccesses']})
 
     def __str__(self):
         s = ''
@@ -169,19 +196,11 @@ class ShareableObject(object):
         self.obj_type = obj_type
         self.uid = uid
         self.name = name
-        self.public_access = permission_converter(public_access)
-        if isinstance(usergroup_accesses, list):
-            self.usergroup_accesses = {UserGroupAccess(x['id'], x['access']) for x in usergroup_accesses}
-        else:
-            self.usergroup_accesses = usergroup_accesses
+        self.public_access = public_access
+        self.usergroup_accesses = usergroup_accesses
         self.code = code
-
         self.external_access = False
         self.user = {}
-
-    @classmethod
-    def from_dict(cls, object_type, dict_data):
-        return cls(dict_data['id'], object_type, dict_data['publicAccess'], dict_data['userGroupAccesses'])
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
@@ -210,17 +229,18 @@ class ShareableObject(object):
         return s
 
     def __repr__(self):
-        s = u"<ShareableObject id='{}', publicAccess='{}', userGroupAccess='{}'>".format(self.uid, self.public_access,
-                                                                                         ','.join(
-                                                                                             [json.dumps(x.to_json())
-                                                                                              for x in
-                                                                                              self.usergroup_accesses]))
+        s = "<ShareableObject id='{}', publicAccess='{}', userGroupAccess='{}'>".format(self.uid,
+                                                                                        self.public_access.to_symbol(),
+                                                                                        ','.join(
+                                                                                            [json.dumps(x.to_json())
+                                                                                             for x in
+                                                                                             self.usergroup_accesses]))
         return s
 
     def to_json(self):
         return {
             'object': {
-                'publicAccess': self.public_access,
+                'publicAccess': self.public_access.to_symbol(),
                 'externalAccess': self.external_access,
                 'user': self.user,
                 'userGroupAccesses': [x.to_json() for x in self.usergroup_accesses]
@@ -233,24 +253,28 @@ class UserGroupAccess(object):
 
     def __init__(self, uid, permission):
         self.uid = u'{}'.format(uid)
-        self.access = permission
+        self.permission = permission
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data['id'], Permission.from_symbol(data['access']))
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
                 self.uid == other.uid and
-                self.access == other.access)
+                self.permission == other.permission)
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((self.uid, self.access))
+        return hash((self.uid, self.permission))
 
     def __str__(self):
         return json.dumps(self.to_json())
 
     def to_json(self):
-        return {"id": self.uid, "access": self.access}
+        return {"id": self.uid, "access": self.permission.to_symbol()}
 
 
 class UserGroupsHandler(object):
@@ -264,15 +288,15 @@ class UserGroupsHandler(object):
         else:
             for group in groups:
                 group_filter = group[0]
-                metadata_permission = group[1]
-                data_permission = group[2] if 2 < len(group) else None
-                delimiter, root_junction = self.api.set_delimiter(group_filter)
+                permission = Permission.from_group_args(group)
+
+                delimiter, root_junction = set_delimiter(group_filter)
                 filter_list = group_filter.split(delimiter)
                 usergroups = self.get_usergroup_uids(filter_list, root_junction)
                 logger.info(u"UserGroups with filter [{}]".format(" {} ".format(root_junction).join(filter_list)))
+
                 for uid, name in iteritems(usergroups):
-                    permission = permission_converter(metadata_permission, data_permission)
-                    logger.info(u"- {} {}".format(uid, name))
+                    logger.info(u"- {} {} - {}".format(uid, name, permission))
                     self.accesses.add(UserGroupAccess(uid, permission))
 
     def get_usergroup_uids(self, filter_list, root_junction='AND'):
@@ -348,11 +372,11 @@ def parse_args():
                           required=True,
                           nargs='+',
                           metavar='PUBLIC',
-                          choices=access_short.keys(),
+                          choices=access.keys(),
                           help=textwrap.dedent('''\
                           publicAccess (with login). 
                           Valid choices are: {}
-                          '''.format(', '.join(access_short.keys()))))
+                          '''.format(', '.join(access.keys()))))
 
     optional = parser.add_argument_group('optional arguments')
     optional.add_argument('-g',
@@ -407,9 +431,9 @@ def parse_args():
         sys.exit(1)
     if args.groups:
         for group in args.groups:
-            if group[1] not in access_short.keys():
+            if group[1] not in access.keys():
                 logger.error("Set permission for METADATA access - one of {}, e.g. -g 'id:eq:UID' none readonly".format(
-                    access_short.keys()))
+                    access.keys()))
                 parser.print_help()
                 sys.exit(1)
             try:
@@ -417,9 +441,9 @@ def parse_args():
             except IndexError:
                 pass
             else:
-                if data_permission not in access_short.keys():
+                if data_permission not in access.keys():
                     logger.error("Set permission for DATA access - one of {}, e.g. -g 'id:eq:UID' none readonly".format(
-                        access_short.keys()))
+                        access.keys()))
                     parser.print_help()
                     sys.exit(1)
     return parser.parse_args()
@@ -439,29 +463,42 @@ def identifier(obj):
 def main():
     args = parse_args()
     log.init(args.logging_to_file, args.debug)
-    api = DhisWrapper(args.server, args.username, args.password, args.api_version)
-    api.assert_version()
+    api = dhis.Dhis(args.server, args.username, args.password, args.api_version)
+    api.assert_version(range(29, 31))
+
+    public_access = Permission.from_public_args(args.public_access)
+    logger.info("Public access - {}".format(public_access))
 
     usergroups = UserGroupsHandler(api, args.groups)
     coll = ShareableObjectCollection(api, args.object_type, args.filter)
-    if not coll.is_data_shareable() and (len(args.public_access[0]) > 2 or any([len(g) > 2 for g in args.groups])):
-        logger.error(
-            "Cannot share DATA for object type '{}', only METADATA. Adjust your arguments".format(args.object_type))
-        sys.exit(1)
+
+    if not coll.share_data:
+        if public_access.data:
+            logger.error("Cannot share DATA with public access for object type '{}'".format(args.object_type))
+            sys.exit(1)
+        if [g.permission.data for g in usergroups.accesses]:
+            logger.error("Cannot share DATA with userGroups access for object type '{}'".format(args.object_type))
+            sys.exit(1)
+    else:
+        if not public_access.data:
+            logger.error("Public access for DATA is not set")
+            sys.exit(1)
+        if not all([g.permission.data for g in usergroups.accesses]):
+            logger.error("UserGroup access for DATA is not set")
 
     for i, srv_obj in enumerate(coll.elements, 1):
         update = ShareableObject(obj_type=srv_obj.obj_type,
                                  uid=srv_obj.uid,
                                  name=srv_obj.name,
                                  code=srv_obj.code,
-                                 public_access=args.public_access[0],
+                                 public_access=public_access,
                                  usergroup_accesses=usergroups.accesses)
 
         pointer = u"{0}/{1} {2} {3}".format(i, len(coll.elements), coll.name, srv_obj.uid)
 
         if not skip(args.overwrite, srv_obj, update):
             logger.info(u"{0} {1}".format(pointer, identifier(srv_obj)))
-            api.share_object(update)
+            api.share(update)
 
         else:
             logger.warning(u"Skipped: {0} {1}".format(pointer, identifier(srv_obj)))

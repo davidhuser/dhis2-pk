@@ -30,6 +30,28 @@ access = {
 }
 
 
+def set_delimiter(api, argument, version=None):
+    """
+    Operator and rootJunction Alias validation
+    :param argument: Argument as received from parser
+    :param version: optional dhis2 version as Integer
+    :return: tuple(delimiter, rootJunction)
+    """
+    if not version:
+        version = api.get_dhis_version()
+    if '^' in argument:
+        if version >= 28:
+            raise exceptions.ArgumentException("operator '^' is replaced with '$' in 2.28 onwards. Nothing shared.")
+    if '||' in argument:
+        if version < 25:
+            raise exceptions.ArgumentException("rootJunction 'OR' is only supported 2.25 onwards. Nothing shared.")
+        if '&&' in argument:
+            raise exceptions.ArgumentException("Not allowed to combine delimiters '&&' and '||'. Nothing shared")
+        return '||', 'OR'
+
+    return '&&', 'AND'
+
+
 class Permission(object):
     """ Class for handling Access strings such as rw------ and readwrite"""
 
@@ -53,42 +75,6 @@ class Permission(object):
 
     def __repr__(self):
         return self.permission
-
-
-class DhisWrapper(dhis.Dhis):
-    """Class for accessing DHIS2: validating metadata field filters and actual sharing of objects"""
-
-    def share_object(self, sharing_object):
-        params = {'type': sharing_object.object_type, 'id': sharing_object.uid}
-        self.post('sharing', params=params, payload=sharing_object.to_json())
-
-    def assert_version(self):
-        version = self.get_dhis_version()
-        if version >= 29:
-            logger.error(u"Sharing changed in 2.29, you are using 2.{}. Use dhis2-pk-share --help".format(version))
-            import sys
-            sys.exit(1)
-
-    def set_delimiter(self, argument, version=None):
-        """
-        Operator and rootJunction Alias validation
-        :param argument: Argument as received from parser
-        :param version: optional dhis2 version as Integer
-        :return: tuple(delimiter, rootJunction)
-        """
-        if not version:
-            version = self.get_dhis_version()
-        if '^' in argument:
-            if version >= 28:
-                raise exceptions.ArgumentException("operator '^' is replaced with '$' in 2.28 onwards. Nothing shared.")
-        if '||' in argument:
-            if version < 25:
-                raise exceptions.ArgumentException("rootJunction 'OR' is only supported 2.25 onwards. Nothing shared.")
-            if '&&' in argument:
-                raise exceptions.ArgumentException("Not allowed to combine delimiters '&&' and '||'. Nothing shared")
-            return '||', 'OR'
-
-        return '&&', 'AND'
 
 
 class UserGroupAccess(object):
@@ -130,7 +116,7 @@ class UserGroupsHandler(object):
         """
         for permission, group in args:
             if group:
-                delimiter, root_junction = self.api.set_delimiter(group)
+                delimiter, root_junction = set_delimiter(self.api, group)
                 filter_list = group.split(delimiter)
                 usergroups = self.get_usergroup_uids(permission, filter_list, root_junction)
                 for ug in usergroups:
@@ -173,7 +159,7 @@ class ObjectsHandler(object):
     def __init__(self, api, obj_type, obj_filter, obj_public_access):
         self.api = api
         self.singular, self.plural = self.get_object_type(obj_type)
-        self.delimiter, self.root_junction = self.api.set_delimiter(obj_filter)
+        self.delimiter, self.root_junction = set_delimiter(api, obj_filter)
         self.obj_filter = obj_filter
         self.public_access = obj_public_access
         self.elements = self.get_objects().get(self.plural)
@@ -213,7 +199,7 @@ class ObjectSharing(object):
 
     def __init__(self, uid, object_type, pub_access, usergroup_accesses=set()):
         self.uid = uid
-        self.object_type = object_type
+        self.obj_type = object_type
         self.public_access = Permission(pub_access)
         self.usergroup_accesses = usergroup_accesses
         self.external_access = False
@@ -222,7 +208,7 @@ class ObjectSharing(object):
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
                 self.uid == other.uid and
-                self.object_type == other.object_type and
+                self.obj_type == other.obj_type and
                 self.public_access == other.public_access and
                 self.usergroup_accesses == other.usergroup_accesses)
 
@@ -230,10 +216,10 @@ class ObjectSharing(object):
         return not self == other
 
     def __hash__(self):
-        return hash((self.uid, self.object_type, self.public_access, tuple(self.usergroup_accesses)))
+        return hash((self.uid, self.obj_type, self.public_access, tuple(self.usergroup_accesses)))
 
     def __str__(self):
-        return u"{} {} {} {}".format(self.object_type, self.uid, self.public_access,
+        return u"{} {} {} {}".format(self.obj_type, self.uid, self.public_access,
                                      ' / '.join([json.dumps(x.to_json()) for x in self.usergroup_accesses]))
 
     def to_json(self):
@@ -266,7 +252,7 @@ def skip(overwrite, elem, new):
         overwrite = True
     else:
         # create a ObjectSharing based on what is already on the server
-        existing = ObjectSharing(elem['id'], new.object_type, pub_access)
+        existing = ObjectSharing(elem['id'], new.obj_type, pub_access)
         if elem.get('userGroupAccesses'):
             try:
                 # check if access property of userGroupAccess is existing (it might be missing)
@@ -367,8 +353,8 @@ def identifier(obj):
 def main():
     args = parse_args()
     log.init(args.logging_to_file, args.debug)
-    api = DhisWrapper(args.server, args.username, args.password, args.api_version)
-    api.assert_version()
+    api = dhis.Dhis(args.server, args.username, args.password, args.api_version)
+    api.assert_version(range(22, 29))
 
     usergroups = UserGroupsHandler(api, args.usergroup_readwrite, args.usergroup_readonly)
     objects = ObjectsHandler(api, args.object_type, args.filter, args.public_access)
@@ -378,7 +364,7 @@ def main():
         pointer = u"{0}/{1} {2} {3}".format(i, len(objects.elements), objects.singular, elem['id'])
         if not skip(args.overwrite, elem, new):
             logger.info(u"{0} {1}".format(pointer, identifier(elem)))
-            api.share_object(new)
+            api.share(new)
         else:
             logger.warning(u"skipped: {0} {1}".format(pointer, identifier(elem)))
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
@@ -88,16 +87,24 @@ class Dhis(object):
         """
         :return: DHIS2 Version as Integer (e.g. 28)
         """
-        response = self.get(endpoint='system/info')
-        # remove -SNAPSHOT for play.dhis2.org/dev
-        version = response.get('version').replace('-SNAPSHOT', '')
+        version = self.get(endpoint='system/info').get('version')
         try:
             dhis_version = int(version.split('.')[1])
             if dhis_version < 22:
                 logger.warning("Using DHIS2 Version < 2.22... Use at your own risk.")
             return dhis_version
         except ValueError:
-            raise APIException("DHIS2 version '{}' not valid".format(response.get('version')))
+            raise APIException("DHIS2 version '{}' not valid".format(version))
+
+    def assert_version(self, version_range):
+        server_version = self.get_dhis_version()
+        if server_version not in version_range:
+            raise APIException(u"DHIS2 versions permitted: {} - your version: 2.{}. ".format(
+                ", ".join(['2.{}'.format(v) for v in version_range]), server_version))
+
+    def share(self, obj):
+        params = {'type': obj.obj_type, 'id': obj.uid}
+        self.post('sharing', params=params, payload=obj.to_json())
 
     def shareable_objects(self):
         """

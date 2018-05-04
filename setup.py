@@ -64,7 +64,7 @@ class TestCommand(Command):
 
     def run(self):
         self.status('Testing with pytest...')
-        os.system('python -m pytest tests -sv')
+        os.system('python -m pytest --cov=pk --cov-report term-missing tests -vv')
 
 
 # Import the README and use it as the long-description.
