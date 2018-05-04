@@ -55,12 +55,19 @@ class Permission(object):
         return self.permission
 
 
-class DhisAccess(dhis.Dhis):
+class DhisWrapper(dhis.Dhis):
     """Class for accessing DHIS2: validating metadata field filters and actual sharing of objects"""
 
     def share_object(self, sharing_object):
         params = {'type': sharing_object.object_type, 'id': sharing_object.uid}
         self.post('sharing', params=params, payload=sharing_object.to_json())
+
+    def assert_version(self):
+        version = self.get_dhis_version()
+        if version >= 29:
+            logger.error(u"Sharing changed in 2.29, you are using 2.{}. Use dhis2-pk-share --help".format(version))
+            import sys
+            sys.exit(1)
 
     def set_delimiter(self, argument, version=None):
         """
@@ -70,7 +77,7 @@ class DhisAccess(dhis.Dhis):
         :return: tuple(delimiter, rootJunction)
         """
         if not version:
-            version = super(DhisAccess, self).dhis_version()
+            version = self.get_dhis_version()
         if '^' in argument:
             if version >= 28:
                 raise exceptions.ArgumentException("operator '^' is replaced with '$' in 2.28 onwards. Nothing shared.")
@@ -278,8 +285,7 @@ def skip(overwrite, elem, new):
 
 def parse_args():
     parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f [-w] [-r] -a [-o] [-l] [-v] [-u] [-p] [-d]',
-                                     description="PURPOSE: Share DHIS2 objects (dataElements, programs, ...) "
-                                                 "with userGroups")
+                                     description="Share DHIS2 objects with userGroups FOR <2.29 SERVERS")
     parser.add_argument('-s',
                         dest='server',
                         action='store',
@@ -361,7 +367,8 @@ def identifier(obj):
 def main():
     args = parse_args()
     log.init(args.logging_to_file, args.debug)
-    api = DhisAccess(args.server, args.username, args.password, args.api_version)
+    api = DhisWrapper(args.server, args.username, args.password, args.api_version)
+    api.assert_version()
 
     usergroups = UserGroupsHandler(api, args.usergroup_readwrite, args.usergroup_readonly)
     objects = ObjectsHandler(api, args.object_type, args.filter, args.public_access)
