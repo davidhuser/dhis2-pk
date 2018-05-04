@@ -25,8 +25,8 @@ Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2
 
 Apply [sharing](https://docs.dhis2.org/master/en/user/html/sharing.html) for DHIS2 metadata and data objects (dataElements, indicators, programs, ...) through **[metadata object filtering](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)** (for both shareable objects and userGroups).
 
-- [For DHIS2 servers older than 2.29](#DHIS2-servers-older-than-2.29)
-- [For DHIS2 servers that are 2.29 or newer](#DHIS2-servers-that-are-2.29-or-newer)
+- [For DHIS2 servers older than 2.29](#dhis2-servers-older-than-229)
+- [For DHIS2 servers that are 2.29 or newer](#dhis2-servers-that-are-229-or-newer)
 
 ### DHIS2 servers older than 2.29
 
