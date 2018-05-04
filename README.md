@@ -136,7 +136,7 @@ dhis2-pk-share -s play.dhis2.org/2.29 -u admin -p district -f 'id:eq:P3jJH5Tu5VC
 Example to share data sets (with data access):
 
 `
-dhis2-pk-share -s play.dhis2.org/2.29 -u admin -p district -f 'name:eq:Population' -t datasets -a readonly readwrite -g 'name:like:Admin' readwrite readonly -g 'name:like:Research' readwrite readonly
+dhis2-pk-share -s play.dhis2.org/2.29 -u admin -p district -f='name:eq:Population' -t=datasets -a readonly readwrite -g 'name:like:Admin' readwrite readonly -g 'name:like:Research' readwrite readonly
 `
 
 

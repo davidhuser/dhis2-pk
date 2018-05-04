@@ -13,6 +13,7 @@ import argparse
 import textwrap
 import json
 import sys
+import operator
 
 from six import iteritems
 from logzero import logger
@@ -66,6 +67,14 @@ class Permission(object):
     def __init__(self, metadata, data):
         self.metadata = metadata
         self.data = data
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                self.metadata == other.metadata and
+                self.data == other.data)
+
+    def __ne__(self, other):
+        return not self == other
 
     @classmethod
     def from_public_args(cls, args):
@@ -208,11 +217,14 @@ class ShareableObject(object):
                 self.uid == other.uid and
                 self.name == other.name and
                 self.public_access == other.public_access and
-                self.usergroup_accesses == other.usergroup_accesses and
+                sorted(self.usergroup_accesses, key=operator.attrgetter('uid')) == sorted(other.usergroup_accesses, key=operator.attrgetter('uid')) and
                 self.code == other.code)
 
     def __ne__(self, other):
         return not self == other
+
+    def __hash__(self):
+        return hash((self.obj_type, self.uid, self.name, self.public_access, tuple(self.usergroup_accesses)))
 
     def __str__(self):
         s = '\n{} {} ({}) PA: {} UGA: {}\n'.format(
@@ -224,9 +236,10 @@ class ShareableObject(object):
         return s
 
     def __repr__(self):
-        s = "<ShareableObject id='{}'" \
+        s = "<{} id='{}'" \
             " publicAccess='{}'" \
-            " userGroupAccess='{}'>".format(self.uid,
+            " userGroupAccess='{}'>".format(self.obj_type,
+                                            self.uid,
                                             self.public_access.to_symbol(),
                                             ','.join([json.dumps(x.to_json()) for x in self.usergroup_accesses]))
         return s
