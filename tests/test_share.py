@@ -2,7 +2,7 @@ import pytest
 
 from pk.core.exceptions import ClientException
 from pk.core.static import newest_dhis, valid_uid
-from pk.share import DhisAccess, Permission, ObjectSharing, UserGroupAccess, skip
+from pk.share import DhisWrapper, Permission, ObjectSharing, UserGroupAccess, skip
 
 
 @pytest.fixture()
@@ -82,7 +82,7 @@ def test_sharingdefinitions_set(sharingdefinitions):
 
 @pytest.fixture()
 def dhis_accesses():
-    return [DhisAccess('play.dhis2.org/demo', 'admin', 'district', api_version=i) for i in range(22, newest_dhis)]
+    return [DhisWrapper('play.dhis2.org/demo', 'admin', 'district', api_version=i) for i in range(22, newest_dhis)]
 
 
 def test_filter_delimiter(dhis_accesses):

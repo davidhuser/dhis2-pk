@@ -10,10 +10,13 @@ Assigns sharing to shareable DHIS2 objects like userGroups and publicAccess by c
 """
 
 import argparse
+import textwrap
 import json
+import sys
 
 from six import iteritems
 from logzero import logger
+
 try:
     from pk.core import log
     from pk.core import dhis
@@ -45,7 +48,7 @@ access_short = {
 def permission_converter(value, data=None):
     if isinstance(value, list):
         metadata_str = access_short.get(value[0], '--')
-        data_str = access_short.get(value[1], '--')
+        data_str = '--' if len(value) == 1 else access_short.get(value[1], '--')
         return u'{}{}----'.format(metadata_str, data_str)
     elif value in access:
         return value
@@ -62,21 +65,23 @@ class DhisWrapper(dhis.Dhis):
         params = {'type': sharing_object.obj_type, 'id': sharing_object.uid}
         self.post('sharing', params=params, payload=sharing_object.to_json())
 
-    def set_delimiter(self, argument, version=None):
+    def assert_version(self):
+        version = self.get_dhis_version()
+        if version < 29:
+            logger.error(u"Minimum DHIS2 version: 2.29 - your version: 2.{}. Use dhis2-pk-share-objects --help".format(
+                version))
+            sys.exit(1)
+
+    @staticmethod
+    def set_delimiter(argument):
         """
         Operator and rootJunction Alias validation
         :param argument: Argument as received from parser
-        :param version: optional dhis2 version as Integer
         :return: tuple(delimiter, rootJunction)
         """
-        if not version:
-            version = self.dhis_version
         if '^' in argument:
-            if version >= 28:
-                raise exceptions.ArgumentException("operator '^' is replaced with '$' in 2.28 onwards. Nothing shared.")
+            raise exceptions.ArgumentException("operator '^' is replaced with '$' in 2.28 onwards. Nothing shared.")
         if '||' in argument:
-            if version < 25:
-                raise exceptions.ArgumentException("rootJunction 'OR' is only supported 2.25 onwards. Nothing shared.")
             if '&&' in argument:
                 raise exceptions.ArgumentException("Not allowed to combine delimiters '&&' and '||'. Nothing shared")
             return '||', 'OR'
@@ -110,15 +115,17 @@ class ShareableObjectCollection(object):
     def get_name(self, obj_type):
         shareable = self.schema('shareable')
         for name, plural in iteritems(shareable):
-            if obj_type in (name, plural):
+            if obj_type.lower() in (name.lower(), plural.lower()):
                 return name, plural
+        logger.error("Could not find {}".format(obj_type))
+        sys.exit(1)
 
     def is_data_shareable(self):
         data_shareable = self.schema('dataShareable')
         for name, plural in iteritems(data_shareable):
             if self.name in (name, plural):
                 return True
-        raise ValueError("{} cannot share data, only metadata")
+        return False
 
     def get_objects(self):
         split = self.filters.split(self.delimiter)
@@ -192,6 +199,7 @@ class ShareableObject(object):
     def __hash__(self):
         return hash((self.uid, self.obj_type, self.public_access, tuple(self.usergroup_accesses)))
     """
+
     def __str__(self):
         s = '\n{} {} ({}) PA: {} UGA: {}\n'.format(
             self.obj_type,
@@ -202,7 +210,11 @@ class ShareableObject(object):
         return s
 
     def __repr__(self):
-        s = u"<ShareableObject id='{}', publicAccess='{}', userGroupAccess='{}'>".format(self.uid, self.public_access, ','.join([json.dumps(x.to_json()) for x in self.usergroup_accesses]))
+        s = u"<ShareableObject id='{}', publicAccess='{}', userGroupAccess='{}'>".format(self.uid, self.public_access,
+                                                                                         ','.join(
+                                                                                             [json.dumps(x.to_json())
+                                                                                              for x in
+                                                                                              self.usergroup_accesses]))
         return s
 
     def to_json(self):
@@ -247,13 +259,21 @@ class UserGroupsHandler(object):
     def __init__(self, api, groups):
         self.api = api
         self.accesses = set()
-        for group_filter, metadata_permission, data_permission in groups:
-            delimiter, root_junction = self.api.set_delimiter(group_filter)
-            filter_list = group_filter.split(delimiter)
-            usergroups = self.get_usergroup_uids(filter_list, root_junction)
-            for uid in usergroups:
-                permission = permission_converter(metadata_permission, data_permission)
-                self.accesses.add(UserGroupAccess(uid, permission))
+        if not groups:
+            logger.info("No User Groups specified, only setting Public Access.")
+        else:
+            for group in groups:
+                group_filter = group[0]
+                metadata_permission = group[1]
+                data_permission = group[2] if 2 < len(group) else None
+                delimiter, root_junction = self.api.set_delimiter(group_filter)
+                filter_list = group_filter.split(delimiter)
+                usergroups = self.get_usergroup_uids(filter_list, root_junction)
+                logger.info(u"UserGroups with filter [{}]".format(" {} ".format(root_junction).join(filter_list)))
+                for uid, name in iteritems(usergroups):
+                    permission = permission_converter(metadata_permission, data_permission)
+                    logger.info(u"- {} {}".format(uid, name))
+                    self.accesses.add(UserGroupAccess(uid, permission))
 
     def get_usergroup_uids(self, filter_list, root_junction='AND'):
         """
@@ -274,104 +294,10 @@ class UserGroupsHandler(object):
         endpoint = 'userGroups'
         response = self.api.get(endpoint, params=params)
         if len(response['userGroups']) > 0:
-            usergroup_dict = {ug['id']: ug['name'] for ug in response['userGroups']}
-            for (key, value) in iteritems(usergroup_dict):
-                logger.info(u"- {} {}".format(key, value))
-            return usergroup_dict.keys()
+            return {ug['id']: ug['name'] for ug in response['userGroups']}
         else:
             logger.debug(endpoint, params)
             raise exceptions.UserGroupNotFoundException("No userGroup found with {}".format(filter_list))
-
-
-class ObjectsHandler(object):
-    """Class for handling a collection of DHIS2 objects from a single object type (e.g. dataElements)"""
-
-    def __init__(self, api, obj_type, obj_filter):
-        self.api = api
-        self.singular, self.plural = self.get_object_type(obj_type)
-        self.delimiter, self.root_junction = self.api.set_delimiter(obj_filter)
-        self.obj_filter = obj_filter
-        self.elements = self.get_objects().get(self.plural)
-
-    def get_object_type(self, argument):
-        """
-        Find a shareable DHIS2 class
-        :param argument:
-        :return:
-        """
-        return self.api.match_shareable(argument)
-
-    def get_objects(self):
-        split = self.obj_filter.split(self.delimiter)
-        params = {
-            'fields': 'id,name,code,publicAccess,userGroupAccesses',
-            'filter': split,
-            'paging': False
-        }
-        if self.root_junction == 'OR':
-            params['rootJunction'] = self.root_junction
-        print_msg = u"Sharing {} with filter [{}] ..."
-        logger.info(print_msg.format(self.plural, " {} ".format(self.root_junction).join(split)))
-        response = self.api.get(self.plural, params=params)
-        if response:
-            if len(response[self.plural]) > 0:
-                return response
-            else:
-                logger.warning(u'No {} found.'.format(self.plural))
-                import sys
-                sys.exit(0)
-
-
-class ObjectSharing(object):
-    """ Class for identifying a single Objects's sharing configuration"""
-
-    def __init__(self, uid, object_type, pub_access, usergroup_accesses=set()):
-        self.uid = uid
-        self.object_type = object_type
-        if isinstance(pub_access, Permission):
-            self.public_access = pub_access
-
-        else:
-            self.public_access = Permission(metadata=pub_access[0], data=pub_access[1])
-
-        if isinstance(usergroup_accesses, list):
-            self.usergroup_accesses = {UserGroupAccess(x['id'], x['access']) for x in usergroup_accesses}
-        else:
-            self.usergroup_accesses = usergroup_accesses
-
-        self.external_access = False
-        self.user = {}
-
-    def __eq__(self, other):
-        return (isinstance(other, self.__class__) and
-                self.uid == other.uid and
-                self.object_type == other.object_type and
-                self.public_access == other.public_access and
-                self.usergroup_accesses == other.usergroup_accesses)
-
-    @classmethod
-    def from_server(cls, object_type, d):
-        return cls(d['id'], object_type, d['publicAccess'], d['userGroupAccesses'])
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((self.uid, self.object_type, self.public_access, tuple(self.usergroup_accesses)))
-
-    def __str__(self):
-        return u"{} {} {} {}".format(self.object_type, self.uid, self.public_access,
-                                     ' / '.join([json.dumps(x.to_json()) for x in self.usergroup_accesses]))
-
-    def to_json(self):
-        return {
-            'object': {
-                'publicAccess': self.public_access,
-                'externalAccess': self.external_access,
-                'user': self.user,
-                'userGroupAccesses': [x.to_json() for x in self.usergroup_accesses]
-            }
-        }
 
 
 def skip(overwrite, on_server, update):
@@ -383,88 +309,119 @@ def skip(overwrite, on_server, update):
     :param update: ObjectSharing object sourced from arguments
     :return: True if skip, False if overwrite
     """
-    if not isinstance(on_server, ShareableObject or not isinstance(update, ShareableObject)):
-        logger.error("Can't compare elem {} with new {}")
-
-    # check if publicAccess property is existing (might be missing)
-    pub_access = on_server.public_access
-    if pub_access is None:
-        logger.warning(u"Fix: Added 'publicAccess' for {} {} to value [{}]"
-                       .format(update.obj_type, on_server.uid, update.public_access))
-        overwrite = True
-    elif overwrite:
+    if overwrite:
         return False
-    return on_server == update
+    else:
+        return on_server == update
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f [-w] [-r] -a [-o] [-l] [-v] [-u] [-p] [-d]',
-                                     description="PURPOSE: Share DHIS2 objects (dataElements, programs, ...) "
-                                                 "with userGroups")
-    parser.add_argument('-s',
-                        dest='server',
-                        action='store',
-                        help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'"
-                        )
-    parser.add_argument('-t',
-                        dest='object_type',
-                        action='store',
-                        required=True,
-                        help="DHIS2 object type to apply sharing, e.g. -t=sqlViews")
-    parser.add_argument('-f',
-                        dest='filter',
-                        action='store',
-                        required=True,
-                        help="Filter on objects with DHIS2 field filter (add multiple filters with '&&' or '||') "
-                             "e.g. -f='name:like:ABC||code:eq:X'")
-    parser.add_argument('-g',
-                        dest='groups',
-                        action='append',
-                        required=False,
-                        nargs='+',
-                        help="DHIS2 2.29 syntax: -g <filter> <metadata> <data> - can be repeated any number of times")
-    parser.add_argument('-a',
-                        dest='public_access',
-                        action='append',
-                        required=True,
-                        nargs='+',
-                        choices=access_short.keys(),
-                        help="publicAccess (with login), e.g. -a=readwrite")
-    parser.add_argument('-o',
-                        dest='overwrite',
-                        action='store_true',
-                        required=False,
-                        default=False,
-                        help="Overwrite sharing - updates 'lastUpdated' field of all shared objects")
-    parser.add_argument('-l',
-                        dest='logging_to_file',
-                        action='store',
-                        required=False,
-                        help="Path to Log file (default level: INFO, pass -d for DEBUG), e.g. l='/var/log/pk.log'")
-    parser.add_argument('-v',
-                        dest='api_version',
-                        action='store',
-                        required=False,
-                        type=int,
-                        help='DHIS2 API version e.g. -v=28')
-    parser.add_argument('-u',
-                        dest='username',
-                        action='store',
-                        help='DHIS2 username, e.g. -u=admin')
-    parser.add_argument('-p',
-                        dest='password',
-                        action='store',
-                        help='DHIS2 password, e.g. -p=district')
-    parser.add_argument('-d',
-                        dest='debug',
-                        action='store_true',
-                        default=False,
-                        required=False,
-                        help="Debug flag")
+    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f [-g] -a [-o] [-l] [-v] [-u] [-p] [-d]',
+                                     description="Share DHIS2 objects with userGroups FOR 2.29 SERVERS or newer",
+                                     formatter_class=argparse.RawTextHelpFormatter)
+
+    parser._action_groups.pop()
+    required = parser.add_argument_group('required arguments')
+    required.add_argument('-s',
+                          dest='server',
+                          action='store',
+                          metavar='URL',
+                          help="DHIS2 server URL, e.g. 'play.dhis2.org/demo'"
+                          )
+    required.add_argument('-t',
+                          dest='object_type',
+                          action='store',
+                          required=True,
+                          help="DHIS2 object type to apply sharing, e.g. sqlView")
+    required.add_argument('-f',
+                          dest='filter',
+                          action='store',
+                          required=True,
+                          help=textwrap.dedent('''\
+                            Filter on objects with DHIS2 field filter.
+                            Add multiple filters with '&&' or '||'.
+                            Example: -f 'name:like:ABC||code:eq:X'
+                               '''))
+    required.add_argument('-a',
+                          dest='public_access',
+                          action='append',
+                          required=True,
+                          nargs='+',
+                          metavar='PUBLIC',
+                          choices=access_short.keys(),
+                          help=textwrap.dedent('''\
+                          publicAccess (with login). 
+                          Valid choices are: {}
+                          '''.format(', '.join(access_short.keys()))))
+
+    optional = parser.add_argument_group('optional arguments')
+    optional.add_argument('-g',
+                          dest='groups',
+                          action='append',
+                          required=False,
+                          metavar='USERGROUP',
+                          nargs='+',
+                          help=textwrap.dedent('''\
+                            Usergroup setting: FILTER METADATA [DATA] - can be repeated any number of times."
+                            FILTER: Filter all User Groups. See -f for filtering mechanism
+                            METADATA: Metadata access for this User Group. See -a for allowed choices
+                            DATA: Data access for this User Group. optional (only for objects that support data sharing). see -a for allowed choices.
+                            Example: -g 'id:eq:OeFJOqprom6' readwrite none 
+                            '''))
+    optional.add_argument('-o',
+                          dest='overwrite',
+                          action='store_true',
+                          required=False,
+                          default=False,
+                          help="Overwrite sharing - updates 'lastUpdated' field of all shared objects")
+    optional.add_argument('-l',
+                          dest='logging_to_file',
+                          action='store',
+                          required=False,
+                          help="Path to Log file (default level: INFO, pass -d for DEBUG), e.g. l='/var/log/pk.log'")
+    optional.add_argument('-v',
+                          dest='api_version',
+                          action='store',
+                          required=False,
+                          type=int,
+                          help='DHIS2 API version e.g. -v=28')
+    optional.add_argument('-u',
+                          dest='username',
+                          action='store',
+                          help='DHIS2 username, e.g. -u=admin')
+    optional.add_argument('-p',
+                          dest='password',
+                          action='store',
+                          help='DHIS2 password, e.g. -p=district')
+    optional.add_argument('-d',
+                          dest='debug',
+                          action='store_true',
+                          default=False,
+                          required=False,
+                          help="Debug flag")
 
     args = parser.parse_args()
     if len(args.public_access) not in (1, 2):
-        raise argparse.ArgumentError("Must use -a <metadata> <data>")
+        logger.error("Must use -a METADATA_SHARING [DATA_SHARING] - max 2 arguments")
+        parser.print_help()
+        sys.exit(1)
+    if args.groups:
+        for group in args.groups:
+            if group[1] not in access_short.keys():
+                logger.error("Set permission for METADATA access - one of {}, e.g. -g 'id:eq:UID' none readonly".format(
+                    access_short.keys()))
+                parser.print_help()
+                sys.exit(1)
+            try:
+                data_permission = group[2]
+            except IndexError:
+                pass
+            else:
+                if data_permission not in access_short.keys():
+                    logger.error("Set permission for DATA access - one of {}, e.g. -g 'id:eq:UID' none readonly".format(
+                        access_short.keys()))
+                    parser.print_help()
+                    sys.exit(1)
     return parser.parse_args()
 
 
@@ -483,12 +440,16 @@ def main():
     args = parse_args()
     log.init(args.logging_to_file, args.debug)
     api = DhisWrapper(args.server, args.username, args.password, args.api_version)
+    api.assert_version()
 
     usergroups = UserGroupsHandler(api, args.groups)
-    logger.info("Creating Collection from server...")
     coll = ShareableObjectCollection(api, args.object_type, args.filter)
+    if not coll.is_data_shareable() and (len(args.public_access[0]) > 2 or any([len(g) > 2 for g in args.groups])):
+        logger.error(
+            "Cannot share DATA for object type '{}', only METADATA. Adjust your arguments".format(args.object_type))
+        sys.exit(1)
+
     for i, srv_obj in enumerate(coll.elements, 1):
-        logger.info("Creating Object via User Groups...")
         update = ShareableObject(obj_type=srv_obj.obj_type,
                                  uid=srv_obj.uid,
                                  name=srv_obj.name,
@@ -503,8 +464,7 @@ def main():
             api.share_object(update)
 
         else:
-            logger.warning(u"skipped: {0} {1}".format(pointer, identifier(srv_obj)))
-
+            logger.warning(u"Skipped: {0} {1}".format(pointer, identifier(srv_obj)))
 
 
 if __name__ == "__main__":

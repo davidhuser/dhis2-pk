@@ -157,7 +157,7 @@ def main():
     args = parse_args()
 
     api = dhis.Dhis(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
-    log.init(args.debug)
+    log.init(debug=args.debug)
 
     indicators = api.get(endpoint='indicators', file_type='json', params=get_params(args.indicator_filter))
 

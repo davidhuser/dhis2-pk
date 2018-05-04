@@ -22,7 +22,6 @@ class Dhis(object):
             logger.warning("Sharing may not work as expected on play.dhis2.org")
         self.auth = cfg.auth
         self.session = requests.Session()
-        self.dhis_version = self.get_dhis_version()
         self.file_timestamp = cfg.file_timestamp
 
     def get(self, endpoint, file_type='json', params=None):
@@ -105,11 +104,8 @@ class Dhis(object):
         Returns object classes which can be shared
         :return: dict { object name (singular) : object name (plural) }
         """
-        # TODO check shareable in release
-        if self.dhis_version >= 29:
-            shareable = 'dataShareable'
-        else:
-            shareable = 'shareable'
+
+        shareable = 'shareable'
         params = {
             'fields': 'name,plural,{}'.format(shareable)
         }

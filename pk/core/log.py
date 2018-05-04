@@ -23,7 +23,7 @@ def init(logging_to_file='', debug=False):
         print(u"Logging to {}".format(logging_to_file))
 
         # 5 files max 10MB each
-        logzero.logfile(logging_to_file, loglevel=logging.INFO, maxBytes=1e7, backupCount=5)
+        logzero.logfile(logging_to_file, loglevel=logging.INFO, maxBytes=int(1e7), backupCount=5)
     else:
         logzero.logfile(None)
 
