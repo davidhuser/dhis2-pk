@@ -87,7 +87,7 @@ class Dhis(object):
         """
         :return: DHIS2 Version as Integer (e.g. 28)
         """
-        version = self.get(endpoint='system/info').get('version')
+        version = self.get(endpoint='system/info').get('version').replace('-SNAPSHOT', '')
         try:
             dhis_version = int(version.split('.')[1])
             if dhis_version < 22:

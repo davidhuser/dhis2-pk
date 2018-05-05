@@ -125,7 +125,10 @@ class Permission(object):
         return '{}{}----'.format(m, d)
 
     def __str__(self):
-        return '[metadata:{}] [data:{}] [{}]'.format(self.metadata, self.data, self.to_symbol())
+        if self.data:
+            return '[metadata:{}] [data:{}] [{}]'.format(self.metadata, self.data, self.to_symbol())
+        else:
+            return '[metadata:{}] [{}]'.format(self.metadata, self.to_symbol())
 
 
 class ShareableObjectCollection(object):
@@ -213,6 +216,7 @@ class ShareableObject(object):
         self.code = code
         self.external_access = False
         self.user = {}
+        self.log_identifier = self.identifier()
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
@@ -247,6 +251,15 @@ class ShareableObject(object):
                                             ','.join([json.dumps(x.to_json()) for x in self.usergroup_accesses]))
         return s
 
+    def identifier(self):
+        try:
+            return u"'{}'".format(self.name)
+        except KeyError:
+            try:
+                return u"'{}'".format(self.code)
+            except KeyError:
+                return u''
+
     def to_json(self):
         return {
             'object': {
@@ -267,7 +280,11 @@ class UserGroupAccess(object):
 
     @classmethod
     def from_dict(cls, data):
-        return cls(data['id'], Permission.from_symbol(data['access']))
+        try:
+            permission = Permission.from_symbol(data['access'])
+        except (ValueError, KeyError):
+            permission = Permission(None, None)
+        return cls(data['id'], permission)
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
@@ -287,7 +304,7 @@ class UserGroupAccess(object):
         return {"id": self.uid, "access": self.permission.to_symbol()}
 
 
-class UserGroupsHandler(object):
+class UserGroupsCollection(object):
     """Class for handling existing UserGroups (readonly and readwrite)"""
 
     def __init__(self, api, groups):
@@ -461,42 +478,36 @@ def parse_args():
     return parser.parse_args()
 
 
-def identifier(obj):
-    try:
-        x = u"'{}'".format(obj.name)
-    except KeyError:
-        try:
-            x = u"'{}'".format(obj.code)
-        except KeyError:
-            x = u''
-    return x
-
-
 def main():
     args = parse_args()
     log.init(args.logging_to_file, args.debug)
     api = dhis.Dhis(args.server, args.username, args.password, args.api_version)
     api.assert_version(range(29, 31))
 
+    usergroups = UserGroupsCollection(api, args.groups)
+
     public_access = Permission.from_public_args(args.public_access)
-    logger.info("Public access: {}".format(public_access))
+    logger.info("Public Access: {}".format(public_access))
 
-    usergroups = UserGroupsHandler(api, args.groups)
     coll = ShareableObjectCollection(api, args.object_type, args.filter)
-
     if coll.data_sharing_enabled:
+        logger.info("DATA access for {}: true".format(coll.plural))
         if not public_access.data:
-            logger.error("Public access for DATA is not set - need to set it for {}".format(args.object_type))
+            logger.error("You need to set DATA access for '{}' since you can capture data for it"
+                         " - add argument for -a (publicAccess)".format(coll.name))
             sys.exit(1)
-        if not all([g.permission.data for g in usergroups.accesses]):
-            logger.error("UserGroup access for DATA is not set - need to set it for {}".format(args.object_type))
+        if not all([group.permission.data for group in usergroups.accesses]):
+            logger.error("You need to set DATA access for '{}' since you can capture data for it"
+                         " - add argument for -g (userGroups)".format(coll.name))
             sys.exit(1)
     else:
         if public_access.data:
-            logger.error("Cannot share DATA with public access for object type '{}'".format(args.object_type))
+            logger.error("You cannot set DATA access for '{}' since you cannot capture data for it "
+                         "- remove last argument for -a (publicAccess)".format(coll.name))
             sys.exit(1)
-        if any([g.permission.data for g in usergroups.accesses]):
-            logger.error("Cannot share DATA with userGroups access for object type '{}'".format(args.object_type))
+        if any([group.permission.data for group in usergroups.accesses]):
+            logger.error("You cannot set DATA access for '{}' since you cannot capture data for it "
+                         "- remove last argument for -g (userGroups)".format(coll.name))
             sys.exit(1)
 
     for i, element in enumerate(coll.elements, 1):
@@ -510,11 +521,11 @@ def main():
         pointer = u"{0}/{1} {2} {3}".format(i, len(coll.elements), coll.name, element.uid)
 
         if not skip(args.overwrite, element, update):
-            logger.info(u"{0} {1}".format(pointer, identifier(element)))
+            logger.info(u"{0} {1}".format(pointer, element.log_identifier))
             api.share(update)
 
         else:
-            logger.warning(u"Skipped: {0} {1}".format(pointer, identifier(element)))
+            logger.warning(u"Skipped: {0} {1}".format(pointer, element.log_identifier))
 
 
 if __name__ == "__main__":

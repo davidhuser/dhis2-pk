@@ -15,15 +15,22 @@ def create_folders(file_path):
 
 
 def init(logging_to_file='', debug=False):
-    log_format = '%(color)s[%(asctime)s %(levelname)s]%(end_color)s %(message)s'
+    # Default logger
+    log_format = '%(color)s* %(levelname)1s%(end_color)s  %(asctime)s %(message)s'
     formatter = logzero.LogFormatter(fmt=log_format)
     logzero.setup_default_logger(formatter=formatter)
+
     if logging_to_file:
         create_folders(logging_to_file)
         print(u"Logging to {}".format(logging_to_file))
 
-        # 5 files max 10MB each
-        logzero.logfile(logging_to_file, loglevel=logging.INFO, maxBytes=int(1e7), backupCount=5)
+        log_format_no_color = '* %(levelname)1s  %(asctime)s %(message)s [%(module)s:%(lineno)d]'
+        formatter_no_color = logzero.LogFormatter(fmt=log_format_no_color)
+
+        # Log rotation of 20 files for 10MB each
+        logzero.logfile(logging_to_file, formatter=formatter_no_color, loglevel=logging.INFO, maxBytes=int(1e7),
+                        backupCount=20)
+
     else:
         logzero.logfile(None)
 

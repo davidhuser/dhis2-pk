@@ -1,23 +1,22 @@
-# dhis2-pocket-knife [![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Build](https://travis-ci.org/davidhuser/dhis2-pk.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pk) [![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
+# ![icon](https://i.imgur.com/AWrQJ4N.png) dhis2-pocket-knife [![Version](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) [![Build](https://travis-ci.org/davidhuser/dhis2-pk.svg?branch=master)](https://travis-ci.org/davidhuser/dhis2-pk) [![Licence](https://img.shields.io/pypi/l/dhis2-pocket-knife.svg)](https://pypi.python.org/pypi/dhis2-pocket-knife) 
 
-Command-line tools to interact with the RESTful Web API of [DHIS2](https://dhis2.org). Features:
+Command-line tools to interact with the Web API of [DHIS2](https://dhis2.org). Features:
 
 * [Mass sharing of objects via filtering](#mass-sharing-of-objects-via-filtering)
 * [Readable indicator definition to CSV](#readable-indicator-definition-to-csv)
-* [User information to CSV](#export-user-info-to-csv)
+* [User info to CSV](#export-user-info-to-csv)
 * [Post CSS file](#post-css-file)
 
 ## Installation / updating
 
 * Installation with [pip](https://pip.pypa.io/en/stable/installing) (python package manager, see if it is installed: `pip -V`)
-* `pip install dhis2-pocket-knife` or `sudo -H pip install dhis2-pocket-knife`
+* `pip install dhis2-pocket-knife` or `pip install dhis2-pocket-knife --user`
 * Upgrade with `pip install dhis2-pocket-knife -U`
 
 ## Usage
 
 * Either pass arguments for a server / username / password or it make it read from a `dish.json` file as described in [baosystems/dish2](https://github.com/baosystems/dish2#configuration).
-* Get help on using arguments, e.g.`dhis2-pk-share-objects --help`
-* In the help text, `[-v]` means an optional argument
+* Get help on using arguments, e.g.`dhis2-pk-share --help`
 
 ---
 
@@ -33,7 +32,6 @@ through **[metadata object filtering](https://docs.dhis2.org/master/en/developer
 
 **Script name:** `dhis2-pk-share-objects`
 
-#### Usage
 ```
 dhis2-pk-share-objects --help
 usage: dhis2-pk-share-objects [-h] [-s] -t -f [-w] [-r] -a [-o] [-l] [-v] [-u] [-p] [-d]
@@ -155,8 +153,6 @@ Example column for numerator `ReUHfIn0pTQ - ANC 1-3 Dropout Rate`:
 #{ANC 1st visit.Fixed}+#{ANC 1st visit.Outreach}-#{ANC 3rd visit.Fixed}-#{ANC 3rd visit.Outreach}
 ```
 
-### Usage
-
 ```
 dhis2-pk-indicator-definitions --help
 usage: dhis2-pk-indicator-definitions [-h] [-s] [-f] [-u] [-p] [-v] [-d]
@@ -249,7 +245,7 @@ python setup.py install
 - [x] sharing: honor existing sharing settings and only update when different to arguments
 - [x] color output
 - [x] file logging
-- [x] 2.29 Support (data and metadata sharing)
+- [x] 2.29 support (data and metadata sharing)
 
 ### Todos
 
