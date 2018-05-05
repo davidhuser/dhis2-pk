@@ -101,6 +101,7 @@ class Dhis(object):
         if server_version not in version_range:
             raise APIException(u"DHIS2 versions permitted: {} - your version: 2.{}. ".format(
                 ", ".join(['2.{}'.format(v) for v in version_range]), server_version))
+        return server_version
 
     def share(self, obj):
         params = {'type': obj.obj_type, 'id': obj.uid}
