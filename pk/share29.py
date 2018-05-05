@@ -33,6 +33,8 @@ access = {
     'readwrite': u'rw'
 }
 
+NEW_SYNTAX = 29
+
 
 def set_delimiter(argument):
     """
@@ -41,17 +43,16 @@ def set_delimiter(argument):
     :return: tuple(delimiter, rootJunction)
     """
     if '^' in argument:
-        raise exceptions.ArgumentException("operator '^' is replaced with '$' in 2.28 onwards. Nothing shared.")
+        log_and_exit("ArgumentError: Operator '^' was replaced with '$' in 2.28 onwards. Nothing shared.")
     if '||' in argument:
         if '&&' in argument:
-            raise exceptions.ArgumentException("Not allowed to combine delimiters '&&' and '||'. Nothing shared")
+            log_and_exit("ArgumentError: Not allowed to combine delimiters '&&' and '||'. Nothing shared")
         return '||', 'OR'
 
     return '&&', 'AND'
 
 
 class Permission(object):
-
     symbolic_notation = {
         u'rwrw----',
         u'rwr-----',
@@ -152,19 +153,29 @@ class ShareableObjectCollection(object):
         params = {
             'fields': 'name,plural,shareable,dataShareable'
         }
+
         r = self.api.get(endpoint='schemas', params=params)
-        return {x['name']: x['plural'] for x in r['schemas'] if x[schema_property]}
+
+        if schema_property == 'shareable':
+            return {x['name']: x['plural'] for x in r['schemas'] if x['shareable']}
+        if schema_property == 'dataShareable':
+            try:
+                return {x['name']: x['plural'] for x in r['schemas'] if x['dataShareable']}
+            except KeyError:
+                return None
 
     def get_name(self, obj_type):
         shareable = self.schema('shareable')
         for name, plural in iteritems(shareable):
             if obj_type.lower() in (name.lower(), plural.lower()):
                 return name, plural
-        logger.error("Could not find {}".format(obj_type))
+        logger.error("No DHIS2 object type for '{}'".format(obj_type))
         sys.exit(1)
 
     def is_data_shareable(self):
         data_shareable = self.schema('dataShareable')
+        if not data_shareable:
+            return False
         for name, plural in iteritems(data_shareable):
             if self.name in (name, plural):
                 return True
@@ -191,7 +202,7 @@ class ShareableObjectCollection(object):
                 logger.info(print_msg.format(amount, name, " {} ".format(self.root_junction).join(split)))
                 return response
             else:
-                logger.warning(u'No {} found.'.format(self.plural))
+                logger.warning(u'No {} found - check your filter'.format(self.plural))
                 import sys
                 sys.exit(0)
 
@@ -460,62 +471,71 @@ def parse_args():
                           default=False,
                           required=False,
                           help="Debug flag")
+    return parser.parse_args()
 
-    args = parser.parse_args()
+
+def validate_args(args, dhis_version):
     if len(args.public_access) not in (1, 2):
-        logger.error("Must use -a METADATA_SHARING [DATA_SHARING] - max 2 arguments")
-        parser.print_help()
-        sys.exit(1)
+        log_and_exit("ArgumentError: Must use -a METADATA [DATA] - max. 2 arguments")
     if args.groups:
         for group in args.groups:
-            if group[1] not in access.keys():
-                logger.error("Set permission for METADATA access - one of {}, e.g. -g 'id:eq:UID' none readonly".format(
-                    access.keys()))
-                parser.print_help()
-                sys.exit(1)
             try:
-                data_permission = group[2]
+                metadata_permission = group[1]
             except IndexError:
-                pass
-            else:
-                if data_permission not in access.keys():
-                    logger.error("Set permission for DATA access - one of {}, e.g. -g 'id:eq:UID' none readonly".format(
-                        access.keys()))
-                    parser.print_help()
-                    sys.exit(1)
-    return parser.parse_args()
+                metadata_permission = None
+                log_and_exit("ArgumentError: Missing User Group permission for METADATA access")
+            if metadata_permission not in access.keys():
+                log_and_exit('ArgumentError: User Group permission for METADATA access not valid: "{}"'.format(
+                    metadata_permission))
+            if dhis_version >= NEW_SYNTAX:
+                try:
+                    data_permission = group[2]
+                except IndexError:
+                    pass
+                else:
+                    if data_permission not in access.keys():
+                        log_and_exit('ArgumentError: User Group permission for DATA access not valid: "{}"'.format(
+                            data_permission))
+
+
+def validate_data_access(public_access, collection, usergroups, dhis_version):
+    if dhis_version < NEW_SYNTAX:
+        if public_access.data or any([group.permission.data for group in usergroups.accesses]):
+            log_and_exit("ArgumentError: You cannot set DATA access on DHIS2 versions below 2.29"
+                         " - check your arguments (-a) and (-g)")
+    else:
+        if collection.data_sharing_enabled:
+            log_msg = "ArgumentError: Missing {} permission for DATA access for '{}' (Argument {})"
+            if not public_access.data:
+                log_and_exit(log_msg.format('Public Access', collection.name, '-a'))
+            if not all([group.permission.data for group in usergroups.accesses]):
+                log_and_exit(log_msg.format('User Groups', collection.name, '-g'))
+        else:
+            log_msg = "ArgumentError: Not possible to set {} permission for DATA access for '{}' (Argument {})"
+            if public_access.data:
+                log_and_exit(log_msg.format('Public Access', collection.name, '-a'))
+            if any([group.permission.data for group in usergroups.accesses]):
+                log_and_exit(log_msg.format('User Group', collection.name, '-g'))
+
+
+def log_and_exit(message):
+    logger.error(message)
+    sys.exit(1)
 
 
 def main():
     args = parse_args()
     log.init(args.logging_to_file, args.debug)
     api = dhis.Dhis(args.server, args.username, args.password, args.api_version)
-    api.assert_version(range(29, 31))
+    dhis_version = api.assert_version(range(20, 30 + 1))
+    validate_args(args, dhis_version)
 
     public_access = Permission.from_public_args(args.public_access)
     collection = ShareableObjectCollection(api, args.object_type, args.filter)
     usergroups = UserGroupsCollection(api, args.groups)
+    validate_data_access(public_access, collection, usergroups, dhis_version)
 
     logger.info("Public access ➔ {}".format(public_access))
-
-    if collection.data_sharing_enabled:
-        log_msg = "You need to set DATA access for '{}' since you can capture data for it" \
-                  " - add {} argument for {}"
-        if not public_access.data:
-            logger.error(log_msg.format(collection.name, 'second', '-a (public access)'))
-            sys.exit(1)
-        if not all([group.permission.data for group in usergroups.accesses]):
-            logger.error(log_msg.format(collection.name, 'third', '-g (userGroups)'))
-            sys.exit(1)
-    else:
-        log_msg = "You cannot set DATA access for '{}' since you cannot capture data for it " \
-                  "- remove second argument for {}"
-        if public_access.data:
-            logger.error(log_msg.format(collection.name, '-a (publicAccess)'))
-            sys.exit(1)
-        if any([group.permission.data for group in usergroups.accesses]):
-            logger.error(log_msg.format(collection.name, '-g (userGroups)'))
-            sys.exit(1)
 
     for i, element in enumerate(collection.elements, 1):
         update = ShareableObject(obj_type=element.obj_type,
@@ -532,7 +552,7 @@ def main():
             api.share(update)
 
         else:
-            logger.warning(u"Not overwriting {0} {1} {2}".format(collection.name, element.uid, element.log_identifier))
+            logger.warning(u'Not overwriting: {0} {1}'.format(pointer, element.log_identifier))
 
 
 if __name__ == "__main__":
