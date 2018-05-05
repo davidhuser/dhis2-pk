@@ -125,10 +125,11 @@ class Permission(object):
         return '{}{}----'.format(m, d)
 
     def __str__(self):
+        logger.debug(self.to_symbol())
         if self.data:
-            return '[metadata:{}] [data:{}] [{}]'.format(self.metadata, self.data, self.to_symbol())
+            return '[metadata:{}] [data:{}]'.format(self.metadata, self.data)
         else:
-            return '[metadata:{}] [{}]'.format(self.metadata, self.to_symbol())
+            return '[metadata:{}]'.format(self.metadata)
 
 
 class ShareableObjectCollection(object):
@@ -178,11 +179,16 @@ class ShareableObjectCollection(object):
         }
         if self.root_junction == 'OR':
             params['rootJunction'] = self.root_junction
-        print_msg = u"Sharing {} with filter [{}] ..."
-        logger.info(print_msg.format(self.plural, " {} ".format(self.root_junction).join(split)))
         response = self.api.get(self.plural, params=params)
         if response:
-            if len(response[self.plural]) > 0:
+            amount = len(response[self.plural])
+            if amount > 0:
+                if amount == 1:
+                    name = self.name
+                else:
+                    name = self.plural
+                print_msg = u"Sharing {} {} with filter [{}]"
+                logger.info(print_msg.format(amount, name, " {} ".format(self.root_junction).join(split)))
                 return response
             else:
                 logger.warning(u'No {} found.'.format(self.plural))
@@ -224,7 +230,8 @@ class ShareableObject(object):
                 self.uid == other.uid and
                 self.name == other.name and
                 self.public_access == other.public_access and
-                sorted(self.usergroup_accesses, key=operator.attrgetter('uid')) == sorted(other.usergroup_accesses, key=operator.attrgetter('uid')) and
+                sorted(self.usergroup_accesses, key=operator.attrgetter('uid')) ==
+                sorted(other.usergroup_accesses, key=operator.attrgetter('uid')) and
                 self.code == other.code)
 
     def __ne__(self, other):
@@ -320,10 +327,11 @@ class UserGroupsCollection(object):
                 delimiter, root_junction = set_delimiter(group_filter)
                 filter_list = group_filter.split(delimiter)
                 usergroups = self.get_usergroup_uids(filter_list, root_junction)
-                logger.info(u"User Groups with filter [{}]".format(" {} ".format(root_junction).join(filter_list)))
+                log_msg = u"User Groups with filter [{}]"
+                logger.info(log_msg.format(u" {} ".format(root_junction).join(filter_list)))
 
                 for uid, name in iteritems(usergroups):
-                    logger.info(u"- {} '{}' {}".format(uid, name, permission))
+                    logger.info(u"- {} '{}' ➔ {}".format(uid, name, permission))
                     self.accesses.add(UserGroupAccess(uid, permission))
 
     def get_usergroup_uids(self, filter_list, root_junction='AND'):
@@ -484,33 +492,32 @@ def main():
     api = dhis.Dhis(args.server, args.username, args.password, args.api_version)
     api.assert_version(range(29, 31))
 
+    public_access = Permission.from_public_args(args.public_access)
+    collection = ShareableObjectCollection(api, args.object_type, args.filter)
     usergroups = UserGroupsCollection(api, args.groups)
 
-    public_access = Permission.from_public_args(args.public_access)
-    logger.info("Public Access: {}".format(public_access))
+    logger.info("Public access ➔ {}".format(public_access))
 
-    coll = ShareableObjectCollection(api, args.object_type, args.filter)
-    if coll.data_sharing_enabled:
-        logger.info("DATA access for {}: true".format(coll.plural))
+    if collection.data_sharing_enabled:
+        log_msg = "You need to set DATA access for '{}' since you can capture data for it" \
+                  " - add {} argument for {}"
         if not public_access.data:
-            logger.error("You need to set DATA access for '{}' since you can capture data for it"
-                         " - add argument for -a (publicAccess)".format(coll.name))
+            logger.error(log_msg.format(collection.name, 'second', '-a (public access)'))
             sys.exit(1)
         if not all([group.permission.data for group in usergroups.accesses]):
-            logger.error("You need to set DATA access for '{}' since you can capture data for it"
-                         " - add argument for -g (userGroups)".format(coll.name))
+            logger.error(log_msg.format(collection.name, 'third', '-g (userGroups)'))
             sys.exit(1)
     else:
+        log_msg = "You cannot set DATA access for '{}' since you cannot capture data for it " \
+                  "- remove second argument for {}"
         if public_access.data:
-            logger.error("You cannot set DATA access for '{}' since you cannot capture data for it "
-                         "- remove last argument for -a (publicAccess)".format(coll.name))
+            logger.error(log_msg.format(collection.name, '-a (publicAccess)'))
             sys.exit(1)
         if any([group.permission.data for group in usergroups.accesses]):
-            logger.error("You cannot set DATA access for '{}' since you cannot capture data for it "
-                         "- remove last argument for -g (userGroups)".format(coll.name))
+            logger.error(log_msg.format(collection.name, '-g (userGroups)'))
             sys.exit(1)
 
-    for i, element in enumerate(coll.elements, 1):
+    for i, element in enumerate(collection.elements, 1):
         update = ShareableObject(obj_type=element.obj_type,
                                  uid=element.uid,
                                  name=element.name,
@@ -518,14 +525,14 @@ def main():
                                  public_access=public_access,
                                  usergroup_accesses=usergroups.accesses)
 
-        pointer = u"{0}/{1} {2} {3}".format(i, len(coll.elements), coll.name, element.uid)
+        pointer = u"{0}/{1} {2} {3}".format(i, len(collection.elements), collection.name, element.uid)
 
         if not skip(args.overwrite, element, update):
             logger.info(u"{0} {1}".format(pointer, element.log_identifier))
             api.share(update)
 
         else:
-            logger.warning(u"Skipped: {0} {1}".format(pointer, element.log_identifier))
+            logger.warning(u"Not overwriting {0} {1} {2}".format(collection.name, element.uid, element.log_identifier))
 
 
 if __name__ == "__main__":
