@@ -14,6 +14,7 @@ import textwrap
 import json
 import sys
 import operator
+import time
 
 from six import iteritems
 from logzero import logger
@@ -185,9 +186,11 @@ class ShareableObjectCollection(object):
         split = self.filters.split(self.delimiter)
         params = {
             'fields': 'id,name,code,publicAccess,userGroupAccesses',
-            'filter': split,
             'paging': False
         }
+        if split:
+            params['filter'] = split
+
         if self.root_junction == 'OR':
             params['rootJunction'] = self.root_junction
         response = self.api.get(self.plural, params=params)
@@ -198,8 +201,13 @@ class ShareableObjectCollection(object):
                     name = self.name
                 else:
                     name = self.plural
-                print_msg = u"Sharing {} {} with filter [{}]"
-                logger.info(print_msg.format(amount, name, " {} ".format(self.root_junction).join(split)))
+                if split:
+                    print_msg = u"Sharing {} {} with filter [{}]"
+                    logger.info(print_msg.format(amount, name, " {} ".format(self.root_junction).join(split)))
+                else:
+                    print_msg = u"Sharing *ALL* {} {} (no filters set!)"
+                    logger.warn(print_msg.format(amount, name))
+                    time.sleep(4)
                 return response
             else:
                 logger.warning(u'No {} found - check your filter'.format(self.plural))
@@ -386,8 +394,11 @@ def skip(overwrite, on_server, update):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(usage='%(prog)s [-h] [-s] -t -f -a [-g] [-o] [-l] [-v] [-u] [-p] [-d]',
-                                     description="Share DHIS2 objects with userGroups FOR 2.29 SERVERS or newer",
+    parser = argparse.ArgumentParser(usage="(example) dhis2-pk-share -s play.dhis2.org/dev -u admin -p district "
+                                           "-f 'id:eq:P3jJH5Tu5VC' -t dataelement -a readonly "
+                                           "-g 'name:like:Admin' readwrite "
+                                           "-g 'name:like:Research' readwrite",
+                                     description="Share DHIS2 objects with userGroups via filters.",
                                      formatter_class=argparse.RawTextHelpFormatter)
 
     parser._action_groups.pop()
@@ -402,16 +413,8 @@ def parse_args():
                           dest='object_type',
                           action='store',
                           required=True,
-                          help="DHIS2 object type to apply sharing, e.g. sqlView")
-    required.add_argument('-f',
-                          dest='filter',
-                          action='store',
-                          required=True,
-                          help=textwrap.dedent('''\
-                            Filter on objects with DHIS2 field filter.
-                            Add multiple filters with '&&' or '||'.
-                            Example: -f 'name:like:ABC||code:eq:X'
-                               '''))
+                          help="DHIS2 object type to apply sharing, e.g. -t sqlView")
+
     required.add_argument('-a',
                           dest='public_access',
                           action='append',
@@ -420,12 +423,23 @@ def parse_args():
                           metavar='PUBLICACCESS',
                           choices=access.keys(),
                           help=textwrap.dedent('''\
-                            Public Access (with login). 
-                            Valid choices are: {}, e.g. -a readwrite
-                            For sharing DATA, add another choice, e.g. -a readwrite readonly
+                            Public Access for all objects. 
+                            Valid choices are: {{{}}}
+                            For setting DATA access, add second argument, e.g. -a readwrite readonly
                           '''.format(', '.join(access.keys()))))
 
     optional = parser.add_argument_group('optional arguments')
+    optional.add_argument('-f',
+                          dest='filter',
+                          action='store',
+                          required=False,
+                          help=textwrap.dedent('''\
+                                Filter on objects with DHIS2 field filter.
+                                To add multiple filters:
+                                - '&&' joins filters with AND
+                                - '||' joins filters with OR
+                                Example:  -f 'name:like:ABC||code:eq:X'
+                                   '''))
     optional.add_argument('-g',
                           dest='groups',
                           action='append',
@@ -433,11 +447,11 @@ def parse_args():
                           metavar='USERGROUP',
                           nargs='+',
                           help=textwrap.dedent('''\
-                            Usergroup setting: FILTER METADATA [DATA] - can be repeated any number of times.
-                            FILTER: Filter all User Groups. See -f for filtering mechanism
-                            METADATA: Metadata access for this User Group. See -a for allowed choices
-                            DATA: Data access for this User Group. See -a for allowed choices.
-                            Example: -g 'id:eq:OeFJOqprom6' readwrite none
+                            User Group to share objects with: FILTER METADATA [DATA]
+                            - FILTER: Filter all User Groups. See -f for filtering mechanism
+                            - METADATA: Metadata access for this User Group. {readwrite, none, readonly}
+                            - DATA: Data access for this User Group. {readwrite, none, readonly}
+                            Example:  -g 'id:eq:OeFJOqprom6' readwrite none
                             '''))
     optional.add_argument('-o',
                           dest='overwrite',
@@ -450,21 +464,21 @@ def parse_args():
                           action='store',
                           required=False,
                           metavar='FILEPATH',
-                          help="Path to Log file (default level: INFO, pass -d for DEBUG), e.g. l='/var/log/pk.log'")
+                          help="Path to Log file (default level: INFO, pass -d for DEBUG)")
     optional.add_argument('-v',
                           dest='api_version',
                           action='store',
                           required=False,
                           type=int,
-                          help='DHIS2 API version e.g. -v=28')
+                          help='DHIS2 API version e.g. -v 28')
     optional.add_argument('-u',
                           dest='username',
                           action='store',
-                          help='DHIS2 username, e.g. -u=admin')
+                          help='DHIS2 username, e.g. -u admin')
     optional.add_argument('-p',
                           dest='password',
                           action='store',
-                          help='DHIS2 password, e.g. -p=district')
+                          help='DHIS2 password, e.g. -p district')
     optional.add_argument('-d',
                           dest='debug',
                           action='store_true',

@@ -25,104 +25,45 @@ Command-line tools to interact with the Web API of [DHIS2](https://dhis2.org). F
 Apply [sharing](https://docs.dhis2.org/master/en/user/html/sharing.html) for DHIS2 metadata and data objects (dataElements, indicators, programs, ...) 
 through **[metadata object filtering](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)** (for both shareable objects and userGroups).
 
-- [For DHIS2 servers older than 2.29](#dhis2-servers-older-than-229)
-- [For DHIS2 servers that are 2.29 or newer](#dhis2-servers-that-are-229-or-newer)
 
-### DHIS2 servers older than 2.29
-
-**Script name:** `dhis2-pk-share-objects`
-
-```
-dhis2-pk-share-objects --help
-usage: dhis2-pk-share-objects [-h] [-s] -t -f [-w] [-r] -a [-o] [-l] [-v] [-u] [-p] [-d]
-
-arguments:
-  -h, --help            show this help message and exit
-  
-  -s SERVER             DHIS2 server URL without /api/, e.g. -s='play.dhis2.org/demo'
-  
-  -t OBJECT TYPE        DHIS2 object type to apply sharing, e.g. -t=sqlViews or -t=dataElements
-                        
-  -f FILTER             Filter on objects with DHIS2 field filter
-                        add multiple filters with '&&' (rootJunction AND)
-                        or '||' (rootJunction OR)
-                        e.g. -f='name:like:ABC||name:like:XYZ'
-                        
-  -w USERGROUP_READWRITE
-                        UserGroup filter for Read-Write access
-                        add multiple filters with '&&' (rootJunction AND)
-                        or '||' (rootJunction OR)
-                        e.g. -w='name:$ilike:aUserGroup7&&id:!eq:aBc123XyZ0u'
-                        
-  -r USERGROUP_READONLY
-                        UserGroup filter for Read-Only access
-                        add multiple filters with '&&' (rootJunction AND)
-                        or '||' (rootJunction OR)
-                        e.g. -r='id:eq:aBc123XyZ0u'
-                       
-  -a {readwrite,none,readonly}
-                        Public Access (with login), e.g. -a=readwrite
-  
-  -o OVERWRITE          Overwrite sharing - updates 'lastUpdated' field 
-                        of all shared objects, otherwise it only updates if changed
-  
-  -l LOGGING_TO_FILE    Path to Log file (default level: INFO, pass -d for DEBUG)
-                        e.g. l='/var/log/pk.log'
-                        
-  -v API_VERSION        DHIS2 API version e.g. -v=28
-                        (if omitted, <URL>/api/endpoint will be used)
-  -u USERNAME           DHIS2 username, e.g. -u=admin
-  -p PASSWORD           DHIS2 password, e.g. -p=district
-  -d                    Debug calls with -d
-
-```
-Other example:
-Share `Hypertension` dataElements with _Read-Write_ access for `Admin` and `Research Group` User Groups while _Public Access_ should be _Read only_:
-
-`
-dhis2-pk-share-objects -s=play.dhis2.org/dev -u=admin -p=district -t=dataElements -f='name:like:Hypertension' -w='name:like:Admin||name:like:Research Group' -a=readonly
-`
-
-
-### DHIS2 servers that are 2.29 or newer
-
-This script has a slightly different syntax since the format for Sharing changed in 2.29. It is now possible
-to share DATA access for object types *Data Set*, *Tracked Entity Type*, *Program* and *Program Stage*. 
+> 2.29 support: It is now possible to set DATA access for object types *Data Set*, *Tracked Entity Type*, *Program* and *Program Stage*. 
 Read more [here.](https://docs.dhis2.org/master/en/user/html/sharing.html)
 
 **Script name:** `dhis2-pk-share`
 
 ```
-usage: dhis2-pk-share [-h] [-s] -t -f -a [-g] [-o] [-l] [-v] [-u] [-p] [-d]
+usage: (example) dhis2-pk-share -s play.dhis2.org/dev -u admin -p district -f 'id:eq:P3jJH5Tu5VC' -t dataelement -a readonly -g 'name:like:Admin' readwrite -g 'name:like:Research' readwrite
 
-Share DHIS2 objects with userGroups FOR 2.29 SERVERS or newer
+Share DHIS2 objects with userGroups via filters.
 
 required arguments:
   -s URL                DHIS2 server URL, e.g. 'play.dhis2.org/demo'
-  
-  -t OBJECT_TYPE        DHIS2 object type to apply sharing, e.g. sqlView
-  
-  -f FILTER             Filter on objects with DHIS2 field filter.
-                        Add multiple filters with '&&' or '||'.
-                        Example: -f 'name:like:ABC||code:eq:X'
-  
-  -a PUBLICACCESS       Public Access (with login). 
-                        Valid choices are: readwrite, none, readonly, e.g. -a readwrite
-                        For sharing DATA, add another choice, e.g. -a readwrite readonly
-                        
-optional arguments:
-  -g USERGROUP          Usergroup setting: FILTER METADATA [DATA] - can be repeated any number of times.
-                        FILTER: Filter all User Groups. See -f for filtering mechanism
-                        METADATA: Metadata access for this User Group. See -a for allowed choices
-                        DATA: Data access for this User Group. See -a for allowed choices.
-                        Example: -g 'id:eq:OeFJOqprom6' readwrite none
-                        
-  -o                    Overwrite sharing - updates 'lastUpdated' field of all shared objects
-  -l FILEPATH           Path to Log file (default level: INFO, pass -d for DEBUG), e.g. -l '/var/log/pk.log'
-  -v API_VERSION        DHIS2 API version e.g. -v 28
   -u USERNAME           DHIS2 username, e.g. -u admin
   -p PASSWORD           DHIS2 password, e.g. -p district
+  -t OBJECT_TYPE        DHIS2 object type to apply sharing, e.g. -t sqlView
+  
+  -a PUBLICACCESS       Public Access for all objects
+                        Valid choices are: readwrite, none, readonly
+                        For setting DATA access, add second argument, e.g. -a readwrite readonly
+
+optional arguments:
+  -f FILTER             Filter on objects with DHIS2 field filter.
+                        To add multiple filters:
+                        - '&&' joins filters with AND
+                        - '||' joins filters with OR
+                        Example:  -f 'name:like:ABC||code:eq:X'
+                        
+  -g USERGROUP [...]    User Group to share objects with: FILTER METADATA [DATA]
+                        - FILTER: Filter all User Groups. See -f for filtering mechanism
+                        - METADATA: Metadata access for this User Group  {readwrite, none, readonly}
+                        - DATA: Data access for this User Group  {readwrite, none, readonly}
+                        Example:  -g 'id:eq:OeFJOqprom6' readwrite none
+                        
+  -o                    Overwrite sharing - updates 'lastUpdated' field of all shared objects
+  -l FILEPATH           Path to Log file (default level: INFO, pass -d for DEBUG)
+  -v API_VERSION        DHIS2 API version e.g. -v 28
   -d                    Debug flag
+
 ```
 
 Example to share metadata only:
@@ -137,6 +78,12 @@ Example to share data sets (with data access):
 dhis2-pk-share -s play.dhis2.org/2.29 -u admin -p district -f='name:eq:Population' -t=datasets -a readonly readwrite -g 'name:like:Admin' readwrite readonly -g 'name:like:Research' readwrite readonly
 `
 
+#### Migrating from `dhis2-pk-share-objects`
+
+To set write access for the *Admins* User Group and read access for the *Users* User Group:
+
+- Old way: `-w 'name:like:Admins' -r 'name:like:Users`
+- New way: `-g 'name:like:Admins' readwrite    -g 'name:like:Users' readonly`
 
 ---
 ## Readable indicator definition to CSV
