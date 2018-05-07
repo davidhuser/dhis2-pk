@@ -37,22 +37,6 @@ access = {
 NEW_SYNTAX = 29
 
 
-def set_delimiter(argument):
-    """
-    Operator and rootJunction Alias validation
-    :param argument: Argument as received from parser
-    :return: tuple(delimiter, rootJunction)
-    """
-    if '^' in argument:
-        log_and_exit("ArgumentError: Operator '^' was replaced with '$' in 2.28 onwards. Nothing shared.")
-    if '||' in argument:
-        if '&&' in argument:
-            log_and_exit("ArgumentError: Not allowed to combine delimiters '&&' and '||'. Nothing shared")
-        return '||', 'OR'
-
-    return '&&', 'AND'
-
-
 class Permission(object):
     symbolic_notation = {
         u'rwrw----',
@@ -140,7 +124,7 @@ class ShareableObjectCollection(object):
         self.api = api
         self.name, self.plural = self.get_name(obj_type)
         self.filters = filters
-        self.delimiter, self.root_junction = set_delimiter(filters)
+        self.delimiter, self.root_junction = set_delimiter(api, filters)
         self.data_sharing_enabled = self.is_data_shareable()
 
         from_server = self.get_objects().get(self.plural)
@@ -183,12 +167,14 @@ class ShareableObjectCollection(object):
         return False
 
     def get_objects(self):
-        split = self.filters.split(self.delimiter)
+
         params = {
             'fields': 'id,name,code,publicAccess,userGroupAccesses',
             'paging': False
         }
-        if split:
+        split = None
+        if self.filters:
+            split = self.filters.split(self.delimiter)
             params['filter'] = split
 
         if self.root_junction == 'OR':
@@ -201,13 +187,13 @@ class ShareableObjectCollection(object):
                     name = self.name
                 else:
                     name = self.plural
-                if split:
+                if self.filters:
                     print_msg = u"Sharing {} {} with filter [{}]"
                     logger.info(print_msg.format(amount, name, " {} ".format(self.root_junction).join(split)))
                 else:
-                    print_msg = u"Sharing *ALL* {} {} (no filters set!)"
+                    print_msg = u"Sharing *ALL* {} {} (no filters set!). Continuing in 10 seconds..."
                     logger.warn(print_msg.format(amount, name))
-                    time.sleep(4)
+                    time.sleep(10)
                 return response
             else:
                 logger.warning(u'No {} found - check your filter'.format(self.plural))
@@ -216,12 +202,17 @@ class ShareableObjectCollection(object):
 
     def create_obj(self, response):
         for elem in response:
-            yield ShareableObject(obj_type=self.name,
-                                  uid=elem['id'],
-                                  name=elem['name'],
-                                  code=elem.get('code'),
-                                  public_access=Permission.from_symbol(elem['publicAccess']),
-                                  usergroup_accesses={UserGroupAccess.from_dict(d) for d in elem['userGroupAccesses']})
+            try:
+                public_access = Permission.from_symbol(elem['publicAccess'])
+            except KeyError:
+                logger.error("ServerError: Public access is not set for {} {} '{}'".format(self.name, elem['id'], elem['name']))
+            else:
+                yield ShareableObject(obj_type=self.name,
+                                      uid=elem['id'],
+                                      name=elem['name'],
+                                      code=elem.get('code'),
+                                      public_access=public_access,
+                                      usergroup_accesses={UserGroupAccess.from_dict(d) for d in elem['userGroupAccesses']})
 
     def __str__(self):
         s = ''
@@ -343,7 +334,7 @@ class UserGroupsCollection(object):
                 group_filter = group[0]
                 permission = Permission.from_group_args(group)
 
-                delimiter, root_junction = set_delimiter(group_filter)
+                delimiter, root_junction = set_delimiter(api, group_filter)
                 filter_list = group_filter.split(delimiter)
                 usergroups = self.get_usergroup_uids(filter_list, root_junction)
                 log_msg = u"User Groups with filter [{}]"
@@ -530,6 +521,30 @@ def validate_data_access(public_access, collection, usergroups, dhis_version):
                 log_and_exit(log_msg.format('Public Access', collection.name, '-a'))
             if any([group.permission.data for group in usergroups.accesses]):
                 log_and_exit(log_msg.format('User Group', collection.name, '-g'))
+
+
+def set_delimiter(api, argument, version=None):
+    """
+    Operator and rootJunction Alias validation
+    :type api: Dhis object
+    :param version: DHIS2 version
+    :param argument: Argument as received from parser
+    :return: tuple(delimiter, rootJunction)
+    """
+    if not argument:
+        return None, None
+    if not version:
+        version = api.get_dhis_version()
+    if '^' in argument:
+        if version >= 28:
+            log_and_exit("ArgumentError: Operator '^' was replaced with '$' in 2.28 onwards. Nothing shared.")
+    if '||' in argument:
+        if version < 25:
+            log_and_exit("ArgumentError: rootJunction 'OR' / '||' is only supported 2.25 onwards. Nothing shared.")
+        if '&&' in argument:
+            log_and_exit("ArgumentError: Not allowed to combine delimiters '&&' and '||'. Nothing shared")
+        return '||', 'OR'
+    return '&&', 'AND'
 
 
 def log_and_exit(message):
