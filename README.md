@@ -90,7 +90,7 @@ To set write access for the *Admins* User Group and read access for the *Users* 
 
 **Script name:** `dhis-pk-indicator-definitions`
 
-Writes indicator expressions (numerators/denominators) in a **readable format to a csv file**. Includes _names and number of orgunits for orgunit groups_, _dataelements (dataelement.categoryoptioncombo)_, _program dataelements_, _program indicators_, _trackedEntityAttributes_ and _constants_. It's possible to filter indicators with an object filter (see [`dhis2-pk-share-objects`](https://github.com/davidhuser/dhis2-pocket-knife#mass-sharing-of-objects-with-usergroups-through-filtering) for details). Note that when e.g. a dataElement is not shared with the user running the script but the indicator is, dataElement may still show up only with the UID.
+Writes indicator expressions (numerators/denominators/expressions) of Indicators and Program Indicators in a **readable format to a csv file**. Includes _names and number of orgunits for orgunit groups_, _dataelements (dataelement.categoryoptioncombo)_, _program dataelements_, _program indicators_, _trackedEntityAttributes_ and _constants_. It's possible to filter indicators with an object filter (see [`dhis2-pk-share-objects`](https://github.com/davidhuser/dhis2-pocket-knife#mass-sharing-of-objects-with-usergroups-through-filtering) for details). Note that when e.g. a dataElement is not shared with the user running the script but the indicator is, dataElement may still show up only with the UID.
 
 Example output:
 ![ind-definitions](https://i.imgur.com/LFAlFpY.png)
@@ -107,6 +107,7 @@ usage: dhis2-pk-indicator-definitions [-h] [-s] [-f] [-u] [-p] [-v] [-d]
 optional arguments:
   -h, --help           show this help message and exit
   -s SERVER            DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo
+  -t INDICATOR_TYPE    Type of indicator: 'indicators' or 'programIndicators'
   -f INDICATOR_FILTER  Indicator filter, e.g. -f='name:$like:HIV'
   -u USERNAME          DHIS2 username
   -p PASSWORD          DHIS2 password
