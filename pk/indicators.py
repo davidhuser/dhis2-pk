@@ -188,7 +188,7 @@ def write_to_csv(typ, indicators, object_mapping, file_name):
             logger.info("Success! CSV file exported to {}".format(file_name))
 
         elif typ == 'programIndicators':
-            header_row = ['type', 'uid', 'name', 'shortName', 'expression', 'aggregationType',
+            header_row = ['type', 'uid', 'name', 'shortName', 'expression', 'filter', 'aggregationType',
                           'analyticsType', 'program', 'programName', 'lastUpdated']
             writer = csv.writer(csvfile, encoding='utf-8', delimiter=',', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(header_row)
@@ -197,12 +197,16 @@ def write_to_csv(typ, indicators, object_mapping, file_name):
                 name = ind['name']
                 shortname = ind['shortName']
                 expression = replace_definitions(ind['expression'], object_mapping)
+                if ind.get('filter'):
+                    filters = replace_definitions(ind['filter'], object_mapping)
+                else:
+                    filters = 'no filter'
                 aggregation_type = ind['aggregationType']
                 analytics_type = ind['analyticsType']
                 program = ind['program']['id']
                 program_name = ind['program']['name']
                 last_updated = ind['lastUpdated']
-                row = [typ, uid, name, shortname, expression, aggregation_type,
+                row = [typ, uid, name, shortname, expression, filters, aggregation_type,
                        analytics_type, program, program_name, last_updated]
                 writer.writerow(utf8ify(row))
             logger.info("Success! CSV file exported to {}".format(file_name))
@@ -231,7 +235,7 @@ def main():
         write_to_csv('indicators', indicators, object_mapping, file_name)
 
     elif args.indicator_type == 'programIndicators':
-        fields = 'id,name,shortName,expression,aggregationType,analyticsType,program[id,name],lastUpdated'
+        fields = 'id,name,shortName,expression,filter,aggregationType,analyticsType,program[id,name],lastUpdated'
         program_indicators = api.get(endpoint='programIndicators',
                                      file_type='json',
                                      params=get_params(args.indicator_filter, fields))
