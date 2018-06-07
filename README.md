@@ -16,8 +16,8 @@ Command-line tools to interact with the Web API of [DHIS2](https://dhis2.org). F
 ## Usage
 
 * Either pass arguments for a server / username / password or it make it read from a `dish.json` file as described in [baosystems/dish2](https://github.com/baosystems/dish2#configuration).
-* Get help on using arguments, e.g.`dhis2-pk-share --help`
-* Windows is supported, however _do not use single apostrophes_: Install PowerShell Terminal OR use double apostrophes (") OR use no apostrophes at all (no problem when not using white spaces in filters)
+* Get help on using arguments, e.g. `dhis2-pk-share --help`
+* Windows is supported, however _do not use single apostrophes_ `'`: Use PowerShell OR use double apostrophes `"` OR use no apostrophes at all (no problem when not using white spaces in filters)
 
 ---
 
@@ -93,7 +93,7 @@ To set write access for the *Admins* User Group and read access for the *Users* 
 
 **Script name:** `dhis-pk-indicator-definitions`
 
-Writes indicator expressions (numerators/denominators/expressions) of Indicators and Program Indicators in a **readable format to a csv file**. Includes _names and number of orgunits for orgunit groups_, _dataelements (dataelement.categoryoptioncombo)_, _program dataelements_, _program indicators_, _trackedEntityAttributes_ and _constants_. It's possible to filter indicators with an object filter (see [`dhis2-pk-share-objects`](https://github.com/davidhuser/dhis2-pocket-knife#mass-sharing-of-objects-with-usergroups-through-filtering) for details). Note that when e.g. a dataElement is not shared with the user running the script but the indicator is, dataElement may still show up only with the UID.
+Writes indicator expressions (numerators/denominators/expressions) of Indicators and Program Indicators in a **readable format to a csv file**. Includes _names and number of orgunits for orgunit groups_, _dataelements (dataelement.categoryoptioncombo)_, _program dataelements_, _program indicators_, _trackedEntityAttributes_ and _constants_. It's possible to filter indicators with an object filter (see [`dhis2-pk-share`](https://github.com/davidhuser/dhis2-pocket-knife#mass-sharing-of-objects-with-usergroups-through-filtering) for details). Note that when e.g. a dataElement is not shared with the user running the script but the indicator is, dataElement may still show up only with the UID.
 
 Example output:
 ![ind-definitions](https://i.imgur.com/LFAlFpY.png)
