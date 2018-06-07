@@ -17,6 +17,7 @@ Command-line tools to interact with the Web API of [DHIS2](https://dhis2.org). F
 
 * Either pass arguments for a server / username / password or it make it read from a `dish.json` file as described in [baosystems/dish2](https://github.com/baosystems/dish2#configuration).
 * Get help on using arguments, e.g.`dhis2-pk-share --help`
+* Windows is supported, however _do not use single apostrophes_: Install PowerShell Terminal OR use double apostrophes (") OR use no apostrophes at all (no problem when not using white spaces in filters)
 
 ---
 
@@ -80,10 +81,12 @@ dhis2-pk-share -s play.dhis2.org/2.29 -u admin -p district -f='name:eq:Populatio
 
 #### Migrating from `dhis2-pk-share-objects`
 
+Use `dhis2-pk-share` now.
+
 To set write access for the *Admins* User Group and read access for the *Users* User Group:
 
-- Old way: `-w 'name:like:Admins' -r 'name:like:Users`
-- New way: `-g 'name:like:Admins' readwrite    -g 'name:like:Users' readonly`
+- Old way: `-w 'name:like:Admins' -r 'name:like:Users'`
+- New way: `-g 'name:like:Admins' readwrite -g 'name:like:Users' readonly'`
 
 ---
 ## Readable indicator definition to CSV
