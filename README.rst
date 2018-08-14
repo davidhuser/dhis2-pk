@@ -12,6 +12,7 @@ Features
 - `Download indicator definitions as CSV <https://smartva-dhis2.readthedocs.io/en/latest/indicators.html>`_
 - `Download user information as CSV <https://smartva-dhis2.readthedocs.io/en/latest/userinfo.html>`_
 - `Post a CSS style sheet for the login page <https://smartva-dhis2.readthedocs.io/en/latest/css.html>`_
+- `Set attribute values with a CSV <https://smartva-dhis2.readthedocs.io/en/latest/attributes.html>`_
 
 Installation
 ^^^^^^^^^^^^^

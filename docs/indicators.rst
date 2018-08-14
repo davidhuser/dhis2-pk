@@ -9,8 +9,10 @@ orgunit groups*, *dataelements (dataelement.categoryoptioncombo)*,
 *program dataelements*, *program indicators*, *trackedEntityAttributes*
 and *constants*. It’s possible to filter indicators with an object
 filter (see
-```dhis2-pk-share-objects`` <https://github.com/davidhuser/dhis2-pocket-knife#mass-sharing-of-objects-with-usergroups-through-filtering>`__
-for details). Note that when e.g. a dataElement is not shared with the
+`dhis2-pk-share <https://dhis2-pk.readthedocs.io/en/latest/share.html>`__
+for details).
+
+Note that when e.g. a dataElement is not shared with the
 user running the script but the indicator is, dataElement may still show
 up only with the UID.
 

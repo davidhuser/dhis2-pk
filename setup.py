@@ -91,7 +91,8 @@ setup(
             'dhis2-pk-indicator-definitions = pk.indicators:main',
             'dhis2-pk-share = pk.share:main',
             'dhis2-pk-userinfo = pk.userinfo:main',
-            'dhis2-pk-post-css = pk.css:main'
+            'dhis2-pk-post-css = pk.css:main',
+            'dhis2-pk-attribute-setter = pk.attributes:main'
         ]
     },
     classifiers=[

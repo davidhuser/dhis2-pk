@@ -1,5 +1,6 @@
 import csv
 import sys
+import re
 from datetime import datetime
 
 from dhis2 import Dhis, logger
@@ -35,3 +36,8 @@ def write_csv(data, filename, header_row):
 def file_timestamp(url):
     now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     return '{}_{}'.format(now, url.replace('https://', '').replace('.', '-').replace('/', '-'))
+
+
+def valid_uid(uid):
+    """Check if string matches DHIS2 UID pattern"""
+    return re.compile("[A-Za-z][A-Za-z0-9]{10}").match(uid)
