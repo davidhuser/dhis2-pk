@@ -1,28 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
 """
-share-objects
+share
 ~~~~~~~~~~~~~~~~~
 Assigns sharing to shareable DHIS2 objects like userGroups and publicAccess by calling the /api/sharing endpoint.
 """
 
 import argparse
-import textwrap
 import json
-import sys
 import operator
+import sys
+import textwrap
 import time
+from logging import DEBUG
 
+from dhis2 import setup_logger, logger
 from six import iteritems
-from dhis2 import logger
 
-try:
-    from pk.exceptions import ArgumentException
-except ImportError:
-    from .exceptions import ArgumentException
+import common
 
 access = {
     'none': u'--',
@@ -73,7 +69,7 @@ class Permission(object):
     @classmethod
     def from_symbol(cls, symbol):
         if symbol not in Permission.symbolic_notation:
-            raise ValueError("Permission symbol {} not valid!".format(symbol))
+            common.log_and_exit("Permission symbol '{}' not valid!".format(symbol))
         metadata_str = symbol[:2]
         if metadata_str == 'rw':
             metadata = 'readwrite'
@@ -107,7 +103,6 @@ class Permission(object):
         return '{}{}----'.format(m, d)
 
     def __str__(self):
-        logger.debug(self.to_symbol())
         if self.data:
             return '[metadata:{}] [data:{}]'.format(self.metadata, self.data)
         else:
@@ -123,7 +118,7 @@ class ShareableObjectCollection(object):
         self.delimiter, self.root_junction = set_delimiter(api, filters)
         self.data_sharing_enabled = self.is_data_shareable()
 
-        from_server = self.get_objects().get(self.plural)
+        from_server = self.get_objects().json().get(self.plural)
         self.elements = set(self.create_obj(from_server))
 
     def add(self, other):
@@ -135,7 +130,7 @@ class ShareableObjectCollection(object):
             'fields': 'name,plural,shareable,dataShareable'
         }
 
-        r = self.api.get(endpoint='schemas', params=params)
+        r = self.api.get(endpoint='schemas', params=params).json()
 
         if schema_property == 'shareable':
             return {x['name']: x['plural'] for x in r['schemas'] if x['shareable']}
@@ -177,7 +172,7 @@ class ShareableObjectCollection(object):
             params['rootJunction'] = self.root_junction
         response = self.api.get(self.plural, params=params)
         if response:
-            amount = len(response[self.plural])
+            amount = len(response.json()[self.plural])
             if amount > 0:
                 if amount == 1:
                     name = self.name
@@ -201,14 +196,16 @@ class ShareableObjectCollection(object):
             try:
                 public_access = Permission.from_symbol(elem['publicAccess'])
             except KeyError:
-                logger.error("ServerError: Public access is not set for {} {} '{}'".format(self.name, elem['id'], elem['name']))
+                logger.error(
+                    "ServerError: Public access is not set for {} {} '{}'".format(self.name, elem['id'], elem['name']))
             else:
                 yield ShareableObject(obj_type=self.name,
                                       uid=elem['id'],
                                       name=elem['name'],
                                       code=elem.get('code'),
                                       public_access=public_access,
-                                      usergroup_accesses={UserGroupAccess.from_dict(d) for d in elem['userGroupAccesses']})
+                                      usergroup_accesses={UserGroupAccess.from_dict(d) for d in
+                                                          elem['userGroupAccesses']})
 
     def __str__(self):
         s = ''
@@ -357,12 +354,11 @@ class UserGroupsCollection(object):
             params['rootJunction'] = root_junction
 
         endpoint = 'userGroups'
-        response = self.api.get(endpoint, params=params)
+        response = self.api.get(endpoint, params=params).json()
         if len(response['userGroups']) > 0:
             return {ug['id']: ug['name'] for ug in response['userGroups']}
         else:
-            logger.debug(endpoint, params)
-            raise exceptions.UserGroupNotFoundException("No userGroup found with {}".format(filter_list))
+            common.log_and_exit("No userGroup found with {}".format(filter_list))
 
 
 def skip(overwrite, on_server, update):
@@ -477,16 +473,16 @@ def parse_args():
 
 def validate_args(args, dhis_version):
     if len(args.public_access) not in (1, 2):
-        log_and_exit("ArgumentError: Must use -a METADATA [DATA] - max. 2 arguments")
+        common.log_and_exit("ArgumentError: Must use -a METADATA [DATA] - max. 2 arguments")
     if args.groups:
         for group in args.groups:
             try:
                 metadata_permission = group[1]
             except IndexError:
                 metadata_permission = None
-                log_and_exit("ArgumentError: Missing User Group permission for METADATA access")
+                common.log_and_exit("ArgumentError: Missing User Group permission for METADATA access")
             if metadata_permission not in access.keys():
-                log_and_exit('ArgumentError: User Group permission for METADATA access not valid: "{}"'.format(
+                common.log_and_exit('ArgumentError: User Group permission for METADATA access not valid: "{}"'.format(
                     metadata_permission))
             if dhis_version >= NEW_SYNTAX:
                 try:
@@ -495,28 +491,28 @@ def validate_args(args, dhis_version):
                     pass
                 else:
                     if data_permission not in access.keys():
-                        log_and_exit('ArgumentError: User Group permission for DATA access not valid: "{}"'.format(
+                        common.log_and_exit('ArgumentError: User Group permission for DATA access not valid: "{}"'.format(
                             data_permission))
 
 
 def validate_data_access(public_access, collection, usergroups, dhis_version):
     if dhis_version < NEW_SYNTAX:
         if public_access.data or any([group.permission.data for group in usergroups.accesses]):
-            log_and_exit("ArgumentError: You cannot set DATA access on DHIS2 versions below 2.29"
+            common.log_and_exit("ArgumentError: You cannot set DATA access on DHIS2 versions below 2.29"
                          " - check your arguments (-a) and (-g)")
     else:
         if collection.data_sharing_enabled:
             log_msg = "ArgumentError: Missing {} permission for DATA access for '{}' (Argument {})"
             if not public_access.data:
-                log_and_exit(log_msg.format('Public Access', collection.name, '-a'))
+                common.log_and_exit(log_msg.format('Public Access', collection.name, '-a'))
             if not all([group.permission.data for group in usergroups.accesses]):
-                log_and_exit(log_msg.format('User Groups', collection.name, '-g'))
+                common.log_and_exit(log_msg.format('User Groups', collection.name, '-g'))
         else:
             log_msg = "ArgumentError: Not possible to set {} permission for DATA access for '{}' (Argument {})"
             if public_access.data:
-                log_and_exit(log_msg.format('Public Access', collection.name, '-a'))
+                common.log_and_exit(log_msg.format('Public Access', collection.name, '-a'))
             if any([group.permission.data for group in usergroups.accesses]):
-                log_and_exit(log_msg.format('User Group', collection.name, '-g'))
+                common.log_and_exit(log_msg.format('User Group', collection.name, '-g'))
 
 
 def set_delimiter(api, argument, version=None):
@@ -530,35 +526,41 @@ def set_delimiter(api, argument, version=None):
     if not argument:
         return None, None
     if not version:
-        version = api.get_dhis_version()
+        version = api.version_int
     if '^' in argument:
         if version >= 28:
-            log_and_exit("ArgumentError: Operator '^' was replaced with '$' in 2.28 onwards. Nothing shared.")
+            common.log_and_exit("ArgumentError: Operator '^' was replaced with '$' in 2.28 onwards. Nothing shared.")
     if '||' in argument:
         if version < 25:
-            log_and_exit("ArgumentError: rootJunction 'OR' / '||' is only supported 2.25 onwards. Nothing shared.")
+            common.log_and_exit("ArgumentError: rootJunction 'OR' / '||' is only supported 2.25 onwards. Nothing shared.")
         if '&&' in argument:
-            log_and_exit("ArgumentError: Not allowed to combine delimiters '&&' and '||'. Nothing shared")
+            common.log_and_exit("ArgumentError: Not allowed to combine delimiters '&&' and '||'. Nothing shared")
         return '||', 'OR'
     return '&&', 'AND'
 
 
-def log_and_exit(message):
-    logger.error(message)
-    sys.exit(1)
+def share(api, sharing_object):
+    params = {'type': sharing_object.obj_type, 'id': sharing_object.uid}
+    api.post('sharing', params=params, payload=sharing_object.to_json())
 
 
 def main():
     args = parse_args()
-    log.init(args.logging_to_file, args.debug)
-    api = dhis.Dhis(args.server, args.username, args.password, args.api_version)
-    dhis_version = api.assert_version(range(20, 30 + 1))
-    validate_args(args, dhis_version)
+    if args.logging_to_file:
+        if args.debug:
+            setup_logger(args.logging_to_file, DEBUG)
+        else:
+            setup_logger(args.logging_to_file)
+    else:
+        setup_logger()
+
+    api = common.create_api(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
+    validate_args(args, api.version_int)
 
     public_access = Permission.from_public_args(args.public_access)
     collection = ShareableObjectCollection(api, args.object_type, args.filter)
     usergroups = UserGroupsCollection(api, args.groups)
-    validate_data_access(public_access, collection, usergroups, dhis_version)
+    validate_data_access(public_access, collection, usergroups, api.version_int)
 
     logger.info("Public access ➔ {}".format(public_access))
 
@@ -574,7 +576,7 @@ def main():
 
         if not skip(args.overwrite, element, update):
             logger.info(u"{0} {1}".format(pointer, element.log_identifier))
-            api.share(update)
+            share(api, update)
 
         else:
             logger.warning(u'Not overwriting: {0} {1}'.format(pointer, element.log_identifier))

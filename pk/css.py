@@ -1,20 +1,16 @@
-import argparse
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from logzero import logger
-
-try:
-    from pk.core import log
-    from pk.core import dhis
-    from pk.core import exceptions
-except ImportError:
-    from core import log
-    from core import dhis
-    from core import exceptions
 """
 post-css
 ~~~~~~~~~~~~~~~~~
 POST a CSS stylesheet to a server
 """
+
+import argparse
+
+from dhis2 import setup_logger, logger
+import common
 
 
 def parse_args():
@@ -24,18 +20,22 @@ def parse_args():
     parser.add_argument('-c', dest='css', action='store', required=True, help="CSS file")
     parser.add_argument('-u', dest='username', action='store', help='DHIS2 username, e.g. -u=admin')
     parser.add_argument('-p', dest='password', action='store', help='DHIS2 password, e.g. -p=district')
-    parser.add_argument('-d', dest='debug', action='store_true', default=False,
-                        help="Debug flag - writes more info to log file, e.g. -d")
     return parser.parse_args()
+
+
+def post_file(api, filename, content_type='text/css'):
+    api.session.headers = {"Content-Type": content_type}
+    file_read = open(filename, 'rb').read()
+    api.session.post(url='{}/files/style'.format(api.api_url), data=file_read)
 
 
 def main():
     args = parse_args()
-    log.init(args.debug)
-    api = dhis.Dhis(server=args.server, username=args.username, password=args.password, api_version=None)
+    setup_logger()
+    api = common.create_api(server=args.server, username=args.username, password=args.password)
 
-    api.post_file(endpoint='files/style', filename=args.css, content_type='text/css')
-    logger.info("{} CSS posted to {}. Clear your caches.".format(args.css, api.api_url))
+    post_file(api, filename=args.css)
+    logger.info("{} CSS posted to {}. Clear your Browser cache / use Incognito.".format(args.css, api.api_url))
 
 
 if __name__ == "__main__":
