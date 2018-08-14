@@ -260,14 +260,15 @@ def main():
 
     if args.indicator_type == 'indicators':
         fields = ','.join([x for x in indicator_fields.values() if x != 'type'])
-        indicators = api.get(endpoint='indicators', params=get_params(args.indicator_filter, fields)).json()
 
     elif args.indicator_type == 'programIndicators':
         fields = ','.join([x for x in program_indicator_fields.values() if x not in ('type', 'program_name')])
-        indicators = api.get(endpoint='programIndicators', params=get_params(args.indicator_filter, fields)).json()
-    else:
-        indicators = None
 
+    else:
+        fields = None
+        common.log_and_exit('Cannot process argument -t {}'.format(args.indicator_type))
+
+    indicators = api.get(endpoint=args.indicator_type, params=get_params(args.indicator_filter, fields)).json()
     message = analyze_result(args.indicator_type, indicators, args.indicator_filter)
     logger.info(message)
 

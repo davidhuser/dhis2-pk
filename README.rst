@@ -1,5 +1,5 @@
-|pocket-knife| dhis2-pocket-knife
-=================================
+|pocket-knife| dhis2-pk
+========================
 
 |Version| |Build| |Licence|
 
@@ -9,8 +9,8 @@ Features
 ^^^^^^^^^
 
 - `Mass sharing via filtering <https://smartva-dhis2.readthedocs.io/en/latest/share.html>`_
-- `Download indicator definitions as CSV <https://smartva-dhis2.readthedocs.io/en/latest/indicators.html>`_
-- `Download user information as CSV <https://smartva-dhis2.readthedocs.io/en/latest/userinfo.html>`_
+- `Download indicator definitions to CSV <https://smartva-dhis2.readthedocs.io/en/latest/indicators.html>`_
+- `Download user information to CSV <https://smartva-dhis2.readthedocs.io/en/latest/userinfo.html>`_
 - `Post a CSS style sheet for the login page <https://smartva-dhis2.readthedocs.io/en/latest/css.html>`_
 - `Set attribute values with a CSV <https://smartva-dhis2.readthedocs.io/en/latest/attributes.html>`_
 
