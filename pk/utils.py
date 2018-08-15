@@ -5,7 +5,10 @@ from datetime import datetime
 
 from dhis2 import Dhis, logger, ClientException
 
-from __version__ import __version__
+try:
+    from __version__ import __version__
+except (SystemError, ImportError):
+    from .__version__ import __version__
 
 
 def create_api(server=None, username=None, password=None, api_version=None):

@@ -3,12 +3,17 @@
 
 import argparse
 import time
+import sys
+from collections import namedtuple
 from copy import deepcopy
 
 from colorama import Style
 from dhis2 import setup_logger, logger, load_csv, APIException
 
-import utils
+try:
+    import utils
+except (SystemError, ImportError):
+    from . import utils
 
 OBJ_TYPES = {
     'categories',
@@ -102,14 +107,14 @@ UID   | myValue
 
 def validate_csv(data):
     if not data[0].get('uid', None) or not data[0].get('attributeValue', None):
-        utils.log_and_exit("CSV not valid: CSV must have 'uid' and 'attributeValue' as headers")
+        raise ValueError("CSV not valid: CSV must have 'uid' and 'attributeValue' as headers")
 
     object_uids = [obj['uid'] for obj in data]
     for uid in object_uids:
         if not utils.valid_uid(uid):
-            utils.log_and_exit("Object '{}' is not a valid UID in the CSV".format(uid))
+            raise ValueError("Object '{}' is not a valid UID in the CSV".format(uid))
     if len(object_uids) != len(set(object_uids)):
-        utils.log_and_exit("Duplicate Objects (rows) found in the CSV.")
+        raise ValueError("Duplicate Objects (rows) found in the CSV.")
     return True
 
 
@@ -139,32 +144,47 @@ def create_or_update_attribute_values(obj, attribute_uid, attribute_value):
         return obj_copy
 
 
+def get_attribute_name(api, uid):
+    try:
+        return api.get('attributes/{}'.format(uid))
+    except APIException as e:
+        if e.code == 404:
+            raise ValueError("Attribute {} could not be found".format(uid))
+        else:
+            raise ValueError("Error: {}".format(e))
+
+
+def attribute_is_on_model(api, attribute, typ):
+    attr_get = {'fields': 'id,name,{}Attribute'.format(typ[:-1])}
+    attr = api.get('attributes/{}'.format(attribute.uid), params=attr_get)
+    if attr['{}Attribute'.format(typ[:-1])] is False:
+        raise ValueError("Attribute {} ({}) is not assigned to type {}".format(attribute.name, attribute.uid, typ[:-1]))
+
+
 def main():
     setup_logger()
     args = parse_args()
     api = utils.create_api(server=args.server, username=args.username, password=args.password)
 
-    uid = args.attribute_uid
+    Attribute = namedtuple('Attribute', 'uid name')
+    Attribute.uid = args.attribute_uid
+    Attribute.name = get_attribute_name(api, args.attribute_uid)
     typ = args.object_type
-    name = None
 
     try:
-        name = api.get('attributes/{}'.format(uid))
-    except APIException as e:
-        if e.code == 404:
-            utils.log_and_exit("Attribute {} could not be found".format(uid))
-        else:
-            utils.log_and_exit("Error: {}".format(e))
+        attribute_is_on_model(api, Attribute, typ)
+    except ValueError as e:
+        logger.error(e)
+        sys.exit(1)
 
     data = load_csv(args.source_csv)
-    validate_csv(data)
+    try:
+        validate_csv(data)
+    except ValueError as e:
+        logger.error(e)
+        sys.exit(1)
 
-    attr_get = {'fields': 'id,name,{}Attribute'.format(args.object_type[:-1])}
-    attr = api.get('attributes/{}'.format(args.attribute_uid), params=attr_get)
-    if attr['{}Attribute'.format(args.object_type[:-1])] is False:
-        utils.log_and_exit("Attribute {} ({}) is not assigned to type {}".format(name, uid, typ[:-1]))
-
-    print(u"[{}] - Updating Attribute Values '{}' ({}) for {} {} ...".format(args.server, name, uid, len(data), typ))
+    print(u"[{}] - Updating Attribute Values '{}' ({}) for {} {} ...".format(args.server, Attribute.name, Attribute.uid, len(data), typ))
     try:
         time.sleep(3)
     except KeyboardInterrupt:
@@ -174,10 +194,17 @@ def main():
     for i, obj in enumerate(data, 1):
         obj_uid = obj['uid']
         attribute_value = obj['attributeValue']
+
         obj_old = api.get('{}/{}'.format(args.object_type, obj_uid), params={'fields': ':owner'})
-        obj_updated = create_or_update_attribute_values(obj_old, uid, attribute_value)
-        api.put('{}/{}'.format(typ, obj_uid), data=obj_updated)
-        print(u"{}/{} - Updated AttributeValue: {} - {}: {}".format(i, len(data), attribute_value, typ[:-1], obj_uid))
+        obj_updated = create_or_update_attribute_values(obj_old, Attribute.uid, attribute_value)
+
+        try:
+            api.put('{}/{}'.format(typ, obj_uid), data=obj_updated)
+        except APIException as e:
+            logger.error(e)
+            sys.exit(1)
+        else:
+            print(u"{}/{} - Updated AttributeValue: {} - {}: {}".format(i, len(data), attribute_value, typ[:-1], obj_uid))
 
 
 if __name__ == "__main__":

@@ -19,7 +19,10 @@ from dhis2 import setup_logger, logger, APIException
 from six import iteritems
 from colorama import Style
 
-import utils
+try:
+    import utils
+except (SystemError, ImportError):
+    from . import utils
 
 access = {
     'none': u'--',
@@ -70,7 +73,7 @@ class Permission(object):
     @classmethod
     def from_symbol(cls, symbol):
         if symbol not in Permission.symbolic_notation:
-            utils.log_and_exit("Permission symbol '{}' not valid!".format(symbol))
+            raise ValueError("Permission symbol '{}' not valid!".format(symbol))
         metadata_str = symbol[:2]
         if metadata_str == 'rw':
             metadata = 'readwrite'
@@ -189,13 +192,15 @@ class ShareableObjectCollection(object):
                 return response
             else:
                 logger.warning(u'No {} found - check your filter'.format(self.plural))
-                import sys
                 sys.exit(0)
 
     def create_obj(self, response):
         for elem in response:
             try:
                 public_access = Permission.from_symbol(elem['publicAccess'])
+            except ValueError as e:
+                logger.error(e)
+                raise
             except KeyError:
                 logger.error(
                     "ServerError: Public access is not set for {} {} '{}'".format(self.name, elem['id'], elem['name']))
@@ -217,12 +222,12 @@ class ShareableObjectCollection(object):
 
 class ShareableObject(object):
 
-    def __init__(self, obj_type, uid, name, public_access, usergroup_accesses=set(), code=None):
+    def __init__(self, obj_type, uid, name, public_access, usergroup_accesses=None, code=None):
         self.obj_type = obj_type
         self.uid = uid
         self.name = name
         self.public_access = public_access
-        self.usergroup_accesses = usergroup_accesses
+        self.usergroup_accesses = usergroup_accesses if usergroup_accesses else set()
         self.code = code
         self.external_access = False
         self.user = {}
@@ -263,13 +268,12 @@ class ShareableObject(object):
         return s
 
     def identifier(self):
-        try:
+        if self.name:
             return u"'{}'".format(self.name)
-        except KeyError:
-            try:
-                return u"'{}'".format(self.code)
-            except KeyError:
-                return u''
+        if self.code:
+            return u"'{}'".format(self.code)
+        else:
+            return u''
 
     def to_json(self):
         return {
@@ -500,8 +504,8 @@ def validate_args(args, dhis_version):
 def validate_data_access(public_access, collection, usergroups, dhis_version):
     if dhis_version < NEW_SYNTAX:
         if public_access.data or any([group.permission.data for group in usergroups.accesses]):
-            utils.log_and_exit("ArgumentError: You cannot set DATA access on DHIS2 versions below 2.29"
-                         " - check your arguments (-a) and (-g)")
+            utils.log_and_exit("ArgumentError: You cannot set DATA access on DHIS2 versions below 2.29 "
+                               "- check your arguments (-a) and (-g)")
     else:
         if collection.data_sharing_enabled:
             log_msg = "ArgumentError: Missing {} permission for DATA access for '{}' (Argument {})"
