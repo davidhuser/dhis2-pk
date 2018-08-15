@@ -40,4 +40,4 @@ def file_timestamp(url):
 
 def valid_uid(uid):
     """Check if string matches DHIS2 UID pattern"""
-    return re.compile("[A-Za-z][A-Za-z0-9]{10}").match(uid)
+    return bool(re.match(r"^[A-Za-z][A-Za-z0-9]{10}$", uid))
