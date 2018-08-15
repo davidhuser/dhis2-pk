@@ -6,20 +6,23 @@ import re
 from collections import namedtuple
 
 from dhis2 import logger
+from colorama import Style
 
-import common
+import utils
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Create CSV of orgunits / usergroups of users")
+    description = "{}Create CSV of user information.{}".format(Style.BRIGHT, Style.RESET_ALL)
+    usage = "\n{}Example:{} dhis2-pk-userinfo -s play.dhis2.org/demo -u admin -p district".format(
+        Style.BRIGHT, Style.RESET_ALL)
+
+    parser = argparse.ArgumentParser(usage=usage, description=description)
     parser.add_argument('-s', dest='server', action='store',
-                        help="DHIS2 server URL without /api/ e.g. -s=play.dhis2.org/demo")
+                        help="DHIS2 server URL")
     parser.add_argument('-u', dest='username', action='store', help="DHIS2 username")
     parser.add_argument('-p', dest='password', action='store', help="DHIS2 password")
     parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
-                        help='DHIS2 API version e.g. -v=24')
-    parser.add_argument('-d', dest='debug', action='store_true', default=False, required=False,
-                        help="Writes more info in log file")
+                        help='DHIS2 API version e.g. -v=28')
 
     return parser.parse_args()
 
@@ -52,8 +55,8 @@ def format_user(users, ou_map):
 def main():
     args = parse_args()
 
-    api = common.create_api(server=args.server, username=args.username, password=args.password)
-    file_timestamp = common.file_timestamp(api.api_url)
+    api = utils.create_api(server=args.server, username=args.username, password=args.password)
+    file_timestamp = utils.file_timestamp(api.api_url)
 
     params1 = {
         'fields':
@@ -93,7 +96,7 @@ def main():
             user.dv_org_units
         ])
 
-    common.write_csv(data, file_name, header_row)
+    utils.write_csv(data, file_name, header_row)
     logger.info("Success! CSV file exported to {}".format(file_name))
 
 

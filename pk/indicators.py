@@ -10,9 +10,10 @@ Creates a CSV with indicator definitions (names of dataelement.catoptioncombo, c
 import argparse
 from collections import namedtuple, OrderedDict
 
+from colorama import Style
 from dhis2 import setup_logger, logger
 
-import common
+import utils
 
 indicator_fields = OrderedDict([
     ('type', 'indicator'),
@@ -57,7 +58,6 @@ def replace_definitions(definition, obj_map):
 def object_map(api):
     """get all relevant objects from the server and put it in a single dictionary"""
     uid_mapping = {}
-
     params1 = {'paging': False}
     resp1 = api.get(endpoint='indicatorTypes', params=params1).json()
     for elem in resp1['indicatorTypes']:
@@ -108,38 +108,44 @@ def object_map(api):
 
 
 def parse_args():
+    description = "{}Create CSV with indicator definitions/expressions.{}".format(Style.BRIGHT, Style.RESET_ALL)
+    usage = "\n{}Example:{} dhis2-pk-indicator-definitions -s play.dhis2.org/demo -u admin -p district -t indicators".format(Style.BRIGHT, Style.RESET_ALL)
+
     types = {'programIndicators', 'indicators'}
-    parser = argparse.ArgumentParser(description="Create CSV with indicator definitions/expressions")
-    parser.add_argument('-s',
-                        dest='server',
-                        action='store',
-                        help="DHIS2 server URL without /api/, e.g. -s='play.dhis2.org/demo'")
-    parser.add_argument('-f',
-                        dest='indicator_filter',
-                        action='store',
-                        help="Indicator filter, e.g. -f='name:$like:HIV'",
-                        required=False)
-    parser.add_argument('-t',
-                        dest='indicator_type',
-                        action='store',
-                        metavar='INDICATOR_TYPE',
-                        help="Type of indicator: '{}'".format("' or '".join(types)),
-                        choices=types,
-                        required=True)
-    parser.add_argument('-u',
-                        dest='username',
-                        action='store',
-                        help="DHIS2 username")
-    parser.add_argument('-p',
-                        dest='password',
-                        action='store',
-                        help="DHIS2 password")
-    parser.add_argument('-v',
-                        dest='api_version',
-                        action='store',
-                        required=False,
-                        type=int,
-                        help='DHIS2 API version e.g. -v=24')
+    parser = argparse.ArgumentParser(usage=usage, description=description)
+    parser._action_groups.pop()
+
+    required = parser.add_argument_group('required arguments')
+    required.add_argument('-t',
+                          dest='indicator_type',
+                          action='store',
+                          metavar='INDICATOR_TYPE',
+                          help="{}".format(" or ".join(types)),
+                          choices=types,
+                          required=True)
+
+    optional = parser.add_argument_group('optional arguments')
+    optional.add_argument('-s',
+                          dest='server',
+                          action='store',
+                          help="DHIS2 server URL")
+    optional.add_argument('-f',
+                          dest='indicator_filter',
+                          action='store',
+                          help="Indicator filter, e.g. -f 'name:like:HIV' - see dhis2-pk-share --help")
+    optional.add_argument('-u',
+                          dest='username',
+                          action='store',
+                          help="DHIS2 username")
+    optional.add_argument('-p',
+                          dest='password',
+                          action='store',
+                          help="DHIS2 password")
+    optional.add_argument('-v',
+                          dest='api_version',
+                          action='store',
+                          type=int,
+                          help='DHIS2 API version e.g. -v=28')
     return parser.parse_args()
 
 
@@ -161,7 +167,7 @@ def analyze_result(typ, indicators, indicator_filter):
             msg = "No {} found - check your filter.".format(typ)
         else:
             msg = "No {} found - are there any?".format(typ)
-        common.log_and_exit(msg)
+        utils.log_and_exit(msg)
     else:
         if indicator_filter:
             msg = "Found {} {} with filter {}".format(no_of_indicators, typ, indicator_filter)
@@ -194,7 +200,8 @@ def format_indicator(typ, data, object_mapping):
             ProgramIndicator.name = u'{}'.format(ind['name'])
             ProgramIndicator.short_name = u'{}'.format(ind['shortName'])
             ProgramIndicator.expression = replace_definitions(ind['expression'], object_mapping)
-            ProgramIndicator.filter = replace_definitions(ind['filter'], object_mapping) if ind.get('filter') else 'no-filter'
+            ProgramIndicator.filter = replace_definitions(ind['filter'], object_mapping) if ind.get(
+                'filter') else 'no-filter'
             ProgramIndicator.aggregation_type = u'{}'.format(ind['aggregationType'])
             ProgramIndicator.analytics_type = u'{}'.format(ind['analyticsType'])
             ProgramIndicator.program = u'{}'.format(ind['program']['id'])
@@ -224,7 +231,7 @@ def write_to_csv(typ, indicators, object_mapping, file_name):
                 indicator.last_updated
             ])
 
-        common.write_csv(data, file_name, header_row)
+        utils.write_csv(data, file_name, header_row)
         logger.info("Success! CSV file exported to {}".format(file_name))
 
     elif typ == 'programIndicators':
@@ -243,17 +250,18 @@ def write_to_csv(typ, indicators, object_mapping, file_name):
                 program_indicator.program,
                 program_indicator.program_name,
                 program_indicator.last_updated
-                ])
+            ])
 
-        common.write_csv(data, file_name, header_row)
+        utils.write_csv(data, file_name, header_row)
         logger.info("Success! CSV file exported to {}".format(file_name))
 
 
 def main():
     args = parse_args()
 
-    api = common.create_api(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
-    file_timestamp = common.file_timestamp(api.api_url)
+    api = utils.create_api(server=args.server, username=args.username, password=args.password,
+                           api_version=args.api_version)
+    file_timestamp = utils.file_timestamp(api.api_url)
 
     setup_logger()
     file_name = '{}-{}.csv'.format(args.indicator_type, file_timestamp)
@@ -266,7 +274,7 @@ def main():
 
     else:
         fields = None
-        common.log_and_exit('Cannot process argument -t {}'.format(args.indicator_type))
+        utils.log_and_exit('Cannot process argument -t {}'.format(args.indicator_type))
 
     indicators = api.get(endpoint=args.indicator_type, params=get_params(args.indicator_filter, fields)).json()
     message = analyze_result(args.indicator_type, indicators, args.indicator_filter)

@@ -1,3 +1,7 @@
+from colorama import init
+init()
+
+
 class DHIS2PocketKnifeException(Exception):
     """The base dhis2-pk Exception that all other exception classes extend."""
 

@@ -3,20 +3,31 @@ import sys
 import re
 from datetime import datetime
 
-from dhis2 import Dhis, logger
+from dhis2 import Dhis, logger, ClientException
 
 from __version__ import __version__
 
 
 def create_api(server=None, username=None, password=None, api_version=None):
     if not any([server, username, password]):
-        return Dhis.from_auth_file(api_version=api_version, user_agent='dhis2-pk/{}'.format(__version__))
+        try:
+            api = Dhis.from_auth_file(api_version=api_version, user_agent='dhis2-pk/{}'.format(__version__))
+        except ClientException:
+            logger.exception("Problems accessing a dish.json file")
+            sys.exit(1)
+        else:
+            logger.info("Found a file for server {}".format(api.base_url))
+            return api
     else:
-        return Dhis(server, username, password, api_version, 'dhis2-pk/{}'.format(__version__))
+        try:
+            return Dhis(server, username, password, api_version, 'dhis2-pk/{}'.format(__version__))
+        except ClientException:
+            logger.exception("Problem instantiating a dhis2.py instance")
+            sys.exit(1)
 
 
 def log_and_exit(message):
-    logger.error(message)
+    logger.error(u'{}'.format(message))
     sys.exit(1)
 
 

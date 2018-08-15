@@ -3,16 +3,11 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
-[requires]
-python_version = "3.5"
-
 [dev-packages]
 pytest = "*"
 pytest-cov = "*"
 responses = "*"
-sphinx = "*"
-sphinx-autobuild = "*"
-sphinx-rtd-theme = "*"
 
 [packages]
 "dhis2.py" = "*"
+colorama = "*"
