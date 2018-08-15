@@ -1,7 +1,6 @@
 .idea/
 *.log
 *.json
-*.csv
 *.xml
 *lock.*
 
