@@ -6,7 +6,7 @@ membership, username, phone number, ...) to a CSV file.
 
 Example CSV output: ![issue](https://i.imgur.com/2zkIFVi.png)
 
-**Script name:** dhis2-pk-userinfo
+**Script name:** `dhis2-pk-userinfo`
 
 ```
 Example: dhis2-pk-userinfo -s play.dhis2.org/demo -u admin -p district
