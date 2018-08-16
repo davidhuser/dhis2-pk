@@ -60,7 +60,7 @@ class TestCommand(Command):
 
     def run(self):
         self.status('Testing with pytest...')
-        os.system('python -m pytest --cov=pk --cov-report term-missing tests -vv')
+        os.system('python -m pytest tests')
 
 
 about = {}
