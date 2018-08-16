@@ -5,7 +5,7 @@ import argparse
 import re
 from collections import namedtuple
 
-from dhis2 import logger
+from dhis2 import setup_logger, logger
 from colorama import Style
 
 import utils
@@ -53,6 +53,7 @@ def format_user(users, ou_map):
 
 
 def main():
+    setup_logger()
     args = parse_args()
 
     api = utils.create_api(server=args.server, username=args.username, password=args.password)

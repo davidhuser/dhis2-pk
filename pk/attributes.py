@@ -55,7 +55,7 @@ def parse_args():
     description = "{}Set Attribute Values sourced from CSV file.{}".format(Style.BRIGHT, Style.RESET_ALL)
 
     usage = """
-{}Example:{} dhis2-pk-attribute-setter -s=play.dhis2.org/dev -u=admin -p=district -c=file.csv -t=organisationUnits -a=pt5Ll9bb2oP
+{}Example:{} dhis2-pk-attribute-setter -s play.dhis2.org/dev -u admin -p district -c file.csv -t organisationUnits -a pt5Ll9bb2oP
 
 {}CSV file structure:{}
 uid   | attributeValue
@@ -127,7 +127,7 @@ def create_or_update_attribute_values(obj, attribute_uid, attribute_value):
         }
     }
     # if no single attribute is set
-    if not obj.get('attributeValues', None):
+    if not obj.get('attributeValues'):
         obj_copy['attributeValues'] = [updated]
         return obj_copy
 
@@ -146,7 +146,7 @@ def create_or_update_attribute_values(obj, attribute_uid, attribute_value):
 
 def get_attribute_name(api, uid):
     try:
-        return api.get('attributes/{}'.format(uid))
+        return api.get('attributes/{}'.format(uid)).json()['name']
     except APIException as e:
         if e.code == 404:
             raise ValueError("Attribute {} could not be found".format(uid))
@@ -156,7 +156,7 @@ def get_attribute_name(api, uid):
 
 def attribute_is_on_model(api, attribute, typ):
     attr_get = {'fields': 'id,name,{}Attribute'.format(typ[:-1])}
-    attr = api.get('attributes/{}'.format(attribute.uid), params=attr_get)
+    attr = api.get('attributes/{}'.format(attribute.uid), params=attr_get).json()
     if attr['{}Attribute'.format(typ[:-1])] is False:
         raise ValueError("Attribute {} ({}) is not assigned to type {}".format(attribute.name, attribute.uid, typ[:-1]))
 
@@ -177,14 +177,14 @@ def main():
         logger.error(e)
         sys.exit(1)
 
-    data = load_csv(args.source_csv)
+    data = list(load_csv(args.source_csv))
     try:
         validate_csv(data)
     except ValueError as e:
         logger.error(e)
         sys.exit(1)
 
-    print(u"[{}] - Updating Attribute Values '{}' ({}) for {} {} ...".format(args.server, Attribute.name, Attribute.uid, len(data), typ))
+    logger.info(u"[{}] - Updating Attribute Values for Attribute '{}' ({}) for {} {} ...".format(args.server, Attribute.name, Attribute.uid, len(data), typ))
     try:
         time.sleep(3)
     except KeyboardInterrupt:
@@ -195,7 +195,7 @@ def main():
         obj_uid = obj['uid']
         attribute_value = obj['attributeValue']
 
-        obj_old = api.get('{}/{}'.format(args.object_type, obj_uid), params={'fields': ':owner'})
+        obj_old = api.get('{}/{}'.format(args.object_type, obj_uid), params={'fields': ':owner'}).json()
         obj_updated = create_or_update_attribute_values(obj_old, Attribute.uid, attribute_value)
 
         try:
@@ -204,7 +204,7 @@ def main():
             logger.error(e)
             sys.exit(1)
         else:
-            print(u"{}/{} - Updated AttributeValue: {} - {}: {}".format(i, len(data), attribute_value, typ[:-1], obj_uid))
+            logger.info(u"{}/{} - Updated AttributeValue: {} - {}: {}".format(i, len(data), attribute_value, typ[:-1], obj_uid))
 
 
 if __name__ == "__main__":

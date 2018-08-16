@@ -280,7 +280,7 @@ def main():
     message = analyze_result(args.indicator_type, indicators, args.indicator_filter)
     logger.info(message)
 
-    logger.info("Downloading other UIDs <-> Names...")
+    logger.info("Analyzing metadata...")
     object_mapping = object_map(api)
 
     write_to_csv(args.indicator_type, indicators, object_mapping, file_name)
