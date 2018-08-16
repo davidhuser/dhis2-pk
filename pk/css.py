@@ -40,7 +40,7 @@ def post_file(api, filename, content_type='text/css'):
 
 def main():
     args = parse_args()
-    setup_logger()
+    setup_logger(include_caller=False)
     api = utils.create_api(server=args.server, username=args.username, password=args.password)
     if not os.path.exists(args.css):
         utils.log_and_exit("File does not exists: {}".format(args.css))

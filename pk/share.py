@@ -554,11 +554,11 @@ def main():
     args = parse_args()
     if args.logging_to_file:
         if args.debug:
-            setup_logger(args.logging_to_file, DEBUG)
+            setup_logger(logfile=args.logging_to_file, log_level=DEBUG)
         else:
-            setup_logger(args.logging_to_file)
+            setup_logger(logfile=args.logging_to_file)
     else:
-        setup_logger()
+        setup_logger(include_caller=False)
 
     api = utils.create_api(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
     try:

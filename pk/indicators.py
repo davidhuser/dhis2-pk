@@ -108,7 +108,7 @@ def object_map(api):
 
 
 def parse_args():
-    description = "{}Create CSV with indicator definitions/expressions.{}".format(Style.BRIGHT, Style.RESET_ALL)
+    description = "{}Readable indicator definition to CSV.{}".format(Style.BRIGHT, Style.RESET_ALL)
     usage = "\n{}Example:{} dhis2-pk-indicator-definitions -s play.dhis2.org/demo -u admin -p district -t indicators".format(Style.BRIGHT, Style.RESET_ALL)
 
     types = {'programIndicators', 'indicators'}
@@ -263,7 +263,7 @@ def main():
                            api_version=args.api_version)
     file_timestamp = utils.file_timestamp(api.api_url)
 
-    setup_logger()
+    setup_logger(include_caller=False)
     file_name = '{}-{}.csv'.format(args.indicator_type, file_timestamp)
 
     if args.indicator_type == 'indicators':
