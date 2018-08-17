@@ -14,11 +14,11 @@ from dhis2 import setup_logger, logger
 from colorama import Style
 
 try:
-    from common.utils import create_api
-    from common.exceptions import PKClientException
+    from pk.common.utils import create_api
+    from pk.common.exceptions import PKClientException
 except (SystemError, ImportError):
     from common.utils import create_api
-    from pk.common.exceptions import PKClientException
+    from common.exceptions import PKClientException
 
 
 def parse_args():

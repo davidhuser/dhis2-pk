@@ -11,11 +11,11 @@ from colorama import Style
 from dhis2 import setup_logger, logger, load_csv, APIException
 
 try:
-    from common.utils import create_api, valid_uid
-    from common.exceptions import PKClientException
-except (SystemError, ImportError):
     from pk.common.utils import create_api, valid_uid
     from pk.common.exceptions import PKClientException
+except (SystemError, ImportError):
+    from common.utils import create_api, valid_uid
+    from common.exceptions import PKClientException
 
 OBJ_TYPES = {
     'categories',

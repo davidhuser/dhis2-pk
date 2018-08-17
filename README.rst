@@ -3,7 +3,7 @@
 
 |Version| |Build|
 
-Command-line tools to interact with the RESTful Web API of `DHIS2 <https://dhis2.org>`__.
+Command-line tools for `DHIS2 <https://dhis2.org>`__.
 
 Features:
 
@@ -12,6 +12,7 @@ Features:
 -  `Download user information to CSV <https://github.com/davidhuser/dhis2-pk/blob/master/docs/userinfo.md>`__
 -  `Post a CSS style sheet for the login page <https://github.com/davidhuser/dhis2-pk/blob/master/docs/post-css.md>`__
 -  `Set attribute values with a CSV <https://github.com/davidhuser/dhis2-pk/blob/master/docs/attribute-setter.md>`__
+-  `Analyze validation rules <https://github.com/davidhuser/dhis2-pk/blob/master/docs/validation-rules.md>`__
 
 Installation:
 

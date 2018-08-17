@@ -20,11 +20,11 @@ from dhis2 import setup_logger, logger
 from six import iteritems
 
 try:
-    from common.utils import create_api
-    from common.exceptions import PKClientException
-except (SystemError, ImportError):
     from pk.common.utils import create_api
     from pk.common.exceptions import PKClientException
+except (SystemError, ImportError):
+    from common.utils import create_api
+    from common.exceptions import PKClientException
 
 access = {
     'none': u'--',

@@ -92,7 +92,8 @@ setup(
             'dhis2-pk-share = pk.share:main',
             'dhis2-pk-userinfo = pk.userinfo:main',
             'dhis2-pk-post-css = pk.css:main',
-            'dhis2-pk-attribute-setter = pk.attributes:main'
+            'dhis2-pk-attribute-setter = pk.attributes:main',
+            'dhis2-pk-validation-rules = pk.validationrules:main'
         ]
     },
     classifiers=[

@@ -14,11 +14,11 @@ from colorama import Style
 from dhis2 import setup_logger, logger
 
 try:
-    from common.utils import create_api, write_csv, file_timestamp
-    from common.exceptions import PKClientException
+    from pk.common.utils import create_api, write_csv, file_timestamp
+    from pk.common.exceptions import PKClientException
 except (SystemError, ImportError):
     from common.utils import create_api, write_csv, file_timestamp
-    from pk.common.exceptions import PKClientException
+    from common.exceptions import PKClientException
 
 indicator_fields = OrderedDict([
     ('type', 'indicator'),
