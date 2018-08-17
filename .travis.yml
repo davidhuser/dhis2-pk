@@ -6,7 +6,7 @@ python:
   - '3.6'
  # - '3.7'
 before_install: pip install --upgrade pip
-install: pip install tox-travis
+install: pip install tox-travis funcsigs
 script: tox
 notifications:
   email: false
