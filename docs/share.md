@@ -115,3 +115,5 @@ Additionally, you can join filters with *AND* or *OR*:
 * Share all data elements within a data element group: `-t dataElements -f 'dataElementGroups.id:eq:oDkJh5Ddh7d'`
 * Share all programStages within a program: `-t programStages -f 'program.id:eq:uy2gU8kT1jF'`
 * Share something with all UserGroups starting with `HQ-` in its name: `-g 'name:$like:HQ-' readwrite readonly`
+
+Note: if you're using Windows you might run into problems but [they can be solved.](https://github.com/davidhuser/dhis2-pk/blob/master/docs/installation.md#windows)

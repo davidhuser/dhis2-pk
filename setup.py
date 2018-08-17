@@ -83,6 +83,7 @@ setup(
     install_requires=[
         'requests>=2.4.2',
         'logzero>=1.3.1',
+        'colorama',
         'unicodecsv>=0.14.1',
         'six'
     ],

@@ -3,6 +3,7 @@
 *.json
 *.xml
 *lock.*
+manual-pip.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
