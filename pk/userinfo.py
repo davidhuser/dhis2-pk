@@ -12,7 +12,7 @@ try:
     from common.utils import create_api, file_timestamp, write_csv
     from common.exceptions import PKClientException
 except (SystemError, ImportError):
-    import pk.common.utils
+    from pk.common.utils import create_api, file_timestamp, write_csv
     from pk.common.exceptions import PKClientException
 
 

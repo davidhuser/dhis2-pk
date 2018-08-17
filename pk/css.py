@@ -17,7 +17,7 @@ try:
     from common.utils import create_api
     from common.exceptions import PKClientException
 except (SystemError, ImportError):
-    import pk.common.utils
+    from common.utils import create_api
     from pk.common.exceptions import PKClientException
 
 

@@ -17,7 +17,7 @@ try:
     from common.utils import create_api, write_csv, file_timestamp
     from common.exceptions import PKClientException
 except (SystemError, ImportError):
-    import pk.common.utils
+    from common.utils import create_api, write_csv, file_timestamp
     from pk.common.exceptions import PKClientException
 
 indicator_fields = OrderedDict([
