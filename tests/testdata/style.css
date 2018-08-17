@@ -1,0 +1,14 @@
+.loginPage {
+  background-color: #354f6b;
+  color: #28a745;
+}
+
+#flagArea {
+  border: 1px solid #28a745;
+}
+
+#footerArea {
+  background-color: #3a4c5f;
+  border-top: 1px solid #28a745;
+  color: #28a745;
+}

@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+pytest = "*"
+pytest-cov = "*"
+responses = "*"
+
+[packages]
+colorama = "*"
+"dhis2.py" = "==1.5.1"
+
+[scripts]
+tests = "python -m pytest --cov=pk --cov-report term-missing tests -vv"

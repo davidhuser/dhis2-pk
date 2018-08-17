@@ -2,16 +2,12 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import io
+from codecs import open
 from shutil import rmtree
 
 from setuptools import find_packages, setup, Command
 
 here = os.path.abspath(os.path.dirname(__file__))
-
-__version__ = ''
-with open(os.path.join('pk', 'core', 'version.py')) as f:
-    exec (f.read())
 
 
 class PublishCommand(Command):
@@ -64,21 +60,24 @@ class TestCommand(Command):
 
     def run(self):
         self.status('Testing with pytest...')
-        os.system('python -m pytest --cov=pk --cov-report term-missing tests -vv')
+        os.system('python -m pytest tests')
 
 
-# Import the README and use it as the long-description.
-# Note: this will only work if 'README.rst' is present in your MANIFEST.in file!
-with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = '\n' + f.read()
+about = {}
+with open(os.path.join(here, 'pk', '__version__.py'), 'r', 'utf-8') as f:
+    exec(f.read(), about)
+
+with open('README.rst', 'r', 'utf-8') as f:
+    readme = f.read()
 
 setup(
-    name='dhis2-pocket-knife',
-    version=__version__,
-    description='Command-line tools for interacting with DHIS2 REST API',
-    author='David Huser',
-    author_email='dhuser@baosystems.com',
-    url='https://github.com/davidhuser/dhis2-pocket-knife',
+    name=about['__title__'],
+    version=about['__version__'],
+    description=about['__description__'],
+    long_description=readme,
+    author=about['__author__'],
+    author_email=about['__author_email__'],
+    url=about['__url__'],
     keywords='dhis2',
     license='MIT',
     install_requires=[
@@ -90,10 +89,10 @@ setup(
     entry_points={
         'console_scripts': [
             'dhis2-pk-indicator-definitions = pk.indicators:main',
-            'dhis2-pk-share-objects = pk.share:main',
-            'dhis2-pk-share = pk.share29:main',
+            'dhis2-pk-share = pk.share:main',
             'dhis2-pk-userinfo = pk.userinfo:main',
-            'dhis2-pk-post-css = pk.css:main'
+            'dhis2-pk-post-css = pk.css:main',
+            'dhis2-pk-attribute-setter = pk.attributes:main'
         ]
     },
     classifiers=[
