@@ -81,9 +81,8 @@ setup(
     keywords='dhis2',
     license='MIT',
     install_requires=[
-        'requests>=2.4.2',
-        'logzero>=1.3.1',
-        'colorama',
+        'dhis2.py==1.5.1',
+        'colorama==0.3.9',
         'unicodecsv>=0.14.1',
         'six'
     ],
