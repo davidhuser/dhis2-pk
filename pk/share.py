@@ -15,14 +15,16 @@ import textwrap
 import time
 from logging import DEBUG
 
-from dhis2 import setup_logger, logger, APIException
-from six import iteritems
 from colorama import Style
+from dhis2 import setup_logger, logger
+from six import iteritems
 
 try:
-    import utils
+    from common.utils import create_api
+    from common.exceptions import PKClientException
 except (SystemError, ImportError):
-    from . import utils
+    import pk.common.utils
+    from pk.common.exceptions import PKClientException
 
 access = {
     'none': u'--',
@@ -119,7 +121,7 @@ class ShareableObjectCollection(object):
         self.api = api
         self.name, self.plural = self.get_name(obj_type)
         self.filters = filters
-        self.delimiter, self.root_junction = set_delimiter(api, filters)
+        self.delimiter, self.root_junction = set_delimiter(api.version_int, filters)
         self.data_sharing_enabled = self.is_data_shareable()
 
         from_server = self.get_objects().json().get(self.plural)
@@ -149,8 +151,7 @@ class ShareableObjectCollection(object):
         for name, plural in iteritems(shareable):
             if obj_type.lower() in (name.lower(), plural.lower()):
                 return name, plural
-        logger.error("No DHIS2 object type for '{}'".format(obj_type))
-        sys.exit(1)
+        raise PKClientException("No DHIS2 object type for '{}'".format(obj_type))
 
     def is_data_shareable(self):
         data_shareable = self.schema('dataShareable')
@@ -199,11 +200,10 @@ class ShareableObjectCollection(object):
             try:
                 public_access = Permission.from_symbol(elem['publicAccess'])
             except ValueError as e:
-                logger.error(e)
-                raise
+                raise PKClientException(e)
             except KeyError:
-                logger.error(
-                    "ServerError: Public access is not set for {} {} '{}'".format(self.name, elem['id'], elem['name']))
+                raise PKClientException("ServerError: Public access is not set "
+                                        "for {} {} '{}'".format(self.name, elem['id'], elem['name']))
             else:
                 yield ShareableObject(obj_type=self.name,
                                       uid=elem['id'],
@@ -332,7 +332,7 @@ class UserGroupsCollection(object):
                 group_filter = group[0]
                 permission = Permission.from_group_args(group)
 
-                delimiter, root_junction = set_delimiter(api, group_filter)
+                delimiter, root_junction = set_delimiter(api.version_int, group_filter)
                 filter_list = group_filter.split(delimiter)
                 usergroups = self.get_usergroup_uids(filter_list, root_junction)
                 log_msg = u"User Groups with filter [{}]"
@@ -363,7 +363,7 @@ class UserGroupsCollection(object):
         if len(response['userGroups']) > 0:
             return {ug['id']: ug['name'] for ug in response['userGroups']}
         else:
-            utils.log_and_exit("No userGroup found with {}".format(filter_list))
+            raise PKClientException("No userGroup found with {}".format(filter_list))
 
 
 def skip(overwrite, on_server, update):
@@ -479,17 +479,17 @@ def parse_args():
 
 def validate_args(args, dhis_version):
     if len(args.public_access) not in (1, 2):
-        utils.log_and_exit("ArgumentError: Must use -a METADATA [DATA] - max. 2 arguments")
+        raise PKClientException("ArgumentError: Must use -a METADATA [DATA] - max. 2 arguments")
     if args.groups:
         for group in args.groups:
             try:
                 metadata_permission = group[1]
             except IndexError:
-                metadata_permission = None
-                utils.log_and_exit("ArgumentError: Missing User Group permission for METADATA access")
+                raise PKClientException("ArgumentError: Missing User Group permission for METADATA access")
             if metadata_permission not in access.keys():
-                utils.log_and_exit('ArgumentError: User Group permission for METADATA access not valid: "{}"'.format(
-                    metadata_permission))
+                raise PKClientException(
+                    'ArgumentError: User Group permission for METADATA access not valid: "{}"'.format(
+                        metadata_permission))
             if dhis_version >= NEW_SYNTAX:
                 try:
                     data_permission = group[2]
@@ -497,50 +497,50 @@ def validate_args(args, dhis_version):
                     pass
                 else:
                     if data_permission not in access.keys():
-                        utils.log_and_exit('ArgumentError: User Group permission for DATA access not valid: "{}"'.format(
-                            data_permission))
+                        raise PKClientException(
+                            'ArgumentError: User Group permission for DATA access not valid: "{}"'.format(
+                                data_permission))
 
 
 def validate_data_access(public_access, collection, usergroups, dhis_version):
     if dhis_version < NEW_SYNTAX:
         if public_access.data or any([group.permission.data for group in usergroups.accesses]):
-            utils.log_and_exit("ArgumentError: You cannot set DATA access on DHIS2 versions below 2.29 "
-                               "- check your arguments (-a) and (-g)")
+            raise PKClientException("ArgumentError: You cannot set DATA access on DHIS2 versions below 2.29 "
+                                    "- check your arguments (-a) and (-g)")
     else:
         if collection.data_sharing_enabled:
             log_msg = "ArgumentError: Missing {} permission for DATA access for '{}' (Argument {})"
             if not public_access.data:
-                utils.log_and_exit(log_msg.format('Public Access', collection.name, '-a'))
+                raise PKClientException(log_msg.format('Public Access', collection.name, '-a'))
             if not all([group.permission.data for group in usergroups.accesses]):
-                utils.log_and_exit(log_msg.format('User Groups', collection.name, '-g'))
+                raise PKClientException(log_msg.format('User Groups', collection.name, '-g'))
         else:
             log_msg = "ArgumentError: Not possible to set {} permission for DATA access for '{}' (Argument {})"
             if public_access.data:
-                utils.log_and_exit(log_msg.format('Public Access', collection.name, '-a'))
+                raise PKClientException(log_msg.format('Public Access', collection.name, '-a'))
             if any([group.permission.data for group in usergroups.accesses]):
-                utils.log_and_exit(log_msg.format('User Group', collection.name, '-g'))
+                raise PKClientException(log_msg.format('User Group', collection.name, '-g'))
 
 
-def set_delimiter(api, argument, version=None):
+def set_delimiter(version, argument):
     """
     Operator and rootJunction Alias validation
-    :type api: Dhis object
     :param version: DHIS2 version
     :param argument: Argument as received from parser
     :return: tuple(delimiter, rootJunction)
     """
     if not argument:
         return None, None
-    if not version:
-        version = api.version_int
     if '^' in argument:
         if version >= 28:
-            utils.log_and_exit("ArgumentError: Operator '^' was replaced with '$' in 2.28 onwards. Nothing shared.")
+            raise PKClientException(
+                "ArgumentError: Operator '^' was replaced with '$' in 2.28 onwards. Nothing shared.")
     if '||' in argument:
         if version < 25:
-            utils.log_and_exit("ArgumentError: rootJunction 'OR' / '||' is only supported 2.25 onwards. Nothing shared.")
+            raise PKClientException(
+                "ArgumentError: rootJunction 'OR' / '||' is only supported 2.25 onwards. Nothing shared.")
         if '&&' in argument:
-            utils.log_and_exit("ArgumentError: Not allowed to combine delimiters '&&' and '||'. Nothing shared")
+            raise PKClientException("ArgumentError: Not allowed to combine delimiters '&&' and '||'. Nothing shared")
         return '||', 'OR'
     return '&&', 'AND'
 
@@ -551,20 +551,18 @@ def share(api, sharing_object):
 
 
 def main():
+    setup_logger(include_caller=False)
     args = parse_args()
     if args.logging_to_file:
         if args.debug:
-            setup_logger(logfile=args.logging_to_file, log_level=DEBUG)
+            setup_logger(logfile=args.logging_to_file, log_level=DEBUG, include_caller=True)
         else:
-            setup_logger(logfile=args.logging_to_file)
-    else:
-        setup_logger(include_caller=False)
+            setup_logger(logfile=args.logging_to_file, include_caller=False)
+    elif args.debug:
+        setup_logger(log_level=DEBUG, include_caller=True)
 
-    api = utils.create_api(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
-    try:
-        validate_args(args, api.version_int)
-    except APIException as e:
-        utils.log_and_exit(e)
+    api = create_api(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
+    validate_args(args, api.version_int)
 
     public_access = Permission.from_public_args(args.public_access)
     collection = ShareableObjectCollection(api, args.object_type, args.filter)
@@ -596,3 +594,7 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         logger.warn("Aborted.")
+    except PKClientException as e:
+        logger.error(e)
+    except Exception as e:
+        logger.exception(e)

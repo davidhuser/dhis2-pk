@@ -8,7 +8,12 @@ from collections import namedtuple
 from dhis2 import setup_logger, logger
 from colorama import Style
 
-import utils
+try:
+    from common.utils import create_api, file_timestamp, write_csv
+    from common.exceptions import PKClientException
+except (SystemError, ImportError):
+    import pk.common.utils
+    from pk.common.exceptions import PKClientException
 
 
 def parse_args():
@@ -56,8 +61,7 @@ def main():
     setup_logger()
     args = parse_args()
 
-    api = utils.create_api(server=args.server, username=args.username, password=args.password)
-    file_timestamp = utils.file_timestamp(api.api_url)
+    api = create_api(server=args.server, username=args.username, password=args.password)
 
     params1 = {
         'fields':
@@ -79,7 +83,7 @@ def main():
         for ou in api.get(endpoint='organisationUnits', params=params2).json()['organisationUnits']
     }
 
-    file_name = "userinfo-{}.csv".format(file_timestamp)
+    file_name = "userinfo-{}.csv".format(file_timestamp(api.api_url))
     data = []
     header_row = ['name', 'firstName', 'surname', 'username', 'phoneNumber', 'userGroups',
                   'userRoles', 'orgunitPaths', 'dataViewOrgunitPaths']
@@ -97,9 +101,16 @@ def main():
             user.dv_org_units
         ])
 
-    utils.write_csv(data, file_name, header_row)
+    write_csv(data, file_name, header_row)
     logger.info("Success! CSV file exported to {}".format(file_name))
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.warn("Aborted.")
+    except PKClientException as e:
+        logger.error(e)
+    except Exception as e:
+        logger.exception(e)

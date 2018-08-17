@@ -1,6 +1,7 @@
-from pk.share import Permission, UserGroupAccess, ShareableObject
-
 import pytest
+
+from pk.share import Permission, UserGroupAccess, ShareableObject, set_delimiter
+from pk.common.exceptions import PKClientException
 
 
 class TestPermission(object):
@@ -159,3 +160,24 @@ class TestShareableObject(object):
             public_access='rw------'
         )
         assert s3.identifier() == u""
+
+
+@pytest.mark.parametrize('version, argument, expected', [
+    (22, 'name:like:ABC', ('&&', 'AND')),
+    (22, 'name:like:ABC&&code:eq:XYZ', ('&&', 'AND')),
+    (25, None, (None, None)),
+    (29, 'name:like:ABC||name:like:CDE', ('||', 'OR'))
+])
+def test_set_delimiter(version, argument, expected):
+    assert set_delimiter(version, argument) == expected
+
+
+@pytest.mark.parametrize('version, argument', [
+    (29, 'name:^like:ABC'),
+    (29, 'name:like:||&&'),
+    (29, 'name:like:ABC||name:like:CDE&&name:like:XYZ'),
+    (24, 'name:like:ABC||name:like:XYZ')
+])
+def test_set_delimiter_raises(version, argument):
+    with pytest.raises(PKClientException):
+        set_delimiter(version, argument)

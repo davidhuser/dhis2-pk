@@ -13,7 +13,12 @@ from collections import namedtuple, OrderedDict
 from colorama import Style
 from dhis2 import setup_logger, logger
 
-import utils
+try:
+    from common.utils import create_api, write_csv, file_timestamp
+    from common.exceptions import PKClientException
+except (SystemError, ImportError):
+    import pk.common.utils
+    from pk.common.exceptions import PKClientException
 
 indicator_fields = OrderedDict([
     ('type', 'indicator'),
@@ -164,10 +169,10 @@ def analyze_result(typ, indicators, indicator_filter):
     no_of_indicators = len(indicators[typ])
     if no_of_indicators == 0:
         if indicator_filter:
-            msg = "No {} found - check your filter.".format(typ)
+            msg = "check your filter."
         else:
-            msg = "No {} found - are there any?".format(typ)
-        utils.log_and_exit(msg)
+            msg = "are there any?"
+        raise SystemExit("No {} found - {}".format(typ, msg))
     else:
         if indicator_filter:
             msg = "Found {} {} with filter {}".format(no_of_indicators, typ, indicator_filter)
@@ -231,7 +236,7 @@ def write_to_csv(typ, indicators, object_mapping, file_name):
                 indicator.last_updated
             ])
 
-        utils.write_csv(data, file_name, header_row)
+        write_csv(data, file_name, header_row)
         logger.info("Success! CSV file exported to {}".format(file_name))
 
     elif typ == 'programIndicators':
@@ -257,14 +262,12 @@ def write_to_csv(typ, indicators, object_mapping, file_name):
 
 
 def main():
+    setup_logger(include_caller=False)
     args = parse_args()
 
-    api = utils.create_api(server=args.server, username=args.username, password=args.password,
-                           api_version=args.api_version)
-    file_timestamp = utils.file_timestamp(api.api_url)
+    api = create_api(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
 
-    setup_logger(include_caller=False)
-    file_name = '{}-{}.csv'.format(args.indicator_type, file_timestamp)
+    file_name = '{}-{}.csv'.format(args.indicator_type, file_timestamp(api.api_url))
 
     if args.indicator_type == 'indicators':
         fields = ','.join([x for x in indicator_fields.values() if x != 'type'])
@@ -273,8 +276,7 @@ def main():
         fields = ','.join([x for x in program_indicator_fields.values() if x not in ('type', 'program_name')])
 
     else:
-        fields = None
-        utils.log_and_exit('Cannot process argument -t {}'.format(args.indicator_type))
+        raise SystemExit('Cannot process argument -t {}'.format(args.indicator_type))
 
     indicators = api.get(endpoint=args.indicator_type, params=get_params(args.indicator_filter, fields)).json()
     message = analyze_result(args.indicator_type, indicators, args.indicator_filter)
@@ -287,4 +289,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.warn("Aborted.")
+    except PKClientException as e:
+        logger.error(e)
+    except Exception as e:
+        logger.exception(e)

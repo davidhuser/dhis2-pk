@@ -13,7 +13,12 @@ import os
 from dhis2 import setup_logger, logger
 from colorama import Style
 
-import utils
+try:
+    from common.utils import create_api
+    from common.exceptions import PKClientException
+except (SystemError, ImportError):
+    import pk.common.utils
+    from pk.common.exceptions import PKClientException
 
 
 def parse_args():
@@ -38,15 +43,28 @@ def post_file(api, filename, content_type='text/css'):
     api.session.post(url='{}/files/style'.format(api.api_url), data=file_read)
 
 
+def validate_file(filename):
+    if not os.path.exists(filename):
+        raise PKClientException("File does not exist: {}".format(filename))
+    if not os.path.getsize(filename) > 0:
+        raise PKClientException("File is empty: {}".format(filename))
+
+
 def main():
     args = parse_args()
     setup_logger(include_caller=False)
-    api = utils.create_api(server=args.server, username=args.username, password=args.password)
-    if not os.path.exists(args.css):
-        utils.log_and_exit("File does not exists: {}".format(args.css))
+    api = create_api(server=args.server, username=args.username, password=args.password)
+    validate_file(args.css)
     post_file(api, filename=args.css)
     logger.info("{} CSS posted to {}. Clear your Browser cache / use Incognito.".format(args.css, api.api_url))
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.warn("Aborted.")
+    except PKClientException as e:
+        logger.error(e)
+    except Exception as e:
+        logger.exception(e)

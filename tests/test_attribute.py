@@ -2,8 +2,10 @@ import os
 
 import pytest
 
-from pk.attributes import validate_csv, create_or_update_attribute_values
 from dhis2 import load_csv
+
+from pk.attributes import validate_csv, create_or_update_attribute_values
+from pk.common.exceptions import PKClientException
 
 TEST_ATTRIBUTE_UID = 'M8fCOxtkURr'
 
@@ -17,19 +19,19 @@ def test_csv_file_valid():
 
 def test_csv_duplicate_objects():
     f = list(load_csv(path=os.path.join(PATH, 'duplicates.csv')))
-    with pytest.raises(ValueError):
+    with pytest.raises(PKClientException):
         validate_csv(f)
 
 
 def test_csv_no_valid_uid():
     f = list(load_csv(path=os.path.join(PATH, 'no_valid_uid.csv')))
-    with pytest.raises(ValueError):
+    with pytest.raises(PKClientException):
         validate_csv(f)
 
 
 def test_csv_no_valid_headers():
     f = list(load_csv(path=os.path.join(PATH, 'headers.csv')))
-    with pytest.raises(ValueError):
+    with pytest.raises(PKClientException):
         validate_csv(f)
 
 
@@ -151,7 +153,7 @@ def user_added_attributevalues():
 def test_attribute_added_value(user_added_attributevalues):
     new_value = 'NEW123'
     updated = create_or_update_attribute_values(obj=user_added_attributevalues, attribute_value=new_value,
-                                               attribute_uid=TEST_ATTRIBUTE_UID)
+                                                attribute_uid=TEST_ATTRIBUTE_UID)
     assert len(updated['attributeValues']) == 2
     assert set([x['attribute']['id'] for x in updated['attributeValues']]) == {TEST_ATTRIBUTE_UID, 'DiszpKrYNg6'}
     assert new_value in [x['value'] for x in updated['attributeValues'] if x['attribute']['id'] == TEST_ATTRIBUTE_UID]

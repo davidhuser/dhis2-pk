@@ -11,9 +11,11 @@ from colorama import Style
 from dhis2 import setup_logger, logger, load_csv, APIException
 
 try:
-    import utils
+    from common.utils import create_api, valid_uid
+    from common.exceptions import PKClientException
 except (SystemError, ImportError):
-    from . import utils
+    from pk.common.utils import create_api, valid_uid
+    from pk.common.exceptions import PKClientException
 
 OBJ_TYPES = {
     'categories',
@@ -99,22 +101,22 @@ UID   | myValue
 
     args = parser.parse_args()
     if args.object_type not in OBJ_TYPES:
-        utils.log_and_exit("argument -t must be a valid object_type - one of:\n{}".format(', '.join(sorted(OBJ_TYPES))))
-    if not utils.valid_uid(args.attribute_uid):
-        utils.log_and_exit("Attribute {} is not a valid UID".format(args.attribute_uid))
+        raise PKClientException("argument -t must be a valid object_type - one of:\n{}".format(', '.join(sorted(OBJ_TYPES))))
+    if not valid_uid(args.attribute_uid):
+        raise PKClientException("Attribute {} is not a valid UID".format(args.attribute_uid))
     return args
 
 
 def validate_csv(data):
     if not data[0].get('uid', None) or not data[0].get('attributeValue', None):
-        raise ValueError("CSV not valid: CSV must have 'uid' and 'attributeValue' as headers")
+        raise PKClientException("CSV not valid: CSV must have 'uid' and 'attributeValue' as headers")
 
     object_uids = [obj['uid'] for obj in data]
     for uid in object_uids:
-        if not utils.valid_uid(uid):
-            raise ValueError("Object '{}' is not a valid UID in the CSV".format(uid))
+        if not valid_uid(uid):
+            raise PKClientException("Object '{}' is not a valid UID in the CSV".format(uid))
     if len(object_uids) != len(set(object_uids)):
-        raise ValueError("Duplicate Objects (rows) found in the CSV.")
+        raise PKClientException("Duplicate Objects (rows) found in the CSV.")
     return True
 
 
@@ -147,49 +149,39 @@ def create_or_update_attribute_values(obj, attribute_uid, attribute_value):
 def get_attribute_name(api, uid):
     try:
         return api.get('attributes/{}'.format(uid)).json()['name']
-    except APIException as e:
-        if e.code == 404:
-            raise ValueError("Attribute {} could not be found".format(uid))
+    except APIException as exc:
+        if exc.code == 404:
+            raise PKClientException("Attribute {} could not be found".format(uid))
         else:
-            raise ValueError("Error: {}".format(e))
+            raise PKClientException("Error: {}".format(exc))
 
 
 def attribute_is_on_model(api, attribute, typ):
     attr_get = {'fields': 'id,name,{}Attribute'.format(typ[:-1])}
     attr = api.get('attributes/{}'.format(attribute.uid), params=attr_get).json()
     if attr['{}Attribute'.format(typ[:-1])] is False:
-        raise ValueError("Attribute {} ({}) is not assigned to type {}".format(attribute.name, attribute.uid, typ[:-1]))
+        raise PKClientException("Attribute {} ({}) is not assigned to type {}".format(attribute.name, attribute.uid, typ[:-1]))
 
 
 def main():
     setup_logger()
     args = parse_args()
-    api = utils.create_api(server=args.server, username=args.username, password=args.password)
+    api = create_api(server=args.server, username=args.username, password=args.password)
 
     Attribute = namedtuple('Attribute', 'uid name')
     Attribute.uid = args.attribute_uid
     Attribute.name = get_attribute_name(api, args.attribute_uid)
     typ = args.object_type
 
-    try:
-        attribute_is_on_model(api, Attribute, typ)
-    except ValueError as e:
-        logger.error(e)
-        sys.exit(1)
+    attribute_is_on_model(api, Attribute, typ)
 
     data = list(load_csv(args.source_csv))
-    try:
-        validate_csv(data)
-    except ValueError as e:
-        logger.error(e)
-        sys.exit(1)
+    validate_csv(data)
 
-    logger.info(u"[{}] - Updating Attribute Values for Attribute '{}' ({}) for {} {} ...".format(args.server, Attribute.name, Attribute.uid, len(data), typ))
-    try:
-        time.sleep(3)
-    except KeyboardInterrupt:
-        logger.warn("{}".format("Aborted!"))
-        pass
+    logger.info(u"Updating values for Attribute '{}' ({}) on {} {} ...".format(Attribute.name, Attribute.uid, len(data), typ))
+    for i in range(3, 0, -1):
+        time.sleep(i)
+        print('Proceeding in {}...'.format(i))
 
     for i, obj in enumerate(data, 1):
         obj_uid = obj['uid']
@@ -198,14 +190,16 @@ def main():
         obj_old = api.get('{}/{}'.format(args.object_type, obj_uid), params={'fields': ':owner'}).json()
         obj_updated = create_or_update_attribute_values(obj_old, Attribute.uid, attribute_value)
 
-        try:
-            api.put('{}/{}'.format(typ, obj_uid), data=obj_updated)
-        except APIException as e:
-            logger.error(e)
-            sys.exit(1)
-        else:
-            logger.info(u"{}/{} - Updated AttributeValue: {} - {}: {}".format(i, len(data), attribute_value, typ[:-1], obj_uid))
+        api.put('{}/{}'.format(typ, obj_uid), data=obj_updated)
+        logger.info(u"{}/{} - Updated AttributeValue: {} - {}: {}".format(i, len(data), attribute_value, typ[:-1], obj_uid))
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.warn("Aborted.")
+    except PKClientException as e:
+        logger.error(e)
+    except Exception as e:
+        logger.exception(e)

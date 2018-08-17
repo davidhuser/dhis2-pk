@@ -3,38 +3,26 @@ import sys
 import re
 from datetime import datetime
 
-from dhis2 import Dhis, logger, ClientException
+from dhis2 import Dhis, logger
 
 try:
     from __version__ import __version__
 except (SystemError, ImportError):
-    from .__version__ import __version__
+    from pk.__version__ import __version__
 
 
 def create_api(server=None, username=None, password=None, api_version=None):
+    """Return a fully configured dhis2.Dhis instance"""
     if not any([server, username, password]):
-        try:
-            api = Dhis.from_auth_file(api_version=api_version, user_agent='dhis2-pk/{}'.format(__version__))
-        except ClientException:
-            logger.exception("Problems accessing a dish.json file")
-            sys.exit(1)
-        else:
-            logger.info("Found a file for server {}".format(api.base_url))
-            return api
+        api = Dhis.from_auth_file(api_version=api_version, user_agent='dhis2-pk/{}'.format(__version__))
+        logger.info("Found a file for server {}".format(api.base_url))
+        return api
     else:
-        try:
-            return Dhis(server, username, password, api_version, 'dhis2-pk/{}'.format(__version__))
-        except ClientException:
-            logger.exception("Problem instantiating a dhis2.py instance")
-            sys.exit(1)
-
-
-def log_and_exit(message):
-    logger.error(u'{}'.format(message))
-    sys.exit(1)
+        return Dhis(server, username, password, api_version, 'dhis2-pk/{}'.format(__version__))
 
 
 def write_csv(data, filename, header_row):
+    """Write CSV data for both Python2 and Python3"""
     kwargs = {'newline': ''}
     mode = 'w'
     if sys.version_info < (3, 0):
@@ -48,6 +36,7 @@ def write_csv(data, filename, header_row):
 
 
 def file_timestamp(url):
+    """Create string that can be used as file name including server URL and timestamp"""
     now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     return '{}_{}'.format(now, url.replace('https://', '').replace('.', '-').replace('/', '-'))
 
