@@ -226,7 +226,7 @@ class ShareableObject(object):
         self.obj_type = obj_type
         self.uid = uid
         self.name = name
-        self.public_access = public_access
+        self.public_access = public_access if public_access else 'none'
         self.usergroup_accesses = usergroup_accesses if usergroup_accesses else set()
         self.code = code
         self.external_access = False

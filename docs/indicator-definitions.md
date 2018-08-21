@@ -43,4 +43,4 @@ For interpreting indicator variables (like `OUG{someUID}`), refer to [DHIS2 docs
 
 (try it out!)
 
-`dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district`
+`dhis2-pk-indicator-definitions -s=play.dhis2.org/demo -u=admin -p=district -t indicators`
