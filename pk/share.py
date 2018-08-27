@@ -571,7 +571,13 @@ def main():
 
     logger.info(u"Public access ➜ {}".format(public_access))
 
-    for i, element in enumerate(collection.elements, 1):
+    try:
+        # sort them by name
+        elements = sorted(collection.elements, key=operator.attrgetter('name'))
+    except AttributeError:
+        elements = collection.elements
+
+    for i, element in enumerate(elements, 1):
         update = ShareableObject(obj_type=element.obj_type,
                                  uid=element.uid,
                                  name=element.name,
