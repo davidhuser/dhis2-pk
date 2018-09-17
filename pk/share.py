@@ -11,6 +11,7 @@ import argparse
 import json
 import operator
 import sys
+import os
 import textwrap
 import time
 from logging import DEBUG
@@ -33,7 +34,11 @@ access = {
 }
 
 NEW_SYNTAX = 29
-ARROW = u'➡️️'
+
+if os.name == 'nt':
+    ARROW = u'=>'  # Windows
+else:
+    ARROW = u'➡️️'  # ➡
 
 
 class Permission(object):
