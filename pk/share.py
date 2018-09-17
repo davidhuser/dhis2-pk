@@ -33,6 +33,7 @@ access = {
 }
 
 NEW_SYNTAX = 29
+ARROW = u'➡️️'
 
 
 class Permission(object):
@@ -91,7 +92,6 @@ class Permission(object):
             data = 'readonly'
         else:
             data = None
-
         return cls(metadata, data)
 
     @classmethod
@@ -110,9 +110,12 @@ class Permission(object):
 
     def __str__(self):
         if self.data:
-            return '[metadata:{}] [data:{}]'.format(self.metadata, self.data)
+            return '[metadata:{}] [data:{}]'.format(str(self.metadata).lower(), str(self.data).lower())
         else:
-            return '[metadata:{}]'.format(self.metadata)
+            return '[metadata:{}]'.format(str(self.metadata).lower())
+
+    def __repr__(self):
+        return '{} {}'.format(self.metadata, self.data)
 
 
 class ShareableObjectCollection(object):
@@ -238,7 +241,7 @@ class ShareableObject(object):
                 self.obj_type == other.obj_type and
                 self.uid == other.uid and
                 self.name == other.name and
-                self.public_access == other.public_access and
+                str(self.public_access).lower() == str(other.public_access).lower() and
                 sorted(self.usergroup_accesses, key=operator.attrgetter('uid')) ==
                 sorted(other.usergroup_accesses, key=operator.attrgetter('uid')) and
                 self.code == other.code)
@@ -339,7 +342,7 @@ class UserGroupsCollection(object):
                 logger.info(log_msg.format(u" {} ".format(root_junction).join(filter_list)))
 
                 for uid, name in iteritems(usergroups):
-                    logger.info(u"- {} '{}' ➜ {}".format(uid, name, permission))
+                    logger.info(u"- {} '{}' {} {}".format(uid, name, ARROW, permission))
                     self.accesses.add(UserGroupAccess(uid, permission))
 
     def get_usergroup_uids(self, filter_list, root_junction='AND'):
@@ -569,7 +572,7 @@ def main():
     usergroups = UserGroupsCollection(api, args.groups)
     validate_data_access(public_access, collection, usergroups, api.version_int)
 
-    logger.info(u"Public access ➜ {}".format(public_access))
+    logger.info(u"Public access {} {}".format(ARROW, public_access))
 
     try:
         # sort them by name
@@ -577,6 +580,7 @@ def main():
     except AttributeError:
         elements = collection.elements
 
+    time.sleep(2)
     for i, element in enumerate(elements, 1):
         update = ShareableObject(obj_type=element.obj_type,
                                  uid=element.uid,
