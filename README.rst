@@ -10,7 +10,7 @@ Command-line tools for `DHIS2 <https://dhis2.org>`__.
 -  Download **indicator definitions** to CSV `(docs)  <https://github.com/davidhuser/dhis2-pk/blob/master/docs/indicator-definitions.md>`__
 -  Download **user information** to CSV `(docs) <https://github.com/davidhuser/dhis2-pk/blob/master/docs/userinfo.md>`__
 -  Set **attribute values** with a CSV `(docs) <https://github.com/davidhuser/dhis2-pk/blob/master/docs/attribute-setter.md>`__
--  Analyze **validation rules** `(docs) <https://github.com/davidhuser/dhis2-pk/blob/master/docs/validation-rules.md>`__
+-  Additional **data integrity** `(docs) <https://github.com/davidhuser/dhis2-pk/blob/master/docs/data-integrity.md>`__
 -  Post a **CSS** style sheet for the login page `(docs) <https://github.com/davidhuser/dhis2-pk/blob/master/docs/post-css.md>`__
 
 Installation:
