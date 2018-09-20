@@ -1,1 +1,1 @@
-include README.md LICENSE.txt
+include README.rst LICENSE.txt Pipfile Pipfile.lock

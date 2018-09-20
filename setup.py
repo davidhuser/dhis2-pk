@@ -93,7 +93,8 @@ setup(
             'dhis2-pk-userinfo = pk.userinfo:main',
             'dhis2-pk-post-css = pk.css:main',
             'dhis2-pk-attribute-setter = pk.attributes:main',
-            'dhis2-pk-validation-rules = pk.validationrules:main'
+            'dhis2-pk-validation-rules = pk.integrity:main',
+            'dhis2-pk-data-integrity = pk.integrity:main'
         ]
     },
     classifiers=[

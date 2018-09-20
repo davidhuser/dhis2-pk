@@ -21,8 +21,8 @@ pipenv run python pk/attributes.py -s ${URL} -u ${USERNAME} -p ${PW} -c tests/te
 echo -e '\npost-css'
 pipenv run python pk/css.py -s ${URL} -u ${USERNAME} -p ${PW} -c tests/testdata/style.css
 
-echo -e '\nvalidation-rules-analysis'
-pipenv run python pk/validationrules.py -s ${URL} -u ${USERNAME} -p ${PW}
+echo -e '\ndata-integrity'
+pipenv run python pk/integrity.py -s ${URL} -u ${USERNAME} -p ${PW}
 
 echo -e '\nclean-up...'
 rm -f indicators-201*.csv
