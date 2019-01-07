@@ -257,7 +257,7 @@ def write_to_csv(typ, indicators, object_mapping, file_name):
                 program_indicator.last_updated
             ])
 
-        utils.write_csv(data, file_name, header_row)
+        write_csv(data, file_name, header_row)
         logger.info("Success! CSV file exported to {}".format(file_name))
 
 
