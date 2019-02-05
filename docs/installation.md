@@ -10,7 +10,7 @@ Installation with [pip](https://pip.pypa.io/en/stable/installing)
 Best way is to install it for your user only:
 
 ```bash
-pip install dhis2-pocket-knife --user
+pip install dhis2-pocket-knife --user --upgrade
 ```
 
 This way you don't clutter your system installation, but it might be
@@ -35,7 +35,7 @@ Updating
 --------
 
 ```bash
-pip install dhis2-pocket-knife --upgrade
+pip install dhis2-pocket-knife --user --upgrade
 ```
 
 Usage
