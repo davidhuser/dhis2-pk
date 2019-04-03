@@ -3,7 +3,7 @@ import sys
 import re
 from datetime import datetime
 
-from dhis2 import Dhis, logger
+from dhis2 import Api, logger
 
 try:
     from __version__ import __version__
@@ -14,11 +14,11 @@ except (SystemError, ImportError):
 def create_api(server=None, username=None, password=None, api_version=None):
     """Return a fully configured dhis2.Dhis instance"""
     if not any([server, username, password]):
-        api = Dhis.from_auth_file(api_version=api_version, user_agent='dhis2-pk/{}'.format(__version__))
+        api = Api.from_auth_file(api_version=api_version, user_agent='dhis2-pk/{}'.format(__version__))
         logger.info("Found a file for server {}".format(api.base_url))
         return api
     else:
-        return Dhis(server, username, password, api_version, 'dhis2-pk/{}'.format(__version__))
+        return Api(server, username, password, api_version, 'dhis2-pk/{}'.format(__version__))
 
 
 def write_csv(data, filename, header_row):
@@ -40,7 +40,3 @@ def file_timestamp(url):
     now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     return '{}_{}'.format(now, url.replace('https://', '').replace('.', '-').replace('/', '-'))
 
-
-def valid_uid(uid):
-    """Check if string matches DHIS2 UID pattern"""
-    return bool(re.match(r"^[A-Za-z][A-Za-z0-9]{10}$", uid))

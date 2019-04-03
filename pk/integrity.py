@@ -6,7 +6,7 @@ import json
 import re
 
 from colorama import Style
-from dhis2 import setup_logger, logger, APIException
+from dhis2 import setup_logger, logger, RequestException
 
 try:
     from pk.common.utils import create_api, file_timestamp, write_csv
@@ -53,7 +53,7 @@ def check_validation_rules(api):
             if uid not in uid_cache:
                 try:
                     api.get('identifiableObjects/{}'.format(uid)).json()
-                except APIException as exc:
+                except RequestException as exc:
                     if exc.code == 404:
                         logger.warn("Validation Rule '{}' ({}) - "
                                     "UID in expression not identified: {}".format(rule['name'], rule['id'], uid))
