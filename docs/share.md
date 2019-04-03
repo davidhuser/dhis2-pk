@@ -7,7 +7,7 @@ for DHIS2 metadata and data objects (dataElements, indicators, programs, ...) th
 
 It is now possible to share DATA access for object types data set,
 tracked entity type, program and program stage on DHIS2 instances 2.29+. Read more
-[here.](https://docs.dhis2.org/master/en/user/html/ch23s04.html)
+[here.](https://docs.dhis2.org/2.29/en/user/html/sharing.html)
 
 **Script name:** `dhis2-pk-share`
 
