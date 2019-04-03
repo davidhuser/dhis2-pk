@@ -3,18 +3,17 @@
 
 import argparse
 import time
-import sys
 from collections import namedtuple
 from copy import deepcopy
 
 from colorama import Style
-from dhis2 import setup_logger, logger, load_csv, APIException
+from dhis2 import setup_logger, logger, load_csv, is_valid_uid, RequestException
 
 try:
-    from pk.common.utils import create_api, valid_uid
+    from pk.common.utils import create_api
     from pk.common.exceptions import PKClientException
 except (SystemError, ImportError):
-    from common.utils import create_api, valid_uid
+    from common.utils import create_api
     from common.exceptions import PKClientException
 
 OBJ_TYPES = {
@@ -102,7 +101,7 @@ UID   | myValue
     args = parser.parse_args()
     if args.object_type not in OBJ_TYPES:
         raise PKClientException("argument -t must be a valid object_type - one of:\n{}".format(', '.join(sorted(OBJ_TYPES))))
-    if not valid_uid(args.attribute_uid):
+    if not is_valid_uid(args.attribute_uid):
         raise PKClientException("Attribute {} is not a valid UID".format(args.attribute_uid))
     return args
 
@@ -113,7 +112,7 @@ def validate_csv(data):
 
     object_uids = [obj['uid'] for obj in data]
     for uid in object_uids:
-        if not valid_uid(uid):
+        if not is_valid_uid(uid):
             raise PKClientException("Object '{}' is not a valid UID in the CSV".format(uid))
     if len(object_uids) != len(set(object_uids)):
         raise PKClientException("Duplicate Objects (rows) found in the CSV.")
@@ -149,7 +148,7 @@ def create_or_update_attribute_values(obj, attribute_uid, attribute_value):
 def get_attribute_name(api, uid):
     try:
         return api.get('attributes/{}'.format(uid)).json()['name']
-    except APIException as exc:
+    except RequestException as exc:
         if exc.code == 404:
             raise PKClientException("Attribute {} could not be found".format(uid))
         else:

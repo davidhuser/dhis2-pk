@@ -81,8 +81,8 @@ setup(
     keywords='dhis2',
     license='MIT',
     install_requires=[
-        'dhis2.py==1.5.1',
-        'colorama==0.3.9',
+        'dhis2.py==2.0.0',
+        'colorama==0.4.1',
         'unicodecsv>=0.14.1',
         'six'
     ],
@@ -105,7 +105,8 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6'
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7'
     ],
     packages=find_packages(exclude=['tests']),
     test_suite='pytest',
