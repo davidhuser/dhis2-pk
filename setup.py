@@ -9,6 +9,9 @@ from setuptools import find_packages, setup, Command
 
 here = os.path.abspath(os.path.dirname(__file__))
 
+about = {}
+with open(os.path.join(here, 'pk', '__version__.py'), 'r', 'utf-8') as f:
+    exec(f.read(), about)
 
 class PublishCommand(Command):
     """Support setup.py publish."""
@@ -40,6 +43,10 @@ class PublishCommand(Command):
         self.status('Uploading the package to PyPi via Twine…')
         os.system('twine upload dist/*')
 
+        self.status('Pushing git tags…')
+        os.system('git tag v{0}'.format(about['__version__']))
+        os.system('git push --tags')
+
         sys.exit()
 
 
@@ -62,10 +69,6 @@ class TestCommand(Command):
         self.status('Testing with pytest...')
         os.system('python -m pytest tests')
 
-
-about = {}
-with open(os.path.join(here, 'pk', '__version__.py'), 'r', 'utf-8') as f:
-    exec(f.read(), about)
 
 with open('README.rst', 'r', 'utf-8') as f:
     readme = f.read()
