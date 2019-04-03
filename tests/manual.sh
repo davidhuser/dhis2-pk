@@ -2,7 +2,7 @@
 
 # Run from Repo root
 
-URL='play.dhis2.org/dev'
+URL='play.dhis2.org/demo'
 USERNAME='admin'
 PW='district'
 
