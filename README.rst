@@ -1,7 +1,7 @@
 |pocket-knife| dhis2-pk
 =======================
 
-|PyPi| |Travis| |PythonVersion|
+|PyPi| |Downloads| |Travis| |PythonVersion|
 
 Command-line tools for `DHIS2 <https://dhis2.org>`__.
 
