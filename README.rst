@@ -24,9 +24,13 @@ more details: `Installation & Usage <https://github.com/davidhuser/dhis2-pk/blob
 .. |pocket-knife| image:: https://i.imgur.com/AWrQJ4N.png
     :alt: Pocket Knife
 
-.. |PyPi| image:: https://img.shields.io/pypi/v/dhis2-pocket-knife.svg?label=pip&style=flat-square
+.. |PyPi| image:: https://img.shields.io/pypi/v/dhis2-pocket-knife.svg?label=PyPI&style=flat-square
     :alt: pip version
     :target: https://pypi.python.org/pypi/dhis2-pocket-knife
+    
+.. |Downloads| image:: https://img.shields.io/pypi/dm/dhis2-pocket-knife.svg?label=Downloads&style=flat-square
+   :target: https://pypi.org/project/dhis2-pocket-knife
+   :alt: Downloads
 
 .. |Travis| image:: https://img.shields.io/travis/davidhuser/dhis2-pk/master.svg?style=flat-square
     :alt: Travis CI build status
