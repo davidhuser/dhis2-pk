@@ -41,7 +41,7 @@ def replace_path(oumap, path):
 
 def format_user(users, ou_map):
     User = namedtuple('User', 'name first_name surname username phone_number '
-                              'user_groups user_roles org_units dv_org_units')
+                              'last_login user_groups user_roles org_units dv_org_units')
     logger.info('Exporting {} users...'.format(len(users['users'])))
 
     for user in users['users']:
@@ -50,6 +50,7 @@ def format_user(users, ou_map):
         User.surname = u'{}'.format(user['userCredentials']['userInfo']['surname'])
         User.username = u'{}'.format(user['userCredentials']['username'])
         User.phone_number = u'{}'.format(user['userCredentials']['userInfo'].get('phoneNumber', '-'))
+        User.last_login = u'{}'.format(user['userCredentials'].get('lastLogin', '-'))
         User.user_groups = ", ".join([ug['name'] for ug in user['userGroups']])
         User.user_roles = ", ".join([ur['name'] for ur in user['userCredentials']['userRoles']])
         User.org_units = u"\n".join([replace_path(ou_map, elem) for elem in [ou['path'] for ou in user['organisationUnits']]])
@@ -66,7 +67,7 @@ def main():
     params1 = {
         'fields':
             'name,'
-            'userCredentials[username,userRoles[name],userInfo[phoneNumber,firstName,surname]],'
+            'userCredentials[username,lastLogin,userRoles[name],userInfo[phoneNumber,firstName,surname]],'
             'organisationUnits[path],userGroups[name],'
             'dataViewOrganisationUnits[path]',
         'paging': False
@@ -85,7 +86,7 @@ def main():
 
     file_name = "userinfo-{}.csv".format(file_timestamp(api.api_url))
     data = []
-    header_row = ['name', 'firstName', 'surname', 'username', 'phoneNumber', 'userGroups',
+    header_row = ['name', 'firstName', 'surname', 'username', 'phoneNumber', 'lastLogin', 'userGroups',
                   'userRoles', 'orgunitPaths', 'dataViewOrgunitPaths']
 
     for user in format_user(users, ou_map):
@@ -95,6 +96,7 @@ def main():
             user.surname,
             user.username,
             user.phone_number,
+            user.last_login,
             user.user_groups,
             user.user_roles,
             user.org_units,
