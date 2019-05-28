@@ -20,6 +20,8 @@ except (SystemError, ImportError):
     from common.utils import create_api, write_csv, file_timestamp
     from common.exceptions import PKClientException
 
+
+
 indicator_fields = OrderedDict([
     ('type', 'indicator'),
     ('uid', 'id'),
@@ -32,7 +34,9 @@ indicator_fields = OrderedDict([
     ('annualized', 'annualized'),
     ('indicator_type', 'indicatorType'),
     ('decimals', 'decimals'),
-    ('last_updated', 'lastUpdated')
+    ('last_updated', 'lastUpdated'),
+    ('numerator_valid', 'numeratorValid'),
+    ('denominator_valid', 'denominatorValid')
 ])
 
 Indicator = namedtuple('Indicator', ' '.join(indicator_fields.keys()))
@@ -49,6 +53,8 @@ program_indicator_fields = OrderedDict([
     ('program', 'program[id,name]'),
     ('program_name', 'program'),
     ('last_updated', 'lastUpdated'),
+    ('expression_valid', 'expressionValid'),
+    ('filter_valid', 'filter_valid')
 ])
 ProgramIndicator = namedtuple('ProgramIndicator', ' '.join(program_indicator_fields.keys()))
 
@@ -181,7 +187,19 @@ def analyze_result(typ, indicators, indicator_filter):
     return msg
 
 
-def format_indicator(typ, data, object_mapping):
+def validate_expression(api, expression):
+    r = api.session.post('{}/programIndicators/expression/description'.format(api.api_url), data=expression)
+    return r.json()['message']
+
+def validate_filter(api, filter):
+    r = api.session.post('{}/programIndicators/filter/description'.format(api.api_url), data=filter)
+    return r.json()['message']
+
+def validate_nominator_denominator(api, expr):
+    r = api.get('expressions/description', params={'expression': expr})
+    return r.json()['message']
+
+def format_indicator(api, typ, data, object_mapping):
     if typ == 'indicators':
         for ind in data[typ]:
             Indicator.type = typ
@@ -189,13 +207,15 @@ def format_indicator(typ, data, object_mapping):
             Indicator.name = u'{}'.format(ind['name'])
             Indicator.short_name = u'{}'.format(ind['shortName'])
             Indicator.numerator = replace_definitions(ind['numerator'], object_mapping)
-            Indicator.numerator_description = u'{}'.format(ind.get('numeratorDescription', None))
+            Indicator.numerator_description = u'{}'.format(ind.get('numeratorDescription'))
             Indicator.denominator = replace_definitions(ind['denominator'], object_mapping)
-            Indicator.denominator_description = u'{}'.format(ind.get('denominatorDescription', None))
+            Indicator.denominator_description = u'{}'.format(ind.get('denominatorDescription'))
             Indicator.annualized = u'{}'.format(ind.get('annualized', False))
             Indicator.indicator_type = u'{}'.format(object_mapping[ind['indicatorType']['id']].get('desc'))
             Indicator.decimals = u'{}'.format(ind.get('decimals', 'default'))
             Indicator.last_updated = u'{}'.format(ind['lastUpdated'])
+            Indicator.numerator_valid = validate_nominator_denominator(api, ind['numerator'])
+            Indicator.denominator_valid = validate_nominator_denominator(api, ind['denominator'])
             yield Indicator
 
     elif typ == 'programIndicators':
@@ -212,15 +232,20 @@ def format_indicator(typ, data, object_mapping):
             ProgramIndicator.program = u'{}'.format(ind['program']['id'])
             ProgramIndicator.program_name = u'{}'.format(ind['program']['name'])
             ProgramIndicator.last_updated = u'{}'.format(ind['lastUpdated'])
+            ProgramIndicator.expression_valid = validate_expression(api, ind['expression'])
+            if ind.get('filter'):
+                ProgramIndicator.filter_valid = validate_filter(api, ind['filter'])
+            else:
+                ProgramIndicator.filter_valid = 'no-filter'
             yield ProgramIndicator
 
 
-def write_to_csv(typ, indicators, object_mapping, file_name):
+def write_to_csv(api, typ, indicators, object_mapping, file_name):
     data = []
     if typ == 'indicators':
         header_row = indicator_fields.keys()
 
-        for indicator in format_indicator(typ, indicators, object_mapping):
+        for indicator in format_indicator(api, typ, indicators, object_mapping):
             data.append([
                 indicator.type,
                 indicator.uid,
@@ -233,7 +258,9 @@ def write_to_csv(typ, indicators, object_mapping, file_name):
                 indicator.annualized,
                 indicator.indicator_type,
                 indicator.decimals,
-                indicator.last_updated
+                indicator.last_updated,
+                indicator.numerator_valid,
+                indicator.denominator_valid
             ])
 
         write_csv(data, file_name, header_row)
@@ -242,7 +269,7 @@ def write_to_csv(typ, indicators, object_mapping, file_name):
     elif typ == 'programIndicators':
         header_row = program_indicator_fields.keys()
 
-        for program_indicator in format_indicator(typ, indicators, object_mapping):
+        for program_indicator in format_indicator(api, typ, indicators, object_mapping):
             data.append([
                 program_indicator.type,
                 program_indicator.uid,
@@ -254,7 +281,9 @@ def write_to_csv(typ, indicators, object_mapping, file_name):
                 program_indicator.analytics_type,
                 program_indicator.program,
                 program_indicator.program_name,
-                program_indicator.last_updated
+                program_indicator.last_updated,
+                program_indicator.filter_valid,
+                program_indicator.expression_valid
             ])
 
         write_csv(data, file_name, header_row)
@@ -285,7 +314,7 @@ def main():
     logger.info("Analyzing metadata...")
     object_mapping = object_map(api)
 
-    write_to_csv(args.indicator_type, indicators, object_mapping, file_name)
+    write_to_csv(api, args.indicator_type, indicators, object_mapping, file_name)
 
 
 if __name__ == "__main__":

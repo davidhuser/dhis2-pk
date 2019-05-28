@@ -1,6 +1,5 @@
 import csv
 import sys
-import re
 from datetime import datetime
 
 from dhis2 import Api, logger
