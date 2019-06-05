@@ -5,6 +5,7 @@ import argparse
 import time
 from collections import namedtuple
 from copy import deepcopy
+import getpass
 
 from colorama import Style
 from dhis2 import setup_logger, logger, load_csv, is_valid_uid, RequestException
@@ -103,7 +104,12 @@ UID   | myValue
         raise PKClientException("argument -t must be a valid object_type - one of:\n{}".format(', '.join(sorted(OBJ_TYPES))))
     if not is_valid_uid(args.attribute_uid):
         raise PKClientException("Attribute {} is not a valid UID".format(args.attribute_uid))
-    return args
+
+    if not args.password:
+        password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
+    else:
+        password = args.password
+    return args, password
 
 
 def validate_csv(data):
@@ -164,8 +170,8 @@ def attribute_is_on_model(api, attribute, typ):
 
 def main():
     setup_logger()
-    args = parse_args()
-    api = create_api(server=args.server, username=args.username, password=args.password)
+    args, password = parse_args()
+    api = create_api(server=args.server, username=args.username, password=password)
 
     Attribute = namedtuple('Attribute', 'uid name')
     Attribute.uid = args.attribute_uid

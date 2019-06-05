@@ -8,6 +8,7 @@ Creates a CSV with indicator definitions (names of dataelement.catoptioncombo, c
 """
 
 import argparse
+import getpass
 from collections import namedtuple, OrderedDict
 
 from colorama import Style
@@ -157,7 +158,12 @@ def parse_args():
                           action='store',
                           type=int,
                           help='DHIS2 API version e.g. -v=28')
-    return parser.parse_args()
+    args = parser.parse_args()
+    if not args.password:
+        password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
+    else:
+        password = args.password
+    return args, password
 
 
 def get_params(argument_filter, fields):
@@ -292,9 +298,9 @@ def write_to_csv(api, typ, indicators, object_mapping, file_name):
 
 def main():
     setup_logger(include_caller=False)
-    args = parse_args()
+    args, password = parse_args()
 
-    api = create_api(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
+    api = create_api(server=args.server, username=args.username, password=password, api_version=args.api_version)
 
     file_name = '{}-{}.csv'.format(args.indicator_type, file_timestamp(api.api_url))
 

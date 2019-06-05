@@ -4,6 +4,7 @@
 import argparse
 import json
 import re
+import getpass
 
 from colorama import Style
 from dhis2 import setup_logger, logger, RequestException
@@ -28,7 +29,13 @@ def parse_args():
     parser.add_argument('-p', dest='password', action='store', help="DHIS2 password")
     parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
                         help='DHIS2 API version e.g. -v=28')
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if not args.password:
+        password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
+    else:
+        password = args.password
+    return args, password
 
 
 def extract_uids(rule):
@@ -154,9 +161,9 @@ def check_category_combos(api):
 
 def main():
     setup_logger(include_caller=False)
-    args = parse_args()
+    args, password = parse_args()
 
-    api = create_api(server=args.server, username=args.username, password=args.password)
+    api = create_api(server=args.server, username=args.username, password=password)
 
     check_validation_rules(api)
     check_option_sets(api)

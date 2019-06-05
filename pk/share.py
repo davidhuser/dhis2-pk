@@ -14,6 +14,7 @@ import sys
 import os
 import textwrap
 import time
+import getpass
 from logging import DEBUG
 
 from colorama import Style
@@ -482,7 +483,13 @@ def parse_args():
                           default=False,
                           required=False,
                           help="Debug flag")
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if not args.password:
+        password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
+    else:
+        password = args.password
+    return args, password
 
 
 def validate_args(args, dhis_version):
@@ -560,7 +567,7 @@ def share(api, sharing_object):
 
 def main():
     setup_logger(include_caller=False)
-    args = parse_args()
+    args, password = parse_args()
     if args.logging_to_file:
         if args.debug:
             setup_logger(logfile=args.logging_to_file, log_level=DEBUG, include_caller=True)
@@ -569,7 +576,7 @@ def main():
     elif args.debug:
         setup_logger(log_level=DEBUG, include_caller=True)
 
-    api = create_api(server=args.server, username=args.username, password=args.password, api_version=args.api_version)
+    api = create_api(server=args.server, username=args.username, password=password, api_version=args.api_version)
     validate_args(args, api.version_int)
 
     public_access = Permission.from_public_args(args.public_access)

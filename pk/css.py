@@ -9,6 +9,7 @@ POST a CSS stylesheet to a server
 
 import argparse
 import os
+import getpass
 
 from dhis2 import setup_logger, logger
 from colorama import Style
@@ -34,7 +35,13 @@ def parse_args():
     optional.add_argument('-s', dest='server', action='store', help="DHIS2 server URL")
     optional.add_argument('-u', dest='username', action='store', help='DHIS2 username')
     optional.add_argument('-p', dest='password', action='store', help='DHIS2 password')
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if not args.password:
+        password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
+    else:
+        password = args.password
+    return args, password
 
 
 def post_file(api, filename, content_type='text/css'):
@@ -51,9 +58,9 @@ def validate_file(filename):
 
 
 def main():
-    args = parse_args()
+    args, password = parse_args()
     setup_logger(include_caller=False)
-    api = create_api(server=args.server, username=args.username, password=args.password)
+    api = create_api(server=args.server, username=args.username, password=password)
     validate_file(args.css)
     post_file(api, filename=args.css)
     logger.info("{} CSS posted to {}. Clear your Browser cache / use Incognito.".format(args.css, api.api_url))
