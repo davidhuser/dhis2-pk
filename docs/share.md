@@ -108,12 +108,24 @@ Console output:
 To add additional User Group(s) to a Data Element that is already shared, use the argument `-e`.
 
 `
-dhis2-pk-share -s play.dhis2.org/demo -u admin -p district -t dataSets -f 'id:eq:aLpVgfXiz0f' -g 'name:like:Research' none readonly -e
+dhis2-pk-share -s play.dhis2.org/demo -u admin -p district -t dataSets -f 'id:eq:aLpVgfXiz0f' -g 'name:like:Research' none readonly -a none readwrite -e
 `
 
+Console output:
+
+```
+* INFO  2019-07-03 15:30:54,941  Sharing 1 dataSet with filter [id:eq:aLpVgfXiz0f]
+* INFO  2019-07-03 15:30:55,073  User Groups with filter [name:like:Research]
+* INFO  2019-07-03 15:30:55,074  - k3xzluFKVyw 'Nairobi University Research Group' ➡️️ [metadata:none] [data:readonly]
+* INFO  2019-07-03 15:30:55,074  - wAAA1agEHin 'Cape Town University Research Group' ➡️️ [metadata:none] [data:readonly]
+* INFO  2019-07-03 15:30:55,074  Public access ➡️️ [metadata:none] [data:readwrite]
+* WARNING  2019-07-03 15:30:55,075  Extending with additional User Groups...
+* INFO  2019-07-03 15:30:57,077  1/1 dataSet aLpVgfXiz0f 'Population'
+```
+
 Note: 
-* You can supply the Public Access argument `-a` - if not provided it will re-use the existing setting for Public Access.
-* Sharing settings via arguments have higher priority than what is already set on the server (to prevent double specification)
+* You can supply the Public Access argument `-a` - if omitted it will re-use the existing setting for Public Access.
+* Sharing settings via arguments have higher priority than what is already set on the server (to prevent double specification), i.e. what you specify will overwrite what is on the server
 
 ## Filtering
 
