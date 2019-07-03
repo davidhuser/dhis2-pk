@@ -103,7 +103,7 @@ Console output:
 * INFO  2018-08-16 15:22:55,984  1/1 dataSet aLpVgfXiz0f 'Population'
 ```
 
-### Example 3: Extending existing Data Elements
+### Example 3: Extending existing sharing settings
 
 To add additional User Group(s) to a Data Element that is already shared, use the argument `-e`.
 
