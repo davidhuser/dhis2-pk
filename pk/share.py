@@ -626,16 +626,16 @@ def validate_data_access(public_access, collection, usergroups, dhis_version):
                 or any([group.permission.data for group in usergroups.accesses]):
             raise PKClientException("ArgumentError: You cannot set DATA access on DHIS2 versions below 2.29 "
                                     "- check your arguments (-a) and (-g)")
-    else:
-        if collection.data_sharing_enabled and public_access and public_access != PUBLIC_ACCESS_INHERITED:
-            log_msg = "ArgumentError: Missing {} permission for DATA access for '{}' (Argument {})"
+    elif public_access != PUBLIC_ACCESS_INHERITED:
+        if collection.data_sharing_enabled:
+            log_msg = "ArgumentError: Missing {} permission for DATA access for '{}' (argument {})"
             if not public_access.data:
                 raise PKClientException(log_msg.format('Public Access', collection.name, '-a'))
             if not all([group.permission.data for group in usergroups.accesses]):
                 raise PKClientException(log_msg.format('User Groups', collection.name, '-g'))
         else:
-            log_msg = "ArgumentError: Not possible to set {} permission for DATA access for '{}' (Argument {})"
-            if public_access and public_access != PUBLIC_ACCESS_INHERITED and public_access.data:
+            log_msg = "ArgumentError: Not possible to set {} permission for DATA access for '{}' (argument {})"
+            if public_access.data:
                 raise PKClientException(log_msg.format('Public Access', collection.name, '-a'))
             if any([group.permission.data for group in usergroups.accesses]):
                 raise PKClientException(log_msg.format('User Group', collection.name, '-g'))
