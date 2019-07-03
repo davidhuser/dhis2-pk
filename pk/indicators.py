@@ -160,6 +160,8 @@ def parse_args():
                           help='DHIS2 API version e.g. -v=28')
     args = parser.parse_args()
     if not args.password:
+        if not args.username:
+            raise PKClientException("ArgumentError: Must provide a username via argument -u")
         password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
     else:
         password = args.password

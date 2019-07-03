@@ -106,6 +106,8 @@ UID   | myValue
         raise PKClientException("Attribute {} is not a valid UID".format(args.attribute_uid))
 
     if not args.password:
+        if not args.username:
+            raise PKClientException("ArgumentError: Must provide a username via argument -u")
         password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
     else:
         password = args.password

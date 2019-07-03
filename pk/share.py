@@ -572,6 +572,8 @@ def parse_args():
     args = parser.parse_args()
 
     if not args.password:
+        if not args.username:
+            raise PKClientException("ArgumentError: Must provide a username via argument -u")
         password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
     else:
         password = args.password
@@ -634,7 +636,7 @@ def validate_data_access(public_access, collection, usergroups, dhis_version):
             if not all([group.permission.data for group in usergroups.accesses]):
                 raise PKClientException(log_msg.format('User Groups', collection.name, '-g'))
         else:
-            log_msg = "ArgumentError: Not possible to set {} permission for DATA access for '{}' (argument {})"
+            log_msg = "ArgumentError: Not possible to set {} permission for DATA access for '{}' (a rgument {})"
             if public_access.data:
                 raise PKClientException(log_msg.format('Public Access', collection.name, '-a'))
             if any([group.permission.data for group in usergroups.accesses]):
