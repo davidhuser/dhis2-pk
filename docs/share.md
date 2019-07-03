@@ -20,12 +20,13 @@ Share DHIS2 objects with userGroups via filters.
 
 required arguments:
   -t OBJECT_TYPE        DHIS2 object type to apply sharing, e.g. -t sqlView
+
+optional arguments:
   -a PUBLICACCESS [PUBLICACCESS ...]
                         Public Access for all objects. 
                         Valid choices are: {readonly, none, readwrite}
                         For setting DATA access, add second argument, e.g. -a readwrite readonly
-
-optional arguments:
+  -e EXTEND             Extend existing sharing settings with additional user groups
   -f FILTER             Filter on objects with DHIS2 field filter.
                         To add multiple filters:
                         - '&&' joins filters with AND
@@ -59,7 +60,7 @@ Example to share dataElements that start with `ANC`:
 * User Group with `Admin` in its names to have `readwrite` access (for metadata)
 
 `
-dhis2-pk-share -s play.dhis2.org/2.29 -u admin -p district -t dataelement -f 'name:$like:ANC' -a readonly -g 'name:like:Admin' readwrite 
+dhis2-pk-share -s play.dhis2.org/demo -u admin -p district -t dataelement -f 'name:$like:ANC' -a readonly -g 'name:like:Admin' readwrite 
 `
 
 Console output:
@@ -86,7 +87,7 @@ by simply supplying a second `readwrite`/ `readonly` / `none` argument.
 
 
 `
-dhis2-pk-share -s play.dhis2.org/2.29 -u admin -p district -t dataSets -f 'id:eq:aLpVgfXiz0f' -a readonly readwrite -g 'name:like:Research' none readonly -g 'name:eq:Kenya staff' readonly none
+dhis2-pk-share -s play.dhis2.org/demo -u admin -p district -t dataSets -f 'id:eq:aLpVgfXiz0f' -a readonly readwrite -g 'name:like:Research' none readonly -g 'name:eq:Kenya staff' readonly none
 `
 
 Console output:
@@ -101,6 +102,18 @@ Console output:
 * INFO  2018-08-16 15:22:55,984  Public access ➜ [metadata:readonly] [data:readwrite]
 * INFO  2018-08-16 15:22:55,984  1/1 dataSet aLpVgfXiz0f 'Population'
 ```
+
+### Example 3: Extending existing Data Elements
+
+To add additional User Group(s) to a Data Element that is already shared, use the argument `-e`.
+
+`
+dhis2-pk-share -s play.dhis2.org/demo -u admin -p district -t dataSets -f 'id:eq:aLpVgfXiz0f' -g 'name:like:Research' none readonly -e
+`
+
+Note: 
+* You can supply the Public Access argument `-a` - if not provided it will re-use the existing setting for Public Access.
+* Sharing settings via arguments have higher priority than what is already set on the server (to prevent double specification)
 
 ## Filtering
 

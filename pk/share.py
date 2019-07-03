@@ -36,6 +36,8 @@ access = {
 
 NEW_SYNTAX = 29
 
+PUBLIC_ACCESS_INHERITED = '<inherited>'
+
 if os.name == 'nt':
     ARROW = u'=>'  # Windows
 else:
@@ -43,6 +45,7 @@ else:
 
 
 class Permission(object):
+    """Class to handle access strings for metadata and data"""
     symbolic_notation = {
         u'rwrw----',
         u'rwr-----',
@@ -72,15 +75,28 @@ class Permission(object):
 
     @classmethod
     def from_public_args(cls, args):
-        metadata = args[0][0]
-        try:
-            data = args[0][1]
-        except IndexError:
-            data = None
-        return cls(metadata, data)
+        """
+        Class method to init an instance from Public Access argument
+        :param args: the argparse argument
+        :return: class instance or constant
+        """
+        if args:
+            metadata = args[0][0]
+            try:
+                data = args[0][1]
+            except IndexError:
+                data = None
+            return cls(metadata, data)
+        else:
+            return PUBLIC_ACCESS_INHERITED
 
     @classmethod
     def from_symbol(cls, symbol):
+        """
+        Class method to init an instance from UNIX-style access string (e.g. rw------)
+        :param symbol: the unix-style string
+        :return: class instance
+        """
         if symbol not in Permission.symbolic_notation:
             raise ValueError("Permission symbol '{}' not valid!".format(symbol))
         metadata_str = symbol[:2]
@@ -102,6 +118,11 @@ class Permission(object):
 
     @classmethod
     def from_group_args(cls, args):
+        """
+        Class method to init an instance from User Group argument(s)
+        :param args: the argparse arguments
+        :return: class instance
+        """
         metadata = args[1]
         try:
             data = args[2]
@@ -110,6 +131,10 @@ class Permission(object):
         return cls(metadata, data)
 
     def to_symbol(self):
+        """
+        Convert to UNIX-style access string (e.g. rw------)
+        :return: unix-style string
+        """
         m = access.get(self.metadata, '--')
         d = access.get(self.data, '--')
         return '{}{}----'.format(m, d)
@@ -125,7 +150,7 @@ class Permission(object):
 
 
 class ShareableObjectCollection(object):
-
+    """A collection of shareable objects, e.g. a set of data elements"""
     def __init__(self, api, obj_type, filters):
         self.api = api
         self.name, self.plural = self.get_name(obj_type)
@@ -140,7 +165,11 @@ class ShareableObjectCollection(object):
         self.elements.add(other)
 
     def schema(self, schema_property):
-
+        """
+        Return dict of allowed names for object depending if it's (metadata-) shareable or data-shareable
+        :param schema_property: shareable or dataShareable
+        :return: dict of a mapping of name to its plural name
+        """
         params = {
             'fields': 'name,plural,shareable,dataShareable'
         }
@@ -156,6 +185,11 @@ class ShareableObjectCollection(object):
                 return None
 
     def get_name(self, obj_type):
+        """
+        Get an object collection's name and it's plural name
+        :param obj_type: type of object, e.g. dataelement
+        :return: tuple of name and its plural name, e.g. dataElement, dataElements
+        """
         shareable = self.schema('shareable')
         for name, plural in iteritems(shareable):
             if obj_type.lower() in (name.lower(), plural.lower()):
@@ -163,6 +197,10 @@ class ShareableObjectCollection(object):
         raise PKClientException("No DHIS2 object type for '{}'".format(obj_type))
 
     def is_data_shareable(self):
+        """
+        Assess if object type can be DATA shared (e.g. data sets)
+        :return: true if it's data shareable, False otherwise
+        """
         data_shareable = self.schema('dataShareable')
         if not data_shareable:
             return False
@@ -172,7 +210,10 @@ class ShareableObjectCollection(object):
         return False
 
     def get_objects(self):
-
+        """
+        Get the actual objects from DHIS 2
+        :return: requests response
+        """
         params = {
             'fields': 'id,name,code,publicAccess,userGroupAccesses',
             'paging': False
@@ -197,7 +238,7 @@ class ShareableObjectCollection(object):
                     logger.info(print_msg.format(amount, name, " {} ".format(self.root_junction).join(split)))
                 else:
                     print_msg = u"Sharing *ALL* {} {} (no filters set!). Continuing in 10 seconds..."
-                    logger.warn(print_msg.format(amount, name))
+                    logger.warning(print_msg.format(amount, name))
                     time.sleep(10)
                 return response
             else:
@@ -205,6 +246,11 @@ class ShareableObjectCollection(object):
                 sys.exit(0)
 
     def create_obj(self, response):
+        """
+        Create ShareableObjects from the response
+        :param response: server response
+        :return yielded ShareableObjects
+        """
         for elem in response:
             try:
                 public_access = Permission.from_symbol(elem['publicAccess'])
@@ -230,7 +276,7 @@ class ShareableObjectCollection(object):
 
 
 class ShareableObject(object):
-
+    """Class to handle one DHIS2 object's sharing"""
     def __init__(self, obj_type, uid, name, public_access, usergroup_accesses=None, code=None):
         self.obj_type = obj_type
         self.uid = uid
@@ -268,15 +314,19 @@ class ShareableObject(object):
         return s
 
     def __repr__(self):
-        s = "<{} id='{}'" \
+        s = "<{}" \
+            " objectType='{}'" \
+            " id='{}'" \
             " publicAccess='{}'" \
-            " userGroupAccess='{}'>".format(self.obj_type,
+            " userGroupAccess='{}'>".format(self.__class__.__name__,
+                                            self.obj_type,
                                             self.uid,
                                             self.public_access.to_symbol(),
                                             ','.join([json.dumps(x.to_json()) for x in self.usergroup_accesses]))
         return s
 
     def identifier(self):
+        """Pretty-print the object for logging"""
         if self.name:
             return u"'{}'".format(self.name)
         if self.code:
@@ -304,11 +354,19 @@ class UserGroupAccess(object):
 
     @classmethod
     def from_dict(cls, data):
+        """Class method to create instance from UNIX-style access string"""
         try:
             permission = Permission.from_symbol(data['access'])
         except (ValueError, KeyError):
             permission = Permission(None, None)
         return cls(data['id'], permission)
+
+    @classmethod
+    def from_ugam(cls, obj):
+        """Class method to cast from UserGroupAccessMerge instance"""
+        if not isinstance(obj, UserGroupAccessMerge):
+            raise TypeError("Not an object of type UserGroupAccessMerge")
+        return cls(obj.uid, obj.permission)
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
@@ -324,8 +382,30 @@ class UserGroupAccess(object):
     def __str__(self):
         return json.dumps(self.to_json())
 
+    def __repr__(self):
+        return "<UserGroupAccess uid='{}' permission='{}'>".format(self.uid, self.permission)
+
     def to_json(self):
         return {"id": self.uid, "access": self.permission.to_symbol()}
+
+
+class UserGroupAccessMerge(UserGroupAccess):
+    """
+    Class inheriting from UserGroupAccess for Sets
+    Useful to prevent double-adding in a Set to prevent double specification of sharing settings
+    when it's defined but with a different permission
+    """
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.uid == other.uid
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash(self.uid)
+
+    def __repr__(self):
+        return "<UserGroupAccessMerge uid='{}' permission='{}'>".format(self.uid, self.permission)
 
 
 class UserGroupsCollection(object):
@@ -391,6 +471,7 @@ def skip(overwrite, on_server, update):
 
 
 def parse_args():
+    """Argument parsing"""
     description = "{}Share DHIS2 objects with userGroups via filters.{}".format(Style.BRIGHT, Style.RESET_ALL)
     usage = """
 {}Example:{} dhis2-pk-share -s play.dhis2.org/dev -u admin -p district -f 'id:eq:P3jJH5Tu5VC' -t dataelement -a readonly -g 'name:like:Admin' readwrite -g 'name:like:Research' readwrite
@@ -408,10 +489,11 @@ def parse_args():
                           required=True,
                           help="DHIS2 object type to apply sharing, e.g. -t sqlView")
 
-    required.add_argument('-a',
+    optional = parser.add_argument_group('optional arguments')
+    optional.add_argument('-a',
                           dest='public_access',
                           action='append',
-                          required=True,
+                          required=False,
                           nargs='+',
                           metavar='PUBLICACCESS',
                           choices=access.keys(),
@@ -420,8 +502,6 @@ def parse_args():
                             Valid choices are: {{{}}}
                             For setting DATA access, add second argument, e.g. -a readwrite readonly
                           '''.format(', '.join(access.keys()))))
-
-    optional = parser.add_argument_group('optional arguments')
     optional.add_argument('-f',
                           dest='filter',
                           action='store',
@@ -452,6 +532,12 @@ def parse_args():
                           required=False,
                           default=False,
                           help="Overwrite sharing - updates 'lastUpdated' field of all shared objects")
+    optional.add_argument('-e',
+                          dest='extend',
+                          action='store_true',
+                          required=False,
+                          default=False,
+                          help="Extend existing sharing settings")
     optional.add_argument('-l',
                           dest='logging_to_file',
                           action='store',
@@ -493,8 +579,19 @@ def parse_args():
 
 
 def validate_args(args, dhis_version):
-    if len(args.public_access) not in (1, 2):
-        raise PKClientException("ArgumentError: Must use -a METADATA [DATA] - max. 2 arguments")
+    """
+    Validate arguments. Raises Exception if invalid
+    :param args: the argparse arguments
+    :param dhis_version: DHIS 2 version as an integer (e.g. 32)
+    :return: None
+    """
+    if args.extend:
+        if not args.groups and not args.public_access:
+            raise PKClientException("ArgumentError: Must supply user groups when extending sharing - check your argument (-g)")
+    else:
+        if not args.public_access or len(args.public_access) not in (1, 2):
+            raise PKClientException("ArgumentError: Must use -a METADATA [DATA] - max. 2 arguments")
+
     if args.groups:
         for group in args.groups:
             try:
@@ -502,9 +599,7 @@ def validate_args(args, dhis_version):
             except IndexError:
                 raise PKClientException("ArgumentError: Missing User Group permission for METADATA access")
             if metadata_permission not in access.keys():
-                raise PKClientException(
-                    'ArgumentError: User Group permission for METADATA access not valid: "{}"'.format(
-                        metadata_permission))
+                raise PKClientException('ArgumentError: User Group permission for METADATA access not valid: "{}"'.format(metadata_permission))
             if dhis_version >= NEW_SYNTAX:
                 try:
                     data_permission = group[2]
@@ -518,12 +613,21 @@ def validate_args(args, dhis_version):
 
 
 def validate_data_access(public_access, collection, usergroups, dhis_version):
+    """
+    Validate DATA access against public access, the collection and user groups. Raises Exception if invalid.
+    :param public_access: Permission instance
+    :param collection: ShareableObjectCollection instance
+    :param usergroups: UserGroupsCollection instance
+    :param dhis_version: DHIS 2 version as an integer (e.g. 32)
+    :return: None
+    """
     if dhis_version < NEW_SYNTAX:
-        if public_access.data or any([group.permission.data for group in usergroups.accesses]):
+        if public_access and public_access != PUBLIC_ACCESS_INHERITED and public_access.data\
+                or any([group.permission.data for group in usergroups.accesses]):
             raise PKClientException("ArgumentError: You cannot set DATA access on DHIS2 versions below 2.29 "
                                     "- check your arguments (-a) and (-g)")
     else:
-        if collection.data_sharing_enabled:
+        if collection.data_sharing_enabled and public_access and public_access != PUBLIC_ACCESS_INHERITED:
             log_msg = "ArgumentError: Missing {} permission for DATA access for '{}' (Argument {})"
             if not public_access.data:
                 raise PKClientException(log_msg.format('Public Access', collection.name, '-a'))
@@ -531,38 +635,72 @@ def validate_data_access(public_access, collection, usergroups, dhis_version):
                 raise PKClientException(log_msg.format('User Groups', collection.name, '-g'))
         else:
             log_msg = "ArgumentError: Not possible to set {} permission for DATA access for '{}' (Argument {})"
-            if public_access.data:
+            if public_access and public_access != PUBLIC_ACCESS_INHERITED and public_access.data:
                 raise PKClientException(log_msg.format('Public Access', collection.name, '-a'))
             if any([group.permission.data for group in usergroups.accesses]):
                 raise PKClientException(log_msg.format('User Group', collection.name, '-g'))
 
 
-def set_delimiter(version, argument):
+def set_delimiter(dhis_version, object_filter):
     """
-    Operator and rootJunction Alias validation
-    :param version: DHIS2 version
-    :param argument: Argument as received from parser
-    :return: tuple(delimiter, rootJunction)
+    Operator and rootJunction alias validation for the DHIS2 API (see DHIS2 developer docs)
+    :param dhis_version: DHIS 2 version as an integer (e.g. 32):
+    :param object_filter: Metadata object filter
+    :return: tuple of aliases for OR / AND
     """
-    if not argument:
+    if not object_filter:
         return None, None
-    if '^' in argument:
-        if version >= 28:
-            raise PKClientException(
-                "ArgumentError: Operator '^' was replaced with '$' in 2.28 onwards. Nothing shared.")
-    if '||' in argument:
-        if version < 25:
+    if '^' in object_filter:
+        if dhis_version >= 28:
+            raise PKClientException("ArgumentError: Operator '^' was replaced with '$' in 2.28 onwards. Nothing shared.")
+    if '||' in object_filter:
+        if dhis_version < 25:
             raise PKClientException(
                 "ArgumentError: rootJunction 'OR' / '||' is only supported 2.25 onwards. Nothing shared.")
-        if '&&' in argument:
+        if '&&' in object_filter:
             raise PKClientException("ArgumentError: Not allowed to combine delimiters '&&' and '||'. Nothing shared")
         return '||', 'OR'
     return '&&', 'AND'
 
 
 def share(api, sharing_object):
+    """
+    API POST request to share the object
+    :param api: the dhis2.py Api object
+    :param sharing_object: ShareableObject instance
+    :return: None
+    """
     params = {'type': sharing_object.obj_type, 'id': sharing_object.uid}
     api.post('sharing', params=params, data=sharing_object.to_json())
+
+
+def merge(server_uga, local_uga):
+    """
+    Merging User Group Accesses on the server with local User Group Accesses (in arguments)
+    :param server_uga: An object's server-side User Group Access definitions
+    :param local_uga:  An object's locally-defined User Group Access definitions
+    :return: set of User Group Accesses
+    """
+    # if nothing is defined on the server just use what's provided locally
+    if not server_uga:
+        return local_uga
+
+    # create a set of UserGroupAccessMerge objects
+    # Local User Group Access definitions for the same user group
+    # have higher priority than those on the server
+    merged_ugam = {
+        UserGroupAccessMerge(uid=ug.uid, permission=ug.permission)
+        for ug
+        in list(local_uga) + list(server_uga)
+    }
+
+    # need to convert it to UserGroupAccess instances for later comparison of equality
+    # and remove metadata=none data=none user group accesses
+    return {
+        UserGroupAccess.from_ugam(uga)
+        for uga in merged_ugam
+        if any([uga.permission.metadata, uga.permission.data])
+    }
 
 
 def main():
@@ -579,27 +717,50 @@ def main():
     api = create_api(server=args.server, username=args.username, password=password, api_version=args.api_version)
     validate_args(args, api.version_int)
 
-    public_access = Permission.from_public_args(args.public_access)
+    public_access_permission = Permission.from_public_args(args.public_access)
     collection = ShareableObjectCollection(api, args.object_type, args.filter)
     usergroups = UserGroupsCollection(api, args.groups)
-    validate_data_access(public_access, collection, usergroups, api.version_int)
+    validate_data_access(public_access_permission, collection, usergroups, api.version_int)
 
-    logger.info(u"Public access {} {}".format(ARROW, public_access))
-
+    # sort by name
     try:
-        # sort them by name
         elements = sorted(collection.elements, key=operator.attrgetter('name'))
     except AttributeError:
         elements = collection.elements
 
+    # handle log messages and collection-wide public access and usergroup access if applicable
+    if args.extend:
+        if not args.public_access:
+            logger.warning(u"Public access {} INHERIT".format(ARROW))
+        else:
+            logger.info(u"Public access {} {}".format(ARROW, public_access_permission))
+            public_access = Permission.from_public_args(args.public_access)
+        logger.warning(u"Extending with additional User Groups...")
+
+    else:
+        logger.info(u"Public access {} {}".format(ARROW, public_access_permission))
+        public_access = Permission.from_public_args(args.public_access)
+        usergroup_accesses = usergroups.accesses
+
     time.sleep(2)
+
     for i, element in enumerate(elements, 1):
+        if args.extend:
+            # merge user group accesses
+            usergroup_accesses = merge(server_uga=element.usergroup_accesses, local_uga=usergroups.accesses)
+            # if public access is not provided via argument, re-use public access from object on server
+            if not args.public_access:
+                public_access = element.public_access
+
+        # no issue for public_access and usergroup_accesses since it's set above with same if/else check
+        # to improve performance and allow for logical logging message placement
+        # noinspection PyUnboundLocalVariable
         update = ShareableObject(obj_type=element.obj_type,
                                  uid=element.uid,
                                  name=element.name,
                                  code=element.code,
                                  public_access=public_access,
-                                 usergroup_accesses=usergroups.accesses)
+                                 usergroup_accesses=usergroup_accesses)
 
         pointer = u"{0}/{1} {2} {3}".format(i, len(collection.elements), collection.name, element.uid)
 
@@ -608,14 +769,14 @@ def main():
             share(api, update)
 
         else:
-            logger.warning(u'Not overwriting: {0} {1}'.format(pointer, element.log_identifier))
+            logger.warning(u'Skipping (already shared): {0} {1}'.format(pointer, element.log_identifier))
 
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        logger.warn("Aborted.")
+        logger.warning("Aborted.")
     except PKClientException as e:
         logger.error(e)
     except Exception as e:
