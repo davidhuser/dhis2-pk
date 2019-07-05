@@ -26,7 +26,7 @@ optional arguments:
                         Public Access for all objects. 
                         Valid choices are: {readonly, none, readwrite}
                         For setting DATA access, add second argument, e.g. -a readwrite readonly
-  -e EXTEND             Extend existing sharing settings with additional user groups
+  -e                    Extend existing sharing settings with additional user groups
   -f FILTER             Filter on objects with DHIS2 field filter.
                         To add multiple filters:
                         - '&&' joins filters with AND

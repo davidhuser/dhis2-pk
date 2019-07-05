@@ -280,17 +280,17 @@ class TestMerge(object):
                 UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
             }
         ],
-        [ # user group accesses have higher priority newly supplied than already on the server
+        [ # user group accesses have higher priority when supplied to what is already on the server
             {
                 UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data=None)),
-                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data='readonly'))
             },
             {
                 UserGroupAccess(uid='abc', permission=Permission(metadata='readonly', data=None)),
             },
             {
                 UserGroupAccess(uid='abc', permission=Permission(metadata='readonly', data=None)),
-                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data='readonly'))
             }
         ],
         [  # user group accesses are not overwritten with NONE
@@ -315,6 +315,22 @@ class TestMerge(object):
             {
                 UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data=None)),
                 UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
+            }
+        ],
+        [  # no user groups present on server nor specified
+            {},
+            {},
+            {}
+        ],
+        [  # ordering not important
+            {},
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata=None, data='readwrite')),
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
+            },
+            {
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None)),
+                UserGroupAccess(uid='abc', permission=Permission(metadata=None, data='readwrite'))
             }
         ]
     ])

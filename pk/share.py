@@ -636,7 +636,7 @@ def validate_data_access(public_access, collection, usergroups, dhis_version):
             if not all([group.permission.data for group in usergroups.accesses]):
                 raise PKClientException(log_msg.format('User Groups', collection.name, '-g'))
         else:
-            log_msg = "ArgumentError: Not possible to set {} permission for DATA access for '{}' (a rgument {})"
+            log_msg = "ArgumentError: Not possible to set {} permission for DATA access for '{}' (argument {})"
             if public_access.data:
                 raise PKClientException(log_msg.format('Public Access', collection.name, '-a'))
             if any([group.permission.data for group in usergroups.accesses]):
@@ -699,9 +699,9 @@ def merge(server_uga, local_uga):
     # need to convert it to UserGroupAccess instances for later comparison of equality
     # and remove metadata=none data=none user group accesses
     return {
-        UserGroupAccess.from_ugam(uga)
-        for uga in merged_ugam
-        if any([uga.permission.metadata, uga.permission.data])
+        UserGroupAccess.from_ugam(ugam)
+        for ugam in merged_ugam
+        if any([ugam.permission.metadata, ugam.permission.data])
     }
 
 
