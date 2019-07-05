@@ -1,16 +1,24 @@
 #!/bin/bash
 
-# Run from Repo root
+# Run from Repo root:
+# bash tests/manual.sh
 
 URL='play.dhis2.org/demo'
 USERNAME='admin'
 PW='district'
+
+echo '------'
+echo $URL
+echo '------'
 
 echo -e '\nuserinfo'
 pipenv run python pk/userinfo.py -s ${URL} -u ${USERNAME} -p ${PW}
 
 echo -e '\nshare'
 pipenv run python pk/share.py -s ${URL} -u ${USERNAME} -p ${PW} -f 'id:eq:P3jJH5Tu5VC' -t dataelement -a readonly -g 'name:like:Admin' readwrite -g 'name:like:Research' readwrite
+
+echo -e '\nshare and extend'
+pipenv run python pk/share.py -s ${URL} -u ${USERNAME} -p ${PW} -f 'id:eq:P3jJH5Tu5VC' -t dataelement -g 'name:like:Bo District M&E officers' readonly -e
 
 echo -e '\nindicator-definition'
 pipenv run python pk/indicators.py -s ${URL} -u ${USERNAME} -p ${PW} -t indicators

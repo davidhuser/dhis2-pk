@@ -1,6 +1,18 @@
+from collections import namedtuple
+
 import pytest
 
-from pk.share import Permission, UserGroupAccess, ShareableObject, set_delimiter
+from pk.share import (
+    Permission,
+    UserGroupAccess,
+    ShareableObject,
+    set_delimiter,
+    UserGroupAccessMerge,
+    merge,
+    PUBLIC_ACCESS_INHERITED,
+    validate_args,
+    validate_data_access
+)
 from pk.common.exceptions import PKClientException
 
 
@@ -10,6 +22,9 @@ class TestPermission(object):
         options = ('rw', 'r-', '--')
         assert len(Permission.symbolic_notation) == len(set(Permission.symbolic_notation))
         assert(len(options)**2 == len(Permission.symbolic_notation))
+
+    def test_permission_not_equal(self):
+        assert Permission(metadata='readwrite', data=None) != Permission(metadata=None, data=None)
 
     def test_permission_init(self):
         p = Permission(metadata='rw', data='r-')
@@ -27,6 +42,10 @@ class TestPermission(object):
         assert p.metadata == metadata
         assert p.data == data
         assert p.to_symbol() == symbol
+
+    def test_permission_from_public_args_inherited(self):
+        """If not specified, assume it's inherited from server definition"""
+        assert Permission.from_public_args(None) == PUBLIC_ACCESS_INHERITED
 
     @pytest.mark.parametrize('symbol, metadata, data', [
         ('rwrw----', 'readwrite', 'readwrite'),
@@ -76,6 +95,10 @@ class TestPermission(object):
         assert p3.to_symbol() == p4.to_symbol()
         assert p1.to_symbol() == p4.to_symbol()
 
+    def test_print(self):
+        assert str(Permission(metadata=None, data=None)) == '[metadata:none]'
+        assert str(Permission(metadata=None, data='readwrite')) == '[metadata:none] [data:readwrite]'
+        assert repr(Permission(metadata=None, data='readwrite')) == 'None readwrite'
 
 class TestUserGroupAccess(object):
 
@@ -97,6 +120,14 @@ class TestUserGroupAccess(object):
         uga = UserGroupAccess.from_dict(data)
         assert uga.permission == Permission(None, None)
         assert uga.to_json() == {"id": "abc", "access": "--------"}
+
+    def test_inequality(self):
+        uga1 = UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data='readwrite'))
+        uga2 = UserGroupAccess(uid='abc', permission=Permission(metadata='readonly', data='readwrite'))
+        uga3 = UserGroupAccess(uid='cde', permission=Permission(metadata='readwrite', data='readwrite'))
+
+        assert uga1 != uga2
+        assert uga1 != uga3
 
 
 class TestShareableObject(object):
@@ -181,3 +212,129 @@ def test_set_delimiter(version, argument, expected):
 def test_set_delimiter_raises(version, argument):
     with pytest.raises(PKClientException):
         set_delimiter(version, argument)
+
+class TestValidateArgs(object):
+    Arguments = namedtuple('args', 'public_access extend groups')
+    def test_extend_usergroups_required(self):
+        api_version = 32
+        args = self.Arguments(public_access=None, extend=True, groups=None)
+        with pytest.raises(PKClientException):
+            validate_args(args, api_version)
+
+    def test_extend_usergroups_not_required_with_publicaccess(self):
+        api_version = 32
+        args = self.Arguments(public_access='readwrite', extend=True, groups=None)
+        validate_args(args, api_version)
+
+    def test_public_access_required_when_none(self):
+        api_version = 32
+        args = self.Arguments(public_access=None, extend=False, groups=None)
+        with pytest.raises(PKClientException):
+            validate_args(args, api_version)
+
+    def test_public_access_incorrect_count(self):
+        api_version = 32
+        args = self.Arguments(public_access=['readwrite', 'none', 'readonly'], extend=False, groups=None)
+        with pytest.raises(PKClientException):
+            validate_args(args, api_version)
+
+
+class TestValidateDataAccess(object):
+    pass
+
+class TestUserGroupAccessMerge(object):
+
+    def test_usergroupaccessmerge_sets(self):
+        ug1 = UserGroupAccessMerge(uid='abc', permission='rw------')
+        ug2 = UserGroupAccessMerge(uid='abc', permission='rw------')
+        ug3 = UserGroupAccessMerge(uid='abc', permission='r------')
+        ug4 = UserGroupAccessMerge(uid='cde', permission='r------')
+        ug5 = UserGroupAccessMerge(uid='abc ', permission='rw------')
+
+        ug_set = set()
+        ug_set.add(ug1)
+        assert ug2 in ug_set
+        assert ug3 in ug_set
+        assert ug4 not in ug_set
+        assert ug5 not in ug_set
+
+    def test_inequality(self):
+        uga1 = UserGroupAccessMerge(uid='abc', permission=Permission(metadata='readwrite', data='readwrite'))
+        uga2 = UserGroupAccessMerge(uid='cde', permission=Permission(metadata='readwrite', data='readwrite'))
+        assert uga1 != uga2
+
+class TestMerge(object):
+
+    @pytest.mark.parametrize('server_uga, local_uga, expected', [
+        [ # user group accesses is retained
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data=None)),
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
+            },
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data=None)),
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
+            },
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data=None)),
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
+            }
+        ],
+        [ # user group accesses have higher priority when supplied to what is already on the server
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data=None)),
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data='readonly'))
+            },
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata='readonly', data=None)),
+            },
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata='readonly', data=None)),
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data='readonly'))
+            }
+        ],
+        [  # user group accesses are not overwritten with NONE
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data=None)),
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
+            },
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data=None)),
+                UserGroupAccess(uid='def', permission=Permission(metadata=None, data=None))
+            },
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data=None)),
+            }
+        ],
+        [  # no user groups present on server
+            {},
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data=None)),
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
+            },
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata='readwrite', data=None)),
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
+            }
+        ],
+        [  # no user groups present on server nor specified
+            {},
+            {},
+            {}
+        ],
+        [  # ordering not important
+            {},
+            {
+                UserGroupAccess(uid='abc', permission=Permission(metadata=None, data='readwrite')),
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None))
+            },
+            {
+                UserGroupAccess(uid='def', permission=Permission(metadata='readwrite', data=None)),
+                UserGroupAccess(uid='abc', permission=Permission(metadata=None, data='readwrite'))
+            }
+        ]
+    ])
+    def test_merge(self, server_uga, local_uga, expected):
+        output = merge(server_uga, local_uga)
+        assert output == expected
+
