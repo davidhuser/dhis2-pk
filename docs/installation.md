@@ -4,16 +4,17 @@
 
 Have you already a running Python installation? If not check this guide: https://realpython.com/installing-python
 
-Installation with [pip](https://pip.pypa.io/en/stable/installing)
-(python package manager, see if it is installed: `pip -V`)
-
 ## Installation with pip
+
+Installation with [pip](https://pip.pypa.io/en/stable/installing)
+(python package manager, see if it is installed: `pip -V` or `pip3 -V`)
 
 Best way is to install it for your user only:
 
 ```bash
 pip install dhis2-pocket-knife --user --upgrade
 ```
+
 if it failed, it might be that you are running `pip3` - repeat the same with `pip3` instead of `pip`.
 
 With providing the `--user` argument you don't clutter your system installation (which might be really bad), but it might be that you see a message like *dhis2-pk-share could not be found*. To fix
