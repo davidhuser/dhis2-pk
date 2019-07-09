@@ -29,10 +29,12 @@ First, you need to find out what Python version you are running:
 ```bash
 python3 -V || python -V || python2 -V
 ```
-This is returning somethine like `Python 3.5.3`, meaning you have a `$PYTHONVERSION` with value `3.5`.
+This is returning something like `Python 3.5.3`, meaning you have a `$PYTHONVERSION` with value `3.5`.
 
 ### USER
+
 Then you should find out which user you are:
+
 ```bash
 echo $USER
 ```
