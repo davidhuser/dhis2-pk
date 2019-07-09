@@ -50,7 +50,8 @@ echo 'export PATH=$PATH:/Users/$USER/Library/Python/$PYTHONVERSION/bin' >> ~/.ba
 
 ## Windows
 
-This guide can help: https://realpython.com/installing-python/#windows - make sure you tick the box for "Add Python3.X to path".
+This guide can help: https://realpython.com/installing-python/#windows - make sure you tick the box for "Add Python3.X to path". 
+Another hint regarding the usage on Windows is below.
 
 
 ## System-wide installation
@@ -79,17 +80,7 @@ pip install dhis2-pocket-knife --user --upgrade
 # Usage
 
 ## Help text
-Besides the documentation, you can also issue any command with the `--help` flage, e.g. `dhis2-pk-share --help`.
-
-## dish.json
-If you're using the same server over and over, place file called
-`dish.json` in your home folder and leave out `server`, `username`,
-`password` in all commands. 
-Make sure that file is kept in a secure place. (`chmod 0600 dish.json`)
-
-So: either pass arguments for a server / username / password or
-make it read from a `dish.json` file as described in
-[davidhuser/dhis2.py](https://github.com/davidhuser/dhis2.py#load-authentication-from-file).
+Besides the documentation, you can also issue any command with the `--help` flag, e.g. `dhis2-pk-share --help`.
 
 ## Windows
 
