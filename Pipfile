@@ -8,6 +8,7 @@ pytest = "*"
 pytest-cov = "*"
 responses = "*"
 pytest-runner = "*"
+pyinstaller = "*"
 
 [packages]
 colorama = "*"
@@ -15,3 +16,4 @@ colorama = "*"
 
 [scripts]
 tests = "python -m pytest --cov=pk --cov-report term-missing tests -vv"
+build = "pyinstaller cli.py --name=dhis2-pk --onefile --windowed --exclude-module=tests"

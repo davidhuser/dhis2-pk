@@ -91,6 +91,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
+            'dhis2-pk = pk.__main__:main',
             'dhis2-pk-indicator-definitions = pk.indicators:main',
             'dhis2-pk-share = pk.share:main',
             'dhis2-pk-userinfo = pk.userinfo:main',
