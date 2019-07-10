@@ -470,7 +470,7 @@ def skip(overwrite, on_server, update):
         return on_server == update
 
 
-def parse_args():
+def parse_args(argv):
     """Argument parsing"""
     description = "{}Share DHIS2 objects with userGroups via filters.{}".format(Style.BRIGHT, Style.RESET_ALL)
     usage = """
@@ -569,7 +569,7 @@ def parse_args():
                           default=False,
                           required=False,
                           help="Debug flag")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if not args.password:
         if not args.username:
@@ -705,9 +705,9 @@ def merge(server_uga, local_uga):
     }
 
 
-def main():
+def main(argv=sys.argv[2:]):
     setup_logger(include_caller=False)
-    args, password = parse_args()
+    args, password = parse_args(argv)
     if args.logging_to_file:
         if args.debug:
             setup_logger(logfile=args.logging_to_file, log_level=DEBUG, include_caller=True)
