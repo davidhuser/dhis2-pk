@@ -28,18 +28,18 @@ Under the hood it uses the DHIS 2 API wrapper `dhis2.py <https://github.com/davi
 .. |pocket-knife| image:: https://i.imgur.com/AWrQJ4N.png
     :alt: Pocket Knife
 
-.. |PyPi| image:: https://img.shields.io/pypi/v/dhis2-pocket-knife.svg?label=PyPI&style=flat-square
+.. |PyPi| image:: https://img.shields.io/pypi/v/dhis2-pocket-knife.svg?label=PyPI
     :alt: pip version
     :target: https://pypi.python.org/pypi/dhis2-pocket-knife
     
-.. |Downloads| image:: https://img.shields.io/pypi/dm/dhis2-pocket-knife.svg?label=Downloads&style=flat-square
-   :target: https://pypi.org/project/dhis2-pocket-knife
+.. |Downloads| image:: https://pepy.tech/badge/dhis2-pocket-knife/month
+   :target: https://pepy.tech/project/dhis2-pocket-knife
    :alt: Downloads
 
-.. |Travis| image:: https://img.shields.io/travis/davidhuser/dhis2-pk/master.svg?style=flat-square
+.. |Travis| image:: https://img.shields.io/travis/davidhuser/dhis2-pk/master.svg
     :alt: Travis CI build status
     :target: https://travis-ci.org/davidhuser/dhis2-pk
 
-.. |PythonVersion| image:: https://img.shields.io/pypi/pyversions/dhis2-pocket-knife.svg?style=flat-square
+.. |PythonVersion| image:: https://img.shields.io/pypi/pyversions/dhis2-pocket-knife.svg
     :alt: PyPI - Python Version
 
