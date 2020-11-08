@@ -28,6 +28,8 @@ Usage:
 
    dhis2-pk <script-name> --help
 
+Changelog (starting from 0.35): `Changelog.rst <https://github.com/davidhuser/dhis2-pk/blob/master/Changelog.rst>`__.
+
 ----
 
 Under the hood it uses the DHIS 2 API wrapper `dhis2.py <https://github.com/davidhuser/dhis2.py>`__.
