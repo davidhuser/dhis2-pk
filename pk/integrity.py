@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import argparse
 import json
 import re
-import getpass
 
-from colorama import Style
 from dhis2 import setup_logger, logger, RequestException
 
 try:
@@ -15,29 +12,6 @@ try:
 except (SystemError, ImportError):
     from common.utils import create_api, file_timestamp, write_csv
     from common.exceptions import PKClientException
-
-
-def parse_args():
-    description = "{}Analyze data integrity.{}".format(Style.BRIGHT, Style.RESET_ALL)
-    usage = "\n{}Example:{} dhis2-pk-data-integrity -s play.dhis2.org/demo -u admin -p district".format(
-        Style.BRIGHT, Style.RESET_ALL)
-
-    parser = argparse.ArgumentParser(usage=usage, description=description)
-    parser.add_argument('-s', dest='server', action='store',
-                        help="DHIS2 server URL")
-    parser.add_argument('-u', dest='username', action='store', help="DHIS2 username")
-    parser.add_argument('-p', dest='password', action='store', help="DHIS2 password")
-    parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
-                        help='DHIS2 API version e.g. -v=28')
-    args = parser.parse_args()
-
-    if not args.password:
-        if not args.username:
-            raise PKClientException("ArgumentError: Must provide a username via argument -u")
-        password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
-    else:
-        password = args.password
-    return args, password
 
 
 def extract_uids(rule):
@@ -161,9 +135,8 @@ def check_category_combos(api):
                         "to any Data Element, Data Set Element, Program or Data Set".format(cc['name'], cc['id']))
 
 
-def main():
+def main(args, password):
     setup_logger(include_caller=False)
-    args, password = parse_args()
 
     api = create_api(server=args.server, username=args.username, password=password)
 
@@ -172,14 +145,3 @@ def main():
     check_category_options(api)
     check_categories(api)
     check_category_combos(api)
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        logger.warn("Aborted.")
-    except PKClientException as e:
-        logger.error(e)
-    except Exception as e:
-        logger.exception(e)

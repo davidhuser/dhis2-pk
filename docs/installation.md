@@ -4,20 +4,23 @@
 
 Have you already a running Python installation? If not check this guide: https://realpython.com/installing-python
 
+Note: due to End-of-life for Python 2, **Python 3.6+ will be required.**
+
 ## Installation with pip
 
 Installation with [pip](https://pip.pypa.io/en/stable/installing)
-(python package manager, see if it is installed: `pip -V` or `pip3 -V`)
+(python package manager, see if it is installed: `pip3 -V` or `pip -V`)
 
 Best way is to install it for your user only:
 
 ```bash
-pip install dhis2-pocket-knife --user --upgrade
+pip3 install dhis2-pocket-knife --user --upgrade
 ```
 
-if it failed, it might be that you are running `pip3` - repeat the same with `pip3` instead of `pip`.
+if it failed, it might be that you are running `pip` - repeat the same with `pip` instead of `pip3`.
 
-With providing the `--user` argument you don't clutter your system installation (which might be really bad), but it might be that you see a message like *dhis2-pk-share could not be found*. To fix
+With providing the `--user` argument you don't clutter your system installation (which might be really bad), but it 
+might be that you see a message like `dhis2-pk could not be found. To fix
 this you need to modify your Python PATH - see below. 
 
 ## Fixing Python PATH for macOS and Linux
@@ -29,7 +32,7 @@ First, you need to find out what Python version you are running:
 ```bash
 python3 -V || python -V || python2 -V
 ```
-This is returning something like `Python 3.5.3`, meaning you have a `$PYTHONVERSION` with value `3.5`.
+This is returning something like `Python 3.7.9`, meaning you have a `$PYTHONVERSION` with value `3.7`.
 
 ### USER
 
@@ -45,7 +48,7 @@ Meaning you have a `$USER` with value `david`.
 Now we know what to replace: replace `$USER` with your macOS username from above (e.g. `david`) and `$PYTHONVERSION` from above (e.g. `3.5`) and paste it into your terminal and hit ENTER. If it shows the help page all is set.
 
 ```bash
-echo 'export PATH=$PATH:/Users/$USER/Library/Python/$PYTHONVERSION/bin' >> ~/.bash_profile && source ~/.bash_profile && dhis2-pk-share --help
+echo 'export PATH=$PATH:/Users/$USER/Library/Python/$PYTHONVERSION/bin' >> ~/.bash_profile && source ~/.bash_profile && dhis2-pk share --help
 ```
 
 ## Windows
@@ -59,7 +62,7 @@ Another hint regarding the usage on Windows is below.
 To install it system-wide **(really not recommended)**:
 
 ```bash
-sudo -H pip install dhis2-pocket-knife
+sudo -H pip3 install dhis2-pocket-knife
 ```
 
 # Updating dhis2-pocket-knife
@@ -67,20 +70,20 @@ sudo -H pip install dhis2-pocket-knife
 ## Current version
 
 ```bash
-pip show dhis2-pocket-knife
+pip3 show dhis2-pocket-knife
 ```
 
 and compare it with the most recent release (the orange PyPI label here: https://github.com/davidhuser/dhis2-pk)
 
 ## Update it
 ```bash
-pip install dhis2-pocket-knife --user --upgrade
+pip3 install dhis2-pocket-knife --user --upgrade
 ```
 
 # Usage
 
 ## Help text
-Besides the documentation, you can also issue any command with the `--help` flag, e.g. `dhis2-pk-share --help`.
+Besides the documentation, you can also issue any command with the `--help` flag, e.g. `dhis2-pk share --help`.
 
 ## Windows
 

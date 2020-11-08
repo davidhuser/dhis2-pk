@@ -7,11 +7,8 @@ indicator-definitions
 Creates a CSV with indicator definitions (names of dataelement.catoptioncombo, constants, orgunitgroups)
 """
 
-import argparse
-import getpass
 from collections import namedtuple, OrderedDict
 
-from colorama import Style
 from dhis2 import setup_logger, logger
 
 try:
@@ -20,7 +17,6 @@ try:
 except (SystemError, ImportError):
     from common.utils import create_api, write_csv, file_timestamp
     from common.exceptions import PKClientException
-
 
 
 indicator_fields = OrderedDict([
@@ -117,55 +113,6 @@ def object_map(api):
         uid_mapping[elem['id']] = {u'desc': u"{}".format(elem['name'])}
 
     return uid_mapping
-
-
-def parse_args():
-    description = "{}Readable indicator definition to CSV.{}".format(Style.BRIGHT, Style.RESET_ALL)
-    usage = "\n{}Example:{} dhis2-pk-indicator-definitions -s play.dhis2.org/demo -u admin -p district -t indicators".format(Style.BRIGHT, Style.RESET_ALL)
-
-    types = {'programIndicators', 'indicators'}
-    parser = argparse.ArgumentParser(usage=usage, description=description)
-    parser._action_groups.pop()
-
-    required = parser.add_argument_group('required arguments')
-    required.add_argument('-t',
-                          dest='indicator_type',
-                          action='store',
-                          metavar='INDICATOR_TYPE',
-                          help="{}".format(" or ".join(types)),
-                          choices=types,
-                          required=True)
-
-    optional = parser.add_argument_group('optional arguments')
-    optional.add_argument('-s',
-                          dest='server',
-                          action='store',
-                          help="DHIS2 server URL")
-    optional.add_argument('-f',
-                          dest='indicator_filter',
-                          action='store',
-                          help="Indicator filter, e.g. -f 'name:like:HIV' - see dhis2-pk-share --help")
-    optional.add_argument('-u',
-                          dest='username',
-                          action='store',
-                          help="DHIS2 username")
-    optional.add_argument('-p',
-                          dest='password',
-                          action='store',
-                          help="DHIS2 password")
-    optional.add_argument('-v',
-                          dest='api_version',
-                          action='store',
-                          type=int,
-                          help='DHIS2 API version e.g. -v=28')
-    args = parser.parse_args()
-    if not args.password:
-        if not args.username:
-            raise PKClientException("ArgumentError: Must provide a username via argument -u")
-        password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
-    else:
-        password = args.password
-    return args, password
 
 
 def get_params(argument_filter, fields):
@@ -298,11 +245,10 @@ def write_to_csv(api, typ, indicators, object_mapping, file_name):
         logger.info("Success! CSV file exported to {}".format(file_name))
 
 
-def main():
+def main(args, password):
     setup_logger(include_caller=False)
-    args, password = parse_args()
 
-    api = create_api(server=args.server, username=args.username, password=password, api_version=args.api_version)
+    api = create_api(server=args.server, username=args.username, password=password)
 
     file_name = '{}-{}.csv'.format(args.indicator_type, file_timestamp(api.api_url))
 
@@ -323,14 +269,3 @@ def main():
     object_mapping = object_map(api)
 
     write_to_csv(api, args.indicator_type, indicators, object_mapping, file_name)
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        logger.warn("Aborted.")
-    except PKClientException as e:
-        logger.error(e)
-    except Exception as e:
-        logger.exception(e)

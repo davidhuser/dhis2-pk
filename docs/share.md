@@ -9,24 +9,26 @@ It is now possible to share DATA access for object types data set,
 tracked entity type, program and program stage on DHIS2 instances 2.29+. Read more
 [here.](https://docs.dhis2.org/2.29/en/user/html/sharing.html)
 
-**Script name:** `dhis2-pk-share`
+**Script name:** `share`
 
 ## Usage
 
 ```
-Example: dhis2-pk-share -s play.dhis2.org/dev -u admin -p district -f 'id:eq:P3jJH5Tu5VC' -t dataelement -a readonly -g 'name:like:Admin' readwrite -g 'name:like:Research' readwrite
+Example: dhis2-pk share -s play.dhis2.org/dev -u admin -p district -f 'id:eq:P3jJH5Tu5VC' -t dataelement -a readonly -g 'name:like:Admin' readwrite -g 'name:like:Research' readwrite
 
 Share DHIS2 objects with userGroups via filters.
 
 required arguments:
+  -s SERVER             DHIS2 server URL
+  -u USERNAME           DHIS2 username
   -t OBJECT_TYPE        DHIS2 object type to apply sharing, e.g. -t sqlView
 
 optional arguments:
+  -p PASSWORD           DHIS2 password
   -a PUBLICACCESS [PUBLICACCESS ...]
                         Public Access for all objects. 
-                        Valid choices are: {readonly, none, readwrite}
+                        Valid choices are: {none, readonly, readwrite}
                         For setting DATA access, add second argument, e.g. -a readwrite readonly
-  -e                    Extend existing sharing settings with additional user groups
   -f FILTER             Filter on objects with DHIS2 field filter.
                         To add multiple filters:
                         - '&&' joins filters with AND
@@ -39,12 +41,10 @@ optional arguments:
                         - DATA: Data access for this User Group. {readwrite, none, readonly}
                         Example:  -g 'id:eq:OeFJOqprom6' readwrite none
   -o                    Overwrite sharing - updates 'lastUpdated' field of all shared objects
+  -e                    Extend existing sharing settings
   -l FILEPATH           Path to Log file (default level: INFO, pass -d for DEBUG)
-  -v API_VERSION        DHIS2 API version e.g. -v 28
-  -s URL                DHIS2 server URL
-  -u USERNAME           DHIS2 username, e.g. -u admin
-  -p PASSWORD           DHIS2 password, e.g. -p district
   -d                    Debug flag
+
 
 ```
 
@@ -60,7 +60,7 @@ Example to share dataElements that start with `ANC`:
 * User Group with `Admin` in its names to have `readwrite` access (for metadata)
 
 `
-dhis2-pk-share -s play.dhis2.org/demo -u admin -p district -t dataelement -f 'name:$like:ANC' -a readonly -g 'name:like:Admin' readwrite 
+dhis2-pk share -s play.dhis2.org/demo -u admin -p district -t dataelement -f 'name:$like:ANC' -a readonly -g 'name:like:Admin' readwrite 
 `
 
 Console output:
@@ -87,7 +87,7 @@ by simply supplying a second `readwrite`/ `readonly` / `none` argument.
 
 
 `
-dhis2-pk-share -s play.dhis2.org/demo -u admin -p district -t dataSets -f 'id:eq:aLpVgfXiz0f' -a readonly readwrite -g 'name:like:Research' none readonly -g 'name:eq:Kenya staff' readonly none
+dhis2-pk share -s play.dhis2.org/demo -u admin -p district -t dataSets -f 'id:eq:aLpVgfXiz0f' -a readonly readwrite -g 'name:like:Research' none readonly -g 'name:eq:Kenya staff' readonly none
 `
 
 Console output:
@@ -108,7 +108,7 @@ Console output:
 To add additional User Group(s) to a Data Element that is already shared, use the argument `-e`.
 
 `
-dhis2-pk-share -s play.dhis2.org/demo -u admin -p district -t dataSets -f 'id:eq:aLpVgfXiz0f' -g 'name:like:Research' none readonly -a none readwrite -e
+dhis2-pk share -s play.dhis2.org/demo -u admin -p district -t dataSets -f 'id:eq:aLpVgfXiz0f' -g 'name:like:Research' none readonly -a none readwrite -e
 `
 
 Console output:

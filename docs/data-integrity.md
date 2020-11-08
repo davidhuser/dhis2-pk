@@ -1,5 +1,7 @@
 # Additional data integrity
 
+**Script name:** `data-integrity`
+
 To enhance the DHIS2 built-in data integrity, this script checks the following things:
 
 * Validation Rules - invalid expressions
@@ -11,14 +13,14 @@ To enhance the DHIS2 built-in data integrity, this script checks the following t
 ## Usage
 
 ```
-Example: dhis2-pk-data-integrity -s play.dhis2.org/demo -u admin -p district
+Example: dhis2-pk data-integrity -s play.dhis2.org/demo -u admin -p district
 
-Additional data integrity checks.
+Run additional data integrity checks.
+
+required arguments:
+  -s SERVER    DHIS2 server URL
+  -u USERNAME  DHIS2 username
 
 optional arguments:
-  -h, --help      show this help message and exit
-  -s SERVER       DHIS2 server URL
-  -u USERNAME     DHIS2 username
-  -p PASSWORD     DHIS2 password
-  -v API_VERSION  DHIS2 API version e.g. -v=28
+  -p PASSWORD  DHIS2 password
 ```

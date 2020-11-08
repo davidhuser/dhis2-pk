@@ -13,6 +13,7 @@ about = {}
 with open(os.path.join(here, 'pk', '__version__.py'), 'r', 'utf-8') as f:
     exec(f.read(), about)
 
+
 class PublishCommand(Command):
     """Support setup.py publish."""
 
@@ -91,13 +92,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'dhis2-pk-indicator-definitions = pk.indicators:main',
-            'dhis2-pk-share = pk.share:main',
-            'dhis2-pk-userinfo = pk.userinfo:main',
-            'dhis2-pk-post-css = pk.css:main',
-            'dhis2-pk-attribute-setter = pk.attributes:main',
-            'dhis2-pk-validation-rules = pk.integrity:main',
-            'dhis2-pk-data-integrity = pk.integrity:main'
+            'dhis2-pk = pk.cmdline:pocketknife_run'
         ]
     },
     classifiers=[

@@ -17,9 +17,16 @@ Installation:
 
 .. code:: bash
 
-   pip install dhis2-pocket-knife
+   pip3 install dhis2-pocket-knife
 
-more details: `Installation & Usage <https://github.com/davidhuser/dhis2-pk/blob/master/docs/installation.md>`__
+more details: `Installation <https://github.com/davidhuser/dhis2-pk/blob/master/docs/installation.md>`__.
+Note: Python 3.6+ will be required soon.
+
+Usage:
+
+.. code:: bash
+
+   dhis2-pk <script-name> --help
 
 ----
 

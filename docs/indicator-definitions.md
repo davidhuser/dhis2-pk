@@ -1,6 +1,6 @@
 ## Readable indicator definition to CSV
 
-**Script name:** `dhis-pk-indicator-definitions`
+**Script name:** `indicator-definitions`
 
 Writes indicator expressions (numerators/denominators/expressions) of Indicators and Program Indicators in a **readable format to a csv file**. Includes _names and number of orgunits for orgunit groups_, _dataelements (dataelement.categoryoptioncombo)_, _program dataelements_, _program indicators_, _trackedEntityAttributes_ and _constants_. 
 
@@ -20,20 +20,18 @@ Example column for numerator `ANC 1-3 Dropout Rate` (`ReUHfIn0pTQ`):
 
 ### Usage
 ```
-Example: dhis2-pk-indicator-definitions -s play.dhis2.org/demo -u admin -p district -t indicators
+Example: dhis2-pk indicator-definitions -s play.dhis2.org/demo -u admin -p district -t indicators
 
 Readable indicator definition to CSV.
 
 required arguments:
+  -s SERVER            DHIS2 server URL
+  -u USERNAME          DHIS2 username
   -t INDICATOR_TYPE    indicators or programIndicators
+  -f INDICATOR_FILTER  Indicator filter, e.g. -f 'name:like:HIV' - see dhis2-pk-share --help
 
 optional arguments:
-  -s SERVER            DHIS2 server URL
-  -f INDICATOR_FILTER  Indicator filter, e.g. -f 'name:like:HIV' - see
-                       dhis2-pk-share --help
-  -u USERNAME          DHIS2 username
   -p PASSWORD          DHIS2 password
-  -v API_VERSION       DHIS2 API version e.g. -v=28
 
 ```
 ### Indicator variables

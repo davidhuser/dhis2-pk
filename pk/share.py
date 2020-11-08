@@ -7,25 +7,23 @@ share
 Assigns sharing to shareable DHIS2 objects like userGroups and publicAccess by calling the /api/sharing endpoint.
 """
 
-import argparse
 import json
 import operator
 import sys
 import os
-import textwrap
 import time
-import getpass
 from logging import DEBUG
 
-from colorama import Style
 from dhis2 import setup_logger, logger
 from six import iteritems
 
 try:
     from pk.common.utils import create_api
+    from pk.cmdline_parser import parse_args_share
     from pk.common.exceptions import PKClientException
 except (SystemError, ImportError):
     from common.utils import create_api
+    from cmdline_parser import parse_args_share
     from common.exceptions import PKClientException
 
 access = {
@@ -470,116 +468,6 @@ def skip(overwrite, on_server, update):
         return on_server == update
 
 
-def parse_args():
-    """Argument parsing"""
-    description = "{}Share DHIS2 objects with userGroups via filters.{}".format(Style.BRIGHT, Style.RESET_ALL)
-    usage = """
-{}Example:{} dhis2-pk-share -s play.dhis2.org/dev -u admin -p district -f 'id:eq:P3jJH5Tu5VC' -t dataelement -a readonly -g 'name:like:Admin' readwrite -g 'name:like:Research' readwrite
-""".format(Style.BRIGHT, Style.RESET_ALL)
-    parser = argparse.ArgumentParser(usage=usage,
-                                     description=description,
-                                     formatter_class=argparse.RawTextHelpFormatter)
-
-    parser._action_groups.pop()
-    required = parser.add_argument_group('required arguments')
-
-    required.add_argument('-t',
-                          dest='object_type',
-                          action='store',
-                          required=True,
-                          help="DHIS2 object type to apply sharing, e.g. -t sqlView")
-
-    optional = parser.add_argument_group('optional arguments')
-    optional.add_argument('-a',
-                          dest='public_access',
-                          action='append',
-                          required=False,
-                          nargs='+',
-                          metavar='PUBLICACCESS',
-                          choices=access.keys(),
-                          help=textwrap.dedent('''\
-                            Public Access for all objects. 
-                            Valid choices are: {{{}}}
-                            For setting DATA access, add second argument, e.g. -a readwrite readonly
-                          '''.format(', '.join(access.keys()))))
-    optional.add_argument('-f',
-                          dest='filter',
-                          action='store',
-                          required=False,
-                          help=textwrap.dedent('''\
-                                Filter on objects with DHIS2 field filter.
-                                To add multiple filters:
-                                - '&&' joins filters with AND
-                                - '||' joins filters with OR
-                                Example:  -f 'name:like:ABC||code:eq:X'
-                                   '''))
-    optional.add_argument('-g',
-                          dest='groups',
-                          action='append',
-                          required=False,
-                          metavar='USERGROUP',
-                          nargs='+',
-                          help=textwrap.dedent('''\
-                            User Group to share objects with: FILTER METADATA [DATA]
-                            - FILTER: Filter all User Groups. See -f for filtering mechanism
-                            - METADATA: Metadata access for this User Group. {readwrite, none, readonly}
-                            - DATA: Data access for this User Group. {readwrite, none, readonly}
-                            Example:  -g 'id:eq:OeFJOqprom6' readwrite none
-                            '''))
-    optional.add_argument('-o',
-                          dest='overwrite',
-                          action='store_true',
-                          required=False,
-                          default=False,
-                          help="Overwrite sharing - updates 'lastUpdated' field of all shared objects")
-    optional.add_argument('-e',
-                          dest='extend',
-                          action='store_true',
-                          required=False,
-                          default=False,
-                          help="Extend existing sharing settings")
-    optional.add_argument('-l',
-                          dest='logging_to_file',
-                          action='store',
-                          required=False,
-                          metavar='FILEPATH',
-                          help="Path to Log file (default level: INFO, pass -d for DEBUG)")
-    optional.add_argument('-v',
-                          dest='api_version',
-                          action='store',
-                          required=False,
-                          type=int,
-                          help='DHIS2 API version e.g. -v 28')
-    optional.add_argument('-s',
-                          dest='server',
-                          action='store',
-                          metavar='URL',
-                          help="DHIS2 server URL")
-    optional.add_argument('-u',
-                          dest='username',
-                          action='store',
-                          help='DHIS2 username, e.g. -u admin')
-    optional.add_argument('-p',
-                          dest='password',
-                          action='store',
-                          help='DHIS2 password, e.g. -p district')
-    optional.add_argument('-d',
-                          dest='debug',
-                          action='store_true',
-                          default=False,
-                          required=False,
-                          help="Debug flag")
-    args = parser.parse_args()
-
-    if not args.password:
-        if not args.username:
-            raise PKClientException("ArgumentError: Must provide a username via argument -u")
-        password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
-    else:
-        password = args.password
-    return args, password
-
-
 def validate_args(args, dhis_version):
     """
     Validate arguments. Raises Exception if invalid
@@ -705,9 +593,8 @@ def merge(server_uga, local_uga):
     }
 
 
-def main():
+def main(args, password):
     setup_logger(include_caller=False)
-    args, password = parse_args()
     if args.logging_to_file:
         if args.debug:
             setup_logger(logfile=args.logging_to_file, log_level=DEBUG, include_caller=True)
@@ -716,7 +603,7 @@ def main():
     elif args.debug:
         setup_logger(log_level=DEBUG, include_caller=True)
 
-    api = create_api(server=args.server, username=args.username, password=password, api_version=args.api_version)
+    api = create_api(server=args.server, username=args.username, password=password)
     validate_args(args, api.version_int)
 
     public_access_permission = Permission.from_public_args(args.public_access)
@@ -772,14 +659,3 @@ def main():
 
         else:
             logger.warning(u'Skipping (already shared): {0} {1}'.format(pointer, element.log_identifier))
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        logger.warning("Aborted.")
-    except PKClientException as e:
-        logger.error(e)
-    except Exception as e:
-        logger.exception(e)
