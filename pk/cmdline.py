@@ -47,12 +47,19 @@ scripts = {
 }
 
 
+def python2_notice():
+    if sys.version_info.major == 2:
+        sys.exit("dhis2-pocket-knife cannot support Python 2. "
+                 "Please upgrade to Python 3.6+ as Python 2 has reached the end of life.")
+
+
 def pocketknife_run():
     """
     Entry point.
     First, verify that pocket-knife is called with arguments and the script called is valid
     Then get the arguments and call the script's main function.
     """
+    python2_notice()
     if not sys.argv or len(sys.argv) < 2 or sys.argv[1] not in scripts:
         pk_general_help()
     else:

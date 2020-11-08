@@ -4,7 +4,7 @@
 
 Have you already a running Python installation? If not check this guide: https://realpython.com/installing-python
 
-Note: due to End-of-life for Python 2, **Python 3.6+ will be required.**
+Note: due to End-of-life for Python 2, **Python 3.6+ is required.**
 
 ## Installation with pip
 
@@ -30,7 +30,7 @@ this you need to modify your Python PATH - see below.
 First, you need to find out what Python version you are running:
 
 ```bash
-python3 -V || python -V || python2 -V
+python3 -V || python -V
 ```
 This is returning something like `Python 3.7.9`, meaning you have a `$PYTHONVERSION` with value `3.7`.
 

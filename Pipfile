@@ -11,7 +11,7 @@ pytest-runner = "*"
 
 [packages]
 colorama = "*"
-"dhis2.py" = "==2.0.0"
+"dhis2.py" = "==2.1.2"
 
 [scripts]
 tests = "python -m pytest --cov=pk --cov-report term-missing tests -vv"
