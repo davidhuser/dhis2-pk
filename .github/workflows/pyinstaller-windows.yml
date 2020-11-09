@@ -1,0 +1,42 @@
+name: package-exe-for-windows
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies with pipenv
+      run: |
+        python -m pip install --upgrade pip
+        pip install pipenv
+        pipenv install --deploy --dev
+        pipenv run pip freeze > requirements.txt
+        cp requirements.txt src/requirements.txt
+        cp dhis2-pk.spec src/dhis2-pk.spec
+
+    - name: Test with pytest
+      run: |
+        pipenv run python -m pytest tests
+
+    - name: PyInstaller Windows
+      uses: JackMcKew/pyinstaller-action-windows@main
+      with:
+        path: .
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dhis2-pk
+        path: dist/windows

@@ -1,91 +1,85 @@
 # Installation
 
-## Prerequisites
+## macOS and Linux
 
 Have you already a running Python installation? If not check this guide: https://realpython.com/installing-python
+Note: due to End-of-life for Python 2, **Python 3.6+ is required.**
 
-## Installation with pip
-
-Installation with [pip](https://pip.pypa.io/en/stable/installing)
-(python package manager, see if it is installed: `pip -V` or `pip3 -V`)
+On macOS and Linux, the installation via [pip](https://pip.pypa.io/en/stable/installing) is recommended.
 
 Best way is to install it for your user only:
 
 ```bash
-pip install dhis2-pocket-knife --user --upgrade
+pip3 install dhis2-pocket-knife --user --upgrade
 ```
 
-if it failed, it might be that you are running `pip3` - repeat the same with `pip3` instead of `pip`.
+if it failed, it might be that you are running `pip` - repeat the same with `pip` instead of `pip3`. 
+If it is still not working you may not have an installed Python 3 version on your machine.
 
-With providing the `--user` argument you don't clutter your system installation (which might be really bad), but it might be that you see a message like *dhis2-pk-share could not be found*. To fix
+By providing the `--user` argument you don't clutter your system installation (which might be really bad), but it 
+might be that you see a message like `dhis2-pk could not be found`. To fix
 this you need to modify your Python PATH - see below. 
 
-## Fixing Python PATH for macOS and Linux
+### Set up your Python PATH
 
-### PYTHONVERSION
+This guide applies to if you have installed it with the `--user` flag only. 
 
-First, you need to find out what Python version you are running:
+Open a terminal and paste the following
 
 ```bash
-python3 -V || python -V || python2 -V
+echo "export PATH=$(python3 -m site --user-base)/bin:${PATH}" >> ~/.bash_profile && source ~/.bash_profile && dhis2-pk
 ```
-This is returning something like `Python 3.5.3`, meaning you have a `$PYTHONVERSION` with value `3.5`.
 
-### USER
+If it shows the dhis2-pk help page all is set. More info on installations to the User Site on [packaging.python.org](https://packaging.python.org/tutorials/installing-packages/#installing-to-the-user-site)
 
-Then you should find out which user you are:
+### Updating dhis2-pocket-knife to the latest release
+
+#### Show current version
 
 ```bash
-echo $USER
+pip3 show dhis2-pocket-knife
 ```
-Meaning you have a `$USER` with value `david`.
+and compare it with the most recent release: ![pip](https://img.shields.io/pypi/v/dhis2-pocket-knife.svg?label=PyPI)
 
-### Export
+There is a [changelog](../CHANGELOG.rst) for each (recent) release too.
 
-Now we know what to replace: replace `$USER` with your macOS username from above (e.g. `david`) and `$PYTHONVERSION` from above (e.g. `3.5`) and paste it into your terminal and hit ENTER. If it shows the help page all is set.
+#### Upgrade
 
 ```bash
-echo 'export PATH=$PATH:/Users/$USER/Library/Python/$PYTHONVERSION/bin' >> ~/.bash_profile && source ~/.bash_profile && dhis2-pk-share --help
+pip3 install dhis2-pocket-knife --user --upgrade
 ```
 
 ## Windows
 
-This guide can help: https://realpython.com/installing-python/#windows - make sure you tick the box for "Add Python3.X to path". 
-Another hint regarding the usage on Windows is below.
+On Windows there are two options:
 
+### A) Standard pip installation
 
-## System-wide installation
+Either install it with `pip` as well, but it requires to install Python 3.6+ first. 
+[This guide](https://realpython.com/installing-python/#windows) can help. 
+Make sure you tick the box for "Add Python3.X to path" during the Python 3 installation process. 
 
-To install it system-wide **(really not recommended)**:
+### B) EXE download
 
-```bash
-sudo -H pip install dhis2-pocket-knife
-```
+![package-exe-for-windows](https://github.com/davidhuser/dhis2-pk/workflows/package-exe-for-windows/badge.svg)
 
-# Updating dhis2-pocket-knife
+Alternatively, download and run an executable file.
 
-## Current version
+* Download dhis2-pk from the
+[releases page.](https://github.com/davidhuser/dhis2-pk/releases)
+* Extract the zip file
+* In Windows, search for the app *PowerShell* or the *Command Prompt* and change (`cd`) to the directory 
+where you downloaded and extracted the ZIP file.
+* In there you can run dhis2-pk, e.g.: `.\dhis2-pk.exe share --help` (see screenshot below)
 
-```bash
-pip show dhis2-pocket-knife
-```
+Note: `dhis2-pk share ...` will not work as it must related to the .exe downloaded, so the `.\dhis2-pk.exe` is required.
 
-and compare it with the most recent release (the orange PyPI label here: https://github.com/davidhuser/dhis2-pk)
+![Windows](../docs/powershell.png)
 
-## Update it
-```bash
-pip install dhis2-pocket-knife --user --upgrade
-```
+### Further notes on Windows
 
-# Usage
+In the command-line, _do not use single apostrophes_ `'`
 
-## Help text
-Besides the documentation, you can also issue any command with the `--help` flag, e.g. `dhis2-pk-share --help`.
-
-## Windows
-
-Windows is supported, however _do not use single apostrophes_ `'`
-
- * use PowerShell OR 
+ * use the PowerShell app OR 
  * use double apostrophes `"` OR 
  * use no apostrophes at all (no problem when not having whitespaces in filters)

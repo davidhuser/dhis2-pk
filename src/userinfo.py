@@ -1,41 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import argparse
 import re
-import getpass
 from collections import namedtuple
 
 from dhis2 import setup_logger, logger
-from colorama import Style
 
 try:
     from common.utils import create_api, file_timestamp, write_csv
     from common.exceptions import PKClientException
 except (SystemError, ImportError):
-    from pk.common.utils import create_api, file_timestamp, write_csv
-    from pk.common.exceptions import PKClientException
-
-
-def parse_args():
-    description = "{}Create CSV of user information.{}".format(Style.BRIGHT, Style.RESET_ALL)
-    usage = "\n{}Example:{} dhis2-pk-userinfo -s play.dhis2.org/demo -u admin -p district".format(
-        Style.BRIGHT, Style.RESET_ALL)
-
-    parser = argparse.ArgumentParser(usage=usage, description=description)
-    parser.add_argument('-s', dest='server', action='store',
-                        help="DHIS2 server URL")
-    parser.add_argument('-u', dest='username', action='store', help="DHIS2 username")
-    parser.add_argument('-p', dest='password', action='store', help="DHIS2 password")
-    parser.add_argument('-v', dest='api_version', action='store', required=False, type=int,
-                        help='DHIS2 API version e.g. -v=28')
-
-    args = parser.parse_args()
-    if not args.password:
-        password = getpass.getpass(prompt="Password for {} @ {}: ".format(args.username, args.server))
-    else:
-        password = args.password
-    return args, password
+    from src.common.utils import create_api, file_timestamp, write_csv
+    from src.common.exceptions import PKClientException
 
 
 def replace_path(oumap, path):
@@ -64,9 +40,8 @@ def format_user(users, ou_map):
         yield User
 
 
-def main():
+def main(args, password):
     setup_logger()
-    args, password = parse_args()
 
     api = create_api(server=args.server, username=args.username, password=password)
 
@@ -111,14 +86,3 @@ def main():
 
     write_csv(data, file_name, header_row)
     logger.info("Success! CSV file exported to {}".format(file_name))
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        logger.warn("Aborted.")
-    except PKClientException as e:
-        logger.error(e)
-    except Exception as e:
-        logger.exception(e)

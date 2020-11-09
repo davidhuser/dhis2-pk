@@ -2,7 +2,7 @@ from collections import namedtuple
 
 import pytest
 
-from pk.share import (
+from src.share import (
     Permission,
     UserGroupAccess,
     ShareableObject,
@@ -13,7 +13,7 @@ from pk.share import (
     validate_args,
     validate_data_access
 )
-from pk.common.exceptions import PKClientException
+from src.common.exceptions import PKClientException
 
 
 class TestPermission(object):

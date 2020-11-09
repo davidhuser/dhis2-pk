@@ -2,7 +2,7 @@
 
 Set custom attributes for many objects sourced from a CSV.
 
-**Script name:** `dhis2-pk-attribute-setter`
+**Script name:** `attribute-setter`
 
 A CSV could look like this:
 
@@ -29,7 +29,7 @@ but for many objects.
 ## Usage
 
 ```
-Example: dhis2-pk-attribute-setter -s play.dhis2.org/dev -u admin -p district -c file.csv -t organisationUnits -a pt5Ll9bb2oP
+Example: dhis2-pk attribute-setter -s play.dhis2.org/dev -u admin -p district -c file.csv -t organisationUnits -a pt5Ll9bb2oP
 
 CSV file structure:
 uid   | attributeValue
@@ -39,13 +39,12 @@ UID   | myValue
 Set Attribute Values sourced from CSV file.
 
 required arguments:
+  -s SERVER         DHIS2 server URL
+  -u USERNAME       DHIS2 username
   -t OBJECT_TYPE    Object type to set attributeValues to: {organisationUnits, dataElements, ...}
   -c SOURCE_CSV     Path to CSV file with Attribute Values
   -a ATTRIBUTE_UID  Attribute UID
 
 optional arguments:
-  -s SERVER         DHIS2 server URL
-  -u USERNAME       DHIS2 username
   -p PASSWORD       DHIS2 password
-
 ```

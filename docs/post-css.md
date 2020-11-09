@@ -2,21 +2,21 @@
 
 Simply post a CSS file to a server (e.g. to style the login page).
 
-**Script name**: `dhis2-pk-post-css`
+**Script name**: `post-css`
 
 ## Usage
 
 ```
-Example: dhis2-pk-post-css -s=play.dhis2.org/dev -u=admin -p=district -c=file.css
+Example: dhis2-pk post-css -s=play.dhis2.org/dev -u=admin -p=district -c=file.css
 
 Post CSS stylesheet to a server.
 
 required arguments:
+  -s SERVER    DHIS2 server URL
+  -u USERNAME  DHIS2 username
   -c CSS       Path to CSS file
 
 optional arguments:
-  -s SERVER    DHIS2 server URL
-  -u USERNAME  DHIS2 username
   -p PASSWORD  DHIS2 password
 ```
 

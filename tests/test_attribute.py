@@ -4,8 +4,8 @@ import pytest
 
 from dhis2 import load_csv
 
-from pk.attributes import validate_csv, create_or_update_attribute_values
-from pk.common.exceptions import PKClientException
+from src.attributes import validate_csv, create_or_update_attribute_values
+from src.common.exceptions import PKClientException
 
 TEST_ATTRIBUTE_UID = 'M8fCOxtkURr'
 

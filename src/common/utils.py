@@ -7,17 +7,13 @@ from dhis2 import Api, logger
 try:
     from __version__ import __version__
 except (SystemError, ImportError):
-    from pk.__version__ import __version__
+    from src.__version__ import __version__
 
 
-def create_api(server=None, username=None, password=None, api_version=None):
-    """Return a fully configured dhis2.Dhis instance"""
-    if not any([server, username, password]):
-        api = Api.from_auth_file(api_version=api_version, user_agent='dhis2-pk/{}'.format(__version__))
-        logger.info("Found a file for server {}".format(api.base_url))
-        return api
-    else:
-        return Api(server, username, password, api_version, 'dhis2-pk/{}'.format(__version__))
+def create_api(server, username, password):
+    """Return a fully configured dhis2.Dhis instance
+    """
+    return Api(server=server, username=username, password=password, user_agent='dhis2-src/{}'.format(__version__))
 
 
 def write_csv(data, filename, header_row):

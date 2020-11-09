@@ -8,10 +8,10 @@ pytest = "*"
 pytest-cov = "*"
 responses = "*"
 pytest-runner = "*"
+pyinstaller = "==3.6"
 
 [packages]
-colorama = "*"
-"dhis2.py" = "==2.0.0"
+"dhis2.py" = "==2.1.2"
 
 [scripts]
-tests = "python -m pytest --cov=pk --cov-report term-missing tests -vv"
+tests = "python -m pytest --cov=src --cov-report term-missing tests -vv"
