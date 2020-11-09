@@ -8,7 +8,7 @@ pytest = "*"
 pytest-cov = "*"
 responses = "*"
 pytest-runner = "*"
-pyinstaller = "*"
+pyinstaller = "==3.6"
 
 [packages]
 "dhis2.py" = "==2.1.2"

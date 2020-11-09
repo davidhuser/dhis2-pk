@@ -45,7 +45,7 @@ Meaning you have a `$USER` with value `david`.
 
 ### Export
 
-Now we know what to replace: replace `$USER` with your macOS username from above (e.g. `david`) and `$PYTHONVERSION` from above (e.g. `3.5`) and paste it into your terminal and hit ENTER. If it shows the help page all is set.
+Now we know what to replace: replace `$USER` with your macOS username from above (e.g. `david`) and `$PYTHONVERSION` from above (e.g. `3.7`) and paste it into your terminal and hit ENTER. If it shows the help page all is set.
 
 ```bash
 echo 'export PATH=$PATH:/Users/$USER/Library/Python/$PYTHONVERSION/bin' >> ~/.bash_profile && source ~/.bash_profile && dhis2-pk share --help
@@ -87,8 +87,15 @@ Besides the documentation, you can also issue any command with the `--help` flag
 
 ## Windows
 
-Windows is supported, however _do not use single apostrophes_ `'`
+![package-exe-for-windows](https://github.com/davidhuser/dhis2-pk/workflows/package-exe-for-windows/badge.svg)
 
- * use PowerShell OR 
+On Windows there are two options:
+
+* Either install it with `pip` as well
+* Or download a `.exe` with dhis2-pocket-knife from the [releases page.](https://github.com/davidhuser/dhis2-pk/releases), download the ZIP file, extract it, and open a Powershell or CMD.exe and change (`cd`) to the directory. Instead of typing `dhis2-pk share ...`, all commands have an .exe, e.g. `dhis2-pk.exe share ...`. 
+
+In the command-line, _do not use single apostrophes_ `'`
+
+ * use the PowerShell app OR 
  * use double apostrophes `"` OR 
  * use no apostrophes at all (no problem when not having whitespaces in filters)

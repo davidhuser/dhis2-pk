@@ -22,12 +22,12 @@ def pk_general_help():
         'dhis2-pocket-knife v{}\n' \
         '----------------------------\n' \
         'It is required to select one of these scripts:\n\n' \
-        'dhis2-src attribute-setter --help\n' \
-        'dhis2-src data-integrity --help\n' \
-        'dhis2-src indicator-definitions --help\n' \
-        'dhis2-src post-css --help\n' \
-        'dhis2-src share --help\n' \
-        'dhis2-src userinfo --help\n\n' \
+        'dhis2-pk attribute-setter --help\n' \
+        'dhis2-pk data-integrity --help\n' \
+        'dhis2-pk indicator-definitions --help\n' \
+        'dhis2-pk post-css --help\n' \
+        'dhis2-pk share --help\n' \
+        'dhis2-pk userinfo --help\n\n' \
         'More info and docs on the website:\n' \
         'https://github.com/davidhuser/dhis2-pk'.format(version)
     sys.exit(s)

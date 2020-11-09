@@ -13,22 +13,32 @@ Command-line tools for `DHIS2 <https://dhis2.org>`__.
 -  Additional **data integrity** `(docs) <https://github.com/davidhuser/dhis2-pk/blob/master/docs/data-integrity.md>`__
 -  Post a **CSS** style sheet for the login page `(docs) <https://github.com/davidhuser/dhis2-pk/blob/master/docs/post-css.md>`__
 
-Installation:
+Installation
+-------------
+
+The best way is usually:
 
 .. code:: bash
 
-   pip3 install dhis2-pocket-knife
+   pip3 install dhis2-pocket-knife --user
 
-more details: `Installation <https://github.com/davidhuser/dhis2-pk/blob/master/docs/installation.md>`__.
-Note: Python 3.6+ is required starting from 0.35.0.
+more details and options: `Installation <https://github.com/davidhuser/dhis2-pk/blob/master/docs/installation.md>`__.
 
-Usage:
+.. note::
+
+    Python 3.6+ is required starting from 0.35.0.
+
+Usage
+------
 
 .. code:: bash
 
    dhis2-pk <script-name> --help
 
-Changelog: see `Changelog.rst <https://github.com/davidhuser/dhis2-pk/blob/master/Changelog.rst>`__.
+Changelog
+----------
+
+see `Changelog.rst <https://github.com/davidhuser/dhis2-pk/blob/master/Changelog.rst>`__.
 
 ----
 
