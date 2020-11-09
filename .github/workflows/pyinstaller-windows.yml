@@ -24,6 +24,7 @@ jobs:
         pip install pipenv
         pipenv install --deploy --dev
         pipenv run pip freeze > src/requirements.txt
+        ls -alh
 
     - name: Test with pytest
       run: |
@@ -31,12 +32,10 @@ jobs:
 
     - name: PyInstaller Windows
       uses: JackMcKew/pyinstaller-action-windows@main
-      run: |
-        ls -alh
       with:
-        path: src
+        path: .
 
     - uses: actions/upload-artifact@v2
       with:
         name: dhis2-pk.exe
-        path: src/dist/windows
+        path: dist/windows
