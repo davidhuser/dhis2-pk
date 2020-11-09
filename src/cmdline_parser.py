@@ -57,7 +57,7 @@ def parse_args_attributes(argv):
     description = "Set Attribute Values sourced from CSV file."
 
     usage = """
-Example: dhis2-src attribute-setter -s play.dhis2.org/dev -u admin -p district -c file.csv -t organisationUnits -a pt5Ll9bb2oP
+Example: dhis2-pk attribute-setter -s play.dhis2.org/dev -u admin -p district -c file.csv -t organisationUnits -a pt5Ll9bb2oP
 
 CSV file structure:
 uid   | attributeValue
@@ -122,7 +122,7 @@ UID   | myValue
 
 def parse_args_css(argv):
     description = "Post CSS stylesheet to a server."
-    usage = "\nExample: dhis2-src post-css -s=play.dhis2.org/dev -u=admin -p=district -c=file.css"
+    usage = "\nExample: dhis2-pk post-css -s=play.dhis2.org/dev -u=admin -p=district -c=file.css"
     parser = argparse.ArgumentParser(usage=usage, description=description)
     required, optional = standard_arguments(parser)
     required.add_argument('-c', dest='css', action='store', required=True, help="Path to CSS file")
@@ -132,7 +132,7 @@ def parse_args_css(argv):
 
 def parse_args_indicators(argv):
     description = "Readable indicator definition to CSV."
-    usage = "\nExample: dhis2-src indicator-definitions -s play.dhis2.org/demo -u admin -p district -t indicators"
+    usage = "\nExample: dhis2-pk indicator-definitions -s play.dhis2.org/demo -u admin -p district -t indicators"
 
     types = {'programIndicators', 'indicators'}
     parser = argparse.ArgumentParser(usage=usage, description=description)
@@ -142,14 +142,14 @@ def parse_args_indicators(argv):
                         help="{}".format(" or ".join(types)), choices=types, required=True)
 
     required.add_argument('-f', dest='indicator_filter', action='store',
-                        help="Indicator filter, e.g. -f 'name:like:HIV' - see dhis2-src-share --help", required=False)
+                        help="Indicator filter, e.g. -f 'name:like:HIV' - see dhis2-pk-share --help", required=False)
     args = parser.parse_args(argv)
     return get_password(args)
 
 
 def parse_args_integrity(argv):
     description = "Run additional data integrity checks."
-    usage = "\nExample: dhis2-src data-integrity -s play.dhis2.org/demo -u admin -p district"
+    usage = "\nExample: dhis2-pk data-integrity -s play.dhis2.org/demo -u admin -p district"
     parser = argparse.ArgumentParser(usage=usage, description=description)
     standard_arguments(parser)
     args = parser.parse_args(argv)
@@ -165,7 +165,7 @@ def parse_args_share(argv):
 
     description = "Share DHIS2 objects with userGroups via filters."
     usage = """
-Example: dhis2-src share -s play.dhis2.org/dev -u admin -p district -f 'id:eq:P3jJH5Tu5VC' -t dataelement -a readonly -g 'name:like:Admin' readwrite -g 'name:like:Research' readwrite
+Example: dhis2-pk share -s play.dhis2.org/dev -u admin -p district -f 'id:eq:P3jJH5Tu5VC' -t dataelement -a readonly -g 'name:like:Admin' readwrite -g 'name:like:Research' readwrite
 """
 
     parser = argparse.ArgumentParser(usage=usage,
@@ -243,7 +243,7 @@ Example: dhis2-src share -s play.dhis2.org/dev -u admin -p district -f 'id:eq:P3
 
 def parse_args_userinfo(argv):
     description = "Create CSV of user information."
-    usage = "\nExample: dhis2-src userinfo -s play.dhis2.org/demo -u admin -p district"
+    usage = "\nExample: dhis2-pk userinfo -s play.dhis2.org/demo -u admin -p district"
 
     parser = argparse.ArgumentParser(usage=usage, description=description)
     standard_arguments(parser)

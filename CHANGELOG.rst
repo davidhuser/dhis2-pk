@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+0.35.2 (Nov 2020)
+------------------
+- Fix: inline help text
+
 0.35.1 (Nov 2020)
 ------------------
 - Fix: script entry-points
