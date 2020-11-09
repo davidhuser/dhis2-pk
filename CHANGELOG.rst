@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+0.35.1 (Nov 2020)
+------------------
+- Fix: script entry-points
+
 0.35.0 (Nov 2020)
 -----------------
 - Rewrote the entry points for scripts ( ``dhis2-pk share ...`` instead of ``dhis2-pk-share ...`` to allow to build executables)

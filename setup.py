@@ -69,14 +69,14 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'dhis2-src = src.main:pocketknife_run',  # primary
-            'dhis2-src-indicator-definitions = src.main:pocketknife_run',  # legacy
-            'dhis2-src-share = src.main:pocketknife_run',
-            'dhis2-src-userinfo = src.main:pocketknife_run',
-            'dhis2-src-post-css = src.main:pocketknife_run',
-            'dhis2-src-attribute-setter = src.main:pocketknife_run',
-            'dhis2-src-validation-rules = src.main:pocketknife_run',
-            'dhis2-src-data-integrity = src.main:pocketknife_run'
+            'dhis2-pk = src.main:pocketknife_run',  # primary
+            'dhis2-pk-indicator-definitions = src.main:pocketknife_run',  # legacy
+            'dhis2-pk-share = src.main:pocketknife_run',
+            'dhis2-pk-userinfo = src.main:pocketknife_run',
+            'dhis2-pk-post-css = src.main:pocketknife_run',
+            'dhis2-pk-attribute-setter = src.main:pocketknife_run',
+            'dhis2-pk-validation-rules = src.main:pocketknife_run',
+            'dhis2-pk-data-integrity = src.main:pocketknife_run'
         ]
     },
     classifiers=[
