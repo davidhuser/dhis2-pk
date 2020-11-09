@@ -160,7 +160,10 @@ def parse_args_integrity(argv):
 
 def parse_args_share(argv):
     """Argument parsing"""
-    from share import access  # imported in function to avoid circular imports
+    try:
+        from share import access  # imported in function to avoid circular imports
+    except ModuleNotFoundError:
+        from pk.share import access
 
     description = "{}Share DHIS2 objects with userGroups via filters.{}".format(Style.BRIGHT, Style.RESET_ALL)
     usage = """

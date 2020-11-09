@@ -4,13 +4,13 @@
 import sys
 
 try:
-    from attributes import main as attributes_main
-    from css import main as css_main
-    from indicators import main as indicators_main
-    from integrity import main as integrity_main
-    from share import main as share_main
-    from userinfo import main as userinfo_main
-    from cmdline_parser import (
+    from pk.attributes import main as attributes_main
+    from pk.css import main as css_main
+    from pk.indicators import main as indicators_main
+    from pk.integrity import main as integrity_main
+    from pk.share import main as share_main
+    from pk.userinfo import main as userinfo_main
+    from pk.cmdline_parser import (
         parse_args_share,
         parse_args_userinfo,
         parse_args_integrity,
@@ -20,13 +20,13 @@ try:
         pk_general_help
     )
 except ImportError:
-    from .attributes import main as attributes_main
-    from .css import main as css_main
-    from .indicators import main as indicators_main
-    from .integrity import main as integrity_main
-    from .share import main as share_main
-    from .userinfo import main as userinfo_main
-    from .cmdline_parser import (
+    from attributes import main as attributes_main
+    from css import main as css_main
+    from indicators import main as indicators_main
+    from integrity import main as integrity_main
+    from share import main as share_main
+    from userinfo import main as userinfo_main
+    from cmdline_parser import (
         parse_args_share,
         parse_args_userinfo,
         parse_args_integrity,
