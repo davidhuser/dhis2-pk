@@ -3,6 +3,9 @@
 
 import sys
 
+from colorama import init
+init()
+
 try:
     from src.attributes import main as attributes_main
     from src.css import main as css_main
