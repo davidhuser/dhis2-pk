@@ -23,9 +23,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install pipenv
         pipenv install --deploy --dev
-        pipenv run pip freeze > src/requirements.txt
+        pipenv run pip freeze > requirements.txt
+        cp requirements.txt src/requirements.txt
         cp dhis2-pk.spec src/dhis2-pk.spec
-        cat src/requirements.txt
 
     - name: Test with pytest
       run: |
@@ -34,7 +34,7 @@ jobs:
     - name: PyInstaller Windows
       uses: JackMcKew/pyinstaller-action-windows@main
       with:
-        path: src
+        path: .
 
     - uses: actions/upload-artifact@v2
       with:
