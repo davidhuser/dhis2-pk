@@ -66,12 +66,18 @@ setup(
     license='MIT',
     install_requires=[
         'dhis2.py==2.1.2',
-        'colorama==0.4.1',
-        'six'
+        'colorama==0.4.1'
     ],
     entry_points={
         'console_scripts': [
-            'dhis2-pk = pk.cmdline:pocketknife_run'
+            'dhis2-pk = pk.cmdline:pocketknife_run',  # primary
+            'dhis2-pk-indicator-definitions = pk.cmdline:pocketknife_run',  # legacy
+            'dhis2-pk-share = pk.cmdline:pocketknife_run',
+            'dhis2-pk-userinfo = pk.cmdline:pocketknife_run',
+            'dhis2-pk-post-css = pk.cmdline:pocketknife_run',
+            'dhis2-pk-attribute-setter = pk.cmdline:pocketknife_run',
+            'dhis2-pk-validation-rules = pk.cmdline:pocketknife_run',
+            'dhis2-pk-data-integrity = pk.cmdline:pocketknife_run'
         ]
     },
     classifiers=[
