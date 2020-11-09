@@ -24,9 +24,7 @@ The best way is usually:
 
 more details and options: `Installation <https://github.com/davidhuser/dhis2-pk/blob/master/docs/installation.md>`__.
 
-.. note::
-
-    Python 3.6+ is required starting from 0.35.0.
+Note: **Python 3.6+** is required.
 
 Usage
 ------

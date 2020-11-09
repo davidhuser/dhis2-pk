@@ -92,7 +92,14 @@ Besides the documentation, you can also issue any command with the `--help` flag
 On Windows there are two options:
 
 * Either install it with `pip` as well
-* Or download a `.exe` with dhis2-pocket-knife from the [releases page.](https://github.com/davidhuser/dhis2-pk/releases), download the ZIP file, extract it, and open a Powershell or CMD.exe and change (`cd`) to the directory. Instead of typing `dhis2-pk share ...`, all commands have an .exe, e.g. `dhis2-pk.exe share ...`. 
+* Or download a `.exe` with dhis2-pocket-knife from the
+ [releases page.](https://github.com/davidhuser/dhis2-pk/releases), download the ZIP file, 
+ extract it, and open a Powershell or CMD.exe and change (`cd`) to the directory. 
+ Instead of typing `dhis2-pk share ...`, all commands have an .exe, e.g. `.\dhis2-pk.exe share ...`. 
+
+Screenshot of running `dhis2-pk share` on Windows:
+
+![Windows](../docs/powershell.png)
 
 In the command-line, _do not use single apostrophes_ `'`
 
