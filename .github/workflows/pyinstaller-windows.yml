@@ -2,7 +2,7 @@ name: package-exe-for-windows
 
 on:
   push:
-    branches: [ dev-entrypoints ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
