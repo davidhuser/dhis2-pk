@@ -31,10 +31,12 @@ jobs:
 
     - name: PyInstaller Windows
       uses: JackMcKew/pyinstaller-action-windows@main
+      run: |
+        ls -alh
       with:
         path: src
 
     - uses: actions/upload-artifact@v2
       with:
-        name: dhis2-src.exe
+        name: dhis2-pk.exe
         path: src/dist/windows
