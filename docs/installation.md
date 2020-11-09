@@ -22,33 +22,15 @@ this you need to modify your Python PATH - see below.
 
 ### Set up your Python PATH
 
-#### PYTHONVERSION
+This guide applies to if you have installed it with the `--user` flag only. 
 
-First, you need to find out what Python version you are running:
-
-```bash
-python3 -V || python -V
-```
-This is returning something like `Python 3.7.9`, meaning you have a `$PYTHONVERSION` with value `3.7`.
-
-#### USER
-
-Then you should find out which user you are:
+Open a terminal and paste the following
 
 ```bash
-echo $USER
+echo "export PATH=$(python3 -m site --user-base)/bin:${PATH}" >> ~/.bash_profile && source ~/.bash_profile && dhis2-pk
 ```
-Meaning you have a `$USER` with value `david`.
 
-#### Export
-
-Now we know what to replace: replace `$USER` with your macOS username from above (e.g. `david`) 
-and `$PYTHONVERSION` from above (e.g. `3.7`) and paste it into your terminal and hit ENTER. 
-If it shows the help page all is set.
-
-```bash
-echo 'export PATH=$PATH:/Users/$USER/Library/Python/$PYTHONVERSION/bin' >> ~/.bash_profile && source ~/.bash_profile && dhis2-pk share --help
-```
+If it shows the dhis2-pk help page all is set. More info on installations to the User Site on [packaging.python.org](https://packaging.python.org/tutorials/installing-packages/#installing-to-the-user-site)
 
 ### Updating dhis2-pocket-knife to the latest release
 
