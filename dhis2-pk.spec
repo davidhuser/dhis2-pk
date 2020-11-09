@@ -4,10 +4,10 @@ block_cipher = None
 
 
 a = Analysis(['src/main.py'],
-             pathex=['src', 'src/common', '/home/david/Github/dhis2-pk'],
+             pathex=['src', 'src/common', '/home/david/Github/dhis2-pk', 'c:\\Python37\\lib\\site-packages'],
              binaries=[],
              datas=[],
-             hiddenimports=['dhis2'],
+             hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
