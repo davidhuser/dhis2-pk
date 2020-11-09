@@ -3,11 +3,9 @@
 ## macOS and Linux
 
 Have you already a running Python installation? If not check this guide: https://realpython.com/installing-python
-
 Note: due to End-of-life for Python 2, **Python 3.6+ is required.**
 
-Installation with [pip](https://pip.pypa.io/en/stable/installing)
-(python package manager, see if it is installed: `pip3 -V` or `pip -V`)
+On macOS and Linux, the installation via [pip](https://pip.pypa.io/en/stable/installing) is recommended.
 
 Best way is to install it for your user only:
 
@@ -15,10 +13,11 @@ Best way is to install it for your user only:
 pip3 install dhis2-pocket-knife --user --upgrade
 ```
 
-if it failed, it might be that you are running `pip` - repeat the same with `pip` instead of `pip3`.
+if it failed, it might be that you are running `pip` - repeat the same with `pip` instead of `pip3`. 
+If it is still not working you may not have an installed Python 3 version on your machine.
 
-With providing the `--user` argument you don't clutter your system installation (which might be really bad), but it 
-might be that you see a message like `dhis2-pk could not be found. To fix
+By providing the `--user` argument you don't clutter your system installation (which might be really bad), but it 
+might be that you see a message like `dhis2-pk could not be found`. To fix
 this you need to modify your Python PATH - see below. 
 
 ### Set up your Python PATH
