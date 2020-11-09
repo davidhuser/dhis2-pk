@@ -15,7 +15,6 @@ import time
 from logging import DEBUG
 
 from dhis2 import setup_logger, logger
-from six import iteritems
 
 try:
     from src.common.utils import create_api
@@ -189,7 +188,7 @@ class ShareableObjectCollection(object):
         :return: tuple of name and its plural name, e.g. dataElement, dataElements
         """
         shareable = self.schema('shareable')
-        for name, plural in iteritems(shareable):
+        for name, plural in shareable.items():
             if obj_type.lower() in (name.lower(), plural.lower()):
                 return name, plural
         raise PKClientException("No DHIS2 object type for '{}'".format(obj_type))
@@ -202,7 +201,7 @@ class ShareableObjectCollection(object):
         data_shareable = self.schema('dataShareable')
         if not data_shareable:
             return False
-        for name, plural in iteritems(data_shareable):
+        for name, plural in data_shareable.items():
             if self.name in (name, plural):
                 return True
         return False
@@ -425,7 +424,7 @@ class UserGroupsCollection(object):
                 log_msg = u"User Groups with filter [{}]"
                 logger.info(log_msg.format(u" {} ".format(root_junction).join(filter_list)))
 
-                for uid, name in iteritems(usergroups):
+                for uid, name in usergroups.items():
                     logger.info(u"- {} '{}' {} {}".format(uid, name, ARROW, permission))
                     self.accesses.add(UserGroupAccess(uid, permission))
 
