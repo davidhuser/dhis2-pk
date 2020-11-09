@@ -1,7 +1,7 @@
 |pocket-knife| dhis2-pk
 =======================
 
-|PyPi| |Downloads| |Travis| |PythonVersion|
+|PyPi| |Downloads| |Travis| |Exe| |PythonVersion|
 
 Command-line tools for `DHIS2 <https://dhis2.org>`__.
 
@@ -16,22 +16,27 @@ Command-line tools for `DHIS2 <https://dhis2.org>`__.
 Installation
 -------------
 
-The best way is usually:
+Note: **Python 3.6+** is required.
+
+The straightforward way is usually:
 
 .. code:: bash
 
    pip3 install dhis2-pocket-knife --user
 
-more details and options: `Installation <https://github.com/davidhuser/dhis2-pk/blob/master/docs/installation.md>`__.
-
-Note: **Python 3.6+** is required.
+If you are on Windows or run into issues,
+check the `Installation instructions <https://github.com/davidhuser/dhis2-pk/blob/master/docs/installation.md>`__.
 
 Usage
 ------
 
+Scripts are invoked by running: ``dhis2-pk <script-name>``, for example:
+
 .. code:: bash
 
-   dhis2-pk <script-name> --help
+   dhis2-pk share --help
+
+Check out the docs for more details regarding each script.
 
 Changelog
 ----------
@@ -56,6 +61,10 @@ Under the hood it uses the DHIS2 API wrapper `dhis2.py <https://github.com/david
 .. |Travis| image:: https://img.shields.io/travis/davidhuser/dhis2-pk/master.svg
     :alt: Travis CI build status
     :target: https://travis-ci.org/davidhuser/dhis2-pk
+
+.. |Exe| image:: https://github.com/davidhuser/dhis2-pk/workflows/package-exe-for-windows/badge.svg
+    :alt: Windows EXE build status
+    :target: https://github.com/davidhuser/dhis2-pk/actions?query=workflow%3Apackage-exe-for-windows
 
 .. |PythonVersion| image:: https://img.shields.io/pypi/pyversions/dhis2-pocket-knife.svg
     :alt: PyPI - Python Version
