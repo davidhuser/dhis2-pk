@@ -12,8 +12,8 @@ from collections import namedtuple, OrderedDict
 from dhis2 import setup_logger, logger
 
 try:
-    from pk.common.utils import create_api, write_csv, file_timestamp
-    from pk.common.exceptions import PKClientException
+    from src.common.utils import create_api, write_csv, file_timestamp
+    from src.common.exceptions import PKClientException
 except (SystemError, ImportError):
     from common.utils import create_api, write_csv, file_timestamp
     from common.exceptions import PKClientException

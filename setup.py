@@ -10,7 +10,7 @@ from setuptools import find_packages, setup, Command
 here = os.path.abspath(os.path.dirname(__file__))
 
 about = {}
-with open(os.path.join(here, 'pk', '__version__.py'), 'r', 'utf-8') as f:
+with open(os.path.join(here, 'src', '__version__.py'), 'r', 'utf-8') as f:
     exec(f.read(), about)
 
 
@@ -70,14 +70,14 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'dhis2-pk = pk.cmdline:pocketknife_run',  # primary
-            'dhis2-pk-indicator-definitions = pk.cmdline:pocketknife_run',  # legacy
-            'dhis2-pk-share = pk.cmdline:pocketknife_run',
-            'dhis2-pk-userinfo = pk.cmdline:pocketknife_run',
-            'dhis2-pk-post-css = pk.cmdline:pocketknife_run',
-            'dhis2-pk-attribute-setter = pk.cmdline:pocketknife_run',
-            'dhis2-pk-validation-rules = pk.cmdline:pocketknife_run',
-            'dhis2-pk-data-integrity = pk.cmdline:pocketknife_run'
+            'dhis2-src = src.main:pocketknife_run',  # primary
+            'dhis2-src-indicator-definitions = src.main:pocketknife_run',  # legacy
+            'dhis2-src-share = src.main:pocketknife_run',
+            'dhis2-src-userinfo = src.main:pocketknife_run',
+            'dhis2-src-post-css = src.main:pocketknife_run',
+            'dhis2-src-attribute-setter = src.main:pocketknife_run',
+            'dhis2-src-validation-rules = src.main:pocketknife_run',
+            'dhis2-src-data-integrity = src.main:pocketknife_run'
         ]
     },
     classifiers=[

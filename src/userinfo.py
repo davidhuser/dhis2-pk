@@ -10,8 +10,8 @@ try:
     from common.utils import create_api, file_timestamp, write_csv
     from common.exceptions import PKClientException
 except (SystemError, ImportError):
-    from pk.common.utils import create_api, file_timestamp, write_csv
-    from pk.common.exceptions import PKClientException
+    from src.common.utils import create_api, file_timestamp, write_csv
+    from src.common.exceptions import PKClientException
 
 
 def replace_path(oumap, path):

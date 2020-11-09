@@ -4,13 +4,13 @@
 import sys
 
 try:
-    from pk.attributes import main as attributes_main
-    from pk.css import main as css_main
-    from pk.indicators import main as indicators_main
-    from pk.integrity import main as integrity_main
-    from pk.share import main as share_main
-    from pk.userinfo import main as userinfo_main
-    from pk.cmdline_parser import (
+    from src.attributes import main as attributes_main
+    from src.css import main as css_main
+    from src.indicators import main as indicators_main
+    from src.integrity import main as integrity_main
+    from src.share import main as share_main
+    from src.userinfo import main as userinfo_main
+    from src.cmdline_parser import (
         parse_args_share,
         parse_args_userinfo,
         parse_args_integrity,

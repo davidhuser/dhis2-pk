@@ -11,7 +11,7 @@ from colorama import Style
 from dhis2 import is_valid_uid
 
 try:
-    from pk.common.exceptions import PKClientException
+    from src.common.exceptions import PKClientException
     from .__version__ import __version__ as version
 except ModuleNotFoundError:  # for pytest
     from common.exceptions import PKClientException
@@ -23,12 +23,12 @@ def pk_general_help():
         '{}dhis2-pocket-knife v{}{}\n' \
         '----------------------------\n' \
         'It is required to select one of these scripts:\n\n' \
-        'dhis2-pk attribute-setter --help\n' \
-        'dhis2-pk data-integrity --help\n' \
-        'dhis2-pk indicator-definitions --help\n' \
-        'dhis2-pk post-css --help\n' \
-        'dhis2-pk share --help\n' \
-        'dhis2-pk userinfo --help\n\n' \
+        'dhis2-src attribute-setter --help\n' \
+        'dhis2-src data-integrity --help\n' \
+        'dhis2-src indicator-definitions --help\n' \
+        'dhis2-src post-css --help\n' \
+        'dhis2-src share --help\n' \
+        'dhis2-src userinfo --help\n\n' \
         'More info and docs on the website:\n' \
         'https://github.com/davidhuser/dhis2-pk'.format(Style.BRIGHT, version, Style.RESET_ALL)
     sys.exit(s)
@@ -58,7 +58,7 @@ def parse_args_attributes(argv):
     description = "{}Set Attribute Values sourced from CSV file.{}".format(Style.BRIGHT, Style.RESET_ALL)
 
     usage = """
-{}Example:{} dhis2-pk attribute-setter -s play.dhis2.org/dev -u admin -p district -c file.csv -t organisationUnits -a pt5Ll9bb2oP
+{}Example:{} dhis2-src attribute-setter -s play.dhis2.org/dev -u admin -p district -c file.csv -t organisationUnits -a pt5Ll9bb2oP
 
 {}CSV file structure:{}
 uid   | attributeValue
@@ -123,7 +123,7 @@ UID   | myValue
 
 def parse_args_css(argv):
     description = "{}Post CSS stylesheet to a server.{}".format(Style.BRIGHT, Style.RESET_ALL)
-    usage = "\n{}Example:{} dhis2-pk post-css -s=play.dhis2.org/dev -u=admin -p=district -c=file.css".format(Style.BRIGHT, Style.RESET_ALL)
+    usage = "\n{}Example:{} dhis2-src post-css -s=play.dhis2.org/dev -u=admin -p=district -c=file.css".format(Style.BRIGHT, Style.RESET_ALL)
     parser = argparse.ArgumentParser(usage=usage, description=description)
     required, optional = standard_arguments(parser)
     required.add_argument('-c', dest='css', action='store', required=True, help="Path to CSS file")
@@ -133,7 +133,7 @@ def parse_args_css(argv):
 
 def parse_args_indicators(argv):
     description = "{}Readable indicator definition to CSV.{}".format(Style.BRIGHT, Style.RESET_ALL)
-    usage = "\n{}Example:{} dhis2-pk indicator-definitions -s play.dhis2.org/demo -u admin -p district -t indicators".format(Style.BRIGHT, Style.RESET_ALL)
+    usage = "\n{}Example:{} dhis2-src indicator-definitions -s play.dhis2.org/demo -u admin -p district -t indicators".format(Style.BRIGHT, Style.RESET_ALL)
 
     types = {'programIndicators', 'indicators'}
     parser = argparse.ArgumentParser(usage=usage, description=description)
@@ -143,14 +143,14 @@ def parse_args_indicators(argv):
                         help="{}".format(" or ".join(types)), choices=types, required=True)
 
     required.add_argument('-f', dest='indicator_filter', action='store',
-                        help="Indicator filter, e.g. -f 'name:like:HIV' - see dhis2-pk-share --help", required=False)
+                        help="Indicator filter, e.g. -f 'name:like:HIV' - see dhis2-src-share --help", required=False)
     args = parser.parse_args(argv)
     return get_password(args)
 
 
 def parse_args_integrity(argv):
     description = "{}Run additional data integrity checks.{}".format(Style.BRIGHT, Style.RESET_ALL)
-    usage = "\n{}Example:{} dhis2-pk data-integrity -s play.dhis2.org/demo -u admin -p district".format(
+    usage = "\n{}Example:{} dhis2-src data-integrity -s play.dhis2.org/demo -u admin -p district".format(
         Style.BRIGHT, Style.RESET_ALL)
     parser = argparse.ArgumentParser(usage=usage, description=description)
     standard_arguments(parser)
@@ -163,11 +163,11 @@ def parse_args_share(argv):
     try:
         from share import access  # imported in function to avoid circular imports
     except ModuleNotFoundError:
-        from pk.share import access
+        from src.share import access
 
     description = "{}Share DHIS2 objects with userGroups via filters.{}".format(Style.BRIGHT, Style.RESET_ALL)
     usage = """
-{}Example:{} dhis2-pk share -s play.dhis2.org/dev -u admin -p district -f 'id:eq:P3jJH5Tu5VC' -t dataelement -a readonly -g 'name:like:Admin' readwrite -g 'name:like:Research' readwrite
+{}Example:{} dhis2-src share -s play.dhis2.org/dev -u admin -p district -f 'id:eq:P3jJH5Tu5VC' -t dataelement -a readonly -g 'name:like:Admin' readwrite -g 'name:like:Research' readwrite
 """.format(Style.BRIGHT, Style.RESET_ALL)
 
     parser = argparse.ArgumentParser(usage=usage,
@@ -245,7 +245,7 @@ def parse_args_share(argv):
 
 def parse_args_userinfo(argv):
     description = "{}Create CSV of user information.{}".format(Style.BRIGHT, Style.RESET_ALL)
-    usage = "\n{}Example:{} dhis2-pk userinfo -s play.dhis2.org/demo -u admin -p district".format(
+    usage = "\n{}Example:{} dhis2-src userinfo -s play.dhis2.org/demo -u admin -p district".format(
         Style.BRIGHT, Style.RESET_ALL)
 
     parser = argparse.ArgumentParser(usage=usage, description=description)

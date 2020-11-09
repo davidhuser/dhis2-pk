@@ -1,5 +1,5 @@
 class DHIS2PocketKnifeException(Exception):
-    """The base dhis2-pk Exception that all other exception classes extend."""
+    """The base dhis2-src Exception that all other exception classes extend."""
 
 
 class PKClientException(DHIS2PocketKnifeException):

@@ -18,9 +18,9 @@ from dhis2 import setup_logger, logger
 from six import iteritems
 
 try:
-    from pk.common.utils import create_api
-    from pk.cmdline_parser import parse_args_share
-    from pk.common.exceptions import PKClientException
+    from src.common.utils import create_api
+    from src.cmdline_parser import parse_args_share
+    from src.common.exceptions import PKClientException
 except (SystemError, ImportError):
     from common.utils import create_api
     from cmdline_parser import parse_args_share

@@ -8,8 +8,8 @@ from copy import deepcopy
 from dhis2 import setup_logger, logger, load_csv, is_valid_uid, RequestException
 
 try:
-    from pk.common.utils import create_api
-    from pk.common.exceptions import PKClientException
+    from src.common.utils import create_api
+    from src.common.exceptions import PKClientException
 except (SystemError, ImportError):
     from common.utils import create_api
     from common.exceptions import PKClientException
