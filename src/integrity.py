@@ -48,36 +48,53 @@ def check_validation_rules(api):
 
 
 def check_option_sets(api):
-    option_sets = api.get('optionSets', params={'fields': 'id,name,options', 'paging': False}).json()
+    option_sets = api.get_paged(
+        'optionSets',
+        params={'fields': 'id,name,options[id,name,code,sortOrder]'},
+        merge=True,
+        page_size=20
+    )
 
     logger.info("*** CHECKING {} OPTION SETS... ***".format(len(option_sets['optionSets'])))
 
-    [
-        logger.warn("Option Set '{}' ({}) has no options".format(o['name'], o['id']))
-        for o in option_sets['optionSets']
-        if not o.get('options')
-    ]
+    if not option_sets.get('optionSets'):
+        logger.warn("No Option Sets found.")
 
-    for option_set in option_sets['optionSets']:
+    for os in option_sets['optionSets']:
+        amount_of_options = len(os.get('options', []))
+        if amount_of_options == 0:
+            logger.warn("Option Set '{}' ({}) has no options".format(os['name'], os['id']))
+        else:
+            sort_order_range = [int(option['sortOrder']) for option in os['options']]
+            expected = list(range(1, amount_of_options + 1))
+            if sort_order_range != expected:
+                logger.warn("Option Set '{}' ({}) has non-sequential sort order in its options".format(os['name'], os['id']))
+
+            codes = [option['code'] for option in os['options']]
+            if len(codes) != len(set(codes)):
+                logger.warn("Option Set '{}' ({}) has duplicate codes in its options")
+
         data_elements_with_optionset = api.get('dataElements', params={
             'fields': 'id,name',
-            'filter': 'optionSet.id:eq:{}'.format(option_set['id'])
+            'filter': 'optionSet.id:eq:{}'.format(os['id']),
+            'paging': 'false'
         }).json()['dataElements']
 
         tea_with_optionset = api.get('trackedEntityAttributes', params={
             'fields': 'id,name',
-            'filter': 'optionSet.id:eq:{}'.format(option_set['id'])
+            'filter': 'optionSet.id:eq:{}'.format(os['id']),
+            'paging': 'false'
         }).json()['trackedEntityAttributes']
 
         attributes_with_optionset = api.get('attributes', params={
             'fields': 'id,name',
-            'filter': 'optionSet.id:eq:{}'.format(option_set['id'])
+            'filter': 'optionSet.id:eq:{}'.format(os['id']),
+            'paging': 'false'
         }).json()['attributes']
 
         if not any([data_elements_with_optionset, tea_with_optionset, attributes_with_optionset]):
             logger.warn("Option Set '{}' ({}) is not assigned "
-                        "to any Data Element, Tracked Entity Attribute or Attribute".format(option_set['name'],
-                                                                                            option_set['id']))
+                        "to any Data Element, Tracked Entity Attribute or Attribute".format(os['name'], os['id']))
 
 
 def check_category_options(api):

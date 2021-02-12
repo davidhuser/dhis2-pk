@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+0.35.3 (Feb 2021)
+------------------
+- Feature: check optionSet.options for duplicate codes and invalid sortOrder
+
 0.35.2 (Nov 2020)
 ------------------
 - Fix: inline help text

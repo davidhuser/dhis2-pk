@@ -2,11 +2,13 @@
 
 **Script name:** `data-integrity`
 
-To enhance the DHIS2 built-in data integrity, this script checks the following things:
+To enhance the DHIS2 built-in data integrity, this script warns if the following configurations are detected:
 
-* Validation Rules - invalid expressions
-* Option Sets not in any Data Element, Tracked Entity Attribute or Attribute
-* Category Option not in any Category
+* Validation Rules that have invalid expressions
+* Option Sets that are not in any Data Element, Tracked Entity Attribute or Attribute
+* Option Sets with Options that have an invalid sort order
+* Option Sets with Options that have duplicate codes
+* Category Options that are not in any Category
 * Category not in any Category Combo
 * Category Combo not in any Data Element, Data Set Element, Program or Data Set
 
