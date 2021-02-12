@@ -72,7 +72,7 @@ def check_option_sets(api):
 
             codes = [option['code'] for option in os['options']]
             if len(codes) != len(set(codes)):
-                logger.warn("Option Set '{}' ({}) has duplicate codes in its options")
+                logger.warn("Option Set '{}' ({}) has duplicate codes in its options".format(os['name'], os['id']))
 
         data_elements_with_optionset = api.get('dataElements', params={
             'fields': 'id,name',
