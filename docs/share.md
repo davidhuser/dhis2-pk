@@ -81,7 +81,7 @@ Console output:
 Example to share Data Set with UID `aLpVgfXiz0f` where we need to specify METADATA **and** DATA access 
 by simply supplying a second `readwrite`/ `readonly` / `none` argument.
 
-* Public Access: Metadata access -> `none`, Data access -> `readwrite`
+* Public Access: Metadata access -> `readonly`, Data access -> `readwrite`
 * User Groups with `Research` in its name: Metadata access -> `none`, Data access -> `readonly`
 * User Group named `Kenya staff`: Metadata access -> `readonly`, Data access -> `none`
 
