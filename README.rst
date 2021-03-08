@@ -41,7 +41,7 @@ Check out the docs for more details regarding each script.
 Changelog
 ----------
 
-see `Changelog.rst <https://github.com/davidhuser/dhis2-pk/blob/master/Changelog.rst>`__.
+see `Changelog.rst <https://github.com/davidhuser/dhis2-pk/blob/master/CHANGELOG.rst>`__.
 
 ----
 
