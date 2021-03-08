@@ -22,21 +22,24 @@ def replace_path(oumap, path):
 
 
 def format_user(users, ou_map):
-    User = namedtuple('User', 'name first_name surname username phone_number '
-                              'last_login user_groups user_roles org_units dv_org_units')
+    User = namedtuple('User', 'uid name first_name surname username phone_number email '
+                              'last_login user_groups user_roles org_units dv_org_units search_org_units')
     logger.info('Exporting {} users...'.format(len(users['users'])))
 
     for user in users['users']:
+        User.uid = u'{}'.format(user['id'])
         User.name = u'{}'.format(user['name'])
         User.first_name = u'{}'.format(user['userCredentials']['userInfo']['firstName'])
         User.surname = u'{}'.format(user['userCredentials']['userInfo']['surname'])
         User.username = u'{}'.format(user['userCredentials']['username'])
         User.phone_number = u'{}'.format(user['userCredentials']['userInfo'].get('phoneNumber', '-'))
+        User.email = u'{}'.format(user.get('email', '-'))
         User.last_login = u'{}'.format(user['userCredentials'].get('lastLogin', '-'))
         User.user_groups = ", ".join([ug['name'] for ug in user['userGroups']])
         User.user_roles = ", ".join([ur['name'] for ur in user['userCredentials']['userRoles']])
         User.org_units = u"\n".join([replace_path(ou_map, elem) for elem in [ou['path'] for ou in user['organisationUnits']]])
         User.dv_org_units = u"\n".join([replace_path(ou_map, elem) for elem in [ou['path'] for ou in user['dataViewOrganisationUnits']]])
+        User.search_org_units = u"\n".join([replace_path(ou_map, elem) for elem in [ou['path'] for ou in user['teiSearchOrganisationUnits']]])
         yield User
 
 
@@ -47,10 +50,9 @@ def main(args, password):
 
     params1 = {
         'fields':
-            'name,'
+            'id,name,email,'
             'userCredentials[username,lastLogin,userRoles[name],userInfo[phoneNumber,firstName,surname]],'
-            'organisationUnits[path],userGroups[name],'
-            'dataViewOrganisationUnits[path]',
+            'organisationUnits[path],userGroups[name],dataViewOrganisationUnits[path],teiSearchOrganisationUnits[path]',
         'paging': False
     }
     users = api.get(endpoint='users', params=params1).json()
@@ -67,21 +69,24 @@ def main(args, password):
 
     file_name = "userinfo-{}.csv".format(file_timestamp(api.api_url))
     data = []
-    header_row = ['name', 'firstName', 'surname', 'username', 'phoneNumber', 'lastLogin', 'userGroups',
-                  'userRoles', 'orgunitPaths', 'dataViewOrgunitPaths']
+    header_row = ['uid', 'name', 'firstName', 'surname', 'username', 'phoneNumber', 'email', 'lastLogin', 'userGroups',
+                  'userRoles', 'orgunitPaths', 'dataViewOrgunitPaths', 'teiSearchOrganisationUnits']
 
     for user in format_user(users, ou_map):
         data.append([
+            user.uid,
             user.name,
             user.first_name,
             user.surname,
             user.username,
             user.phone_number,
+            user.email,
             user.last_login,
             user.user_groups,
             user.user_roles,
             user.org_units,
-            user.dv_org_units
+            user.dv_org_units,
+            user.search_org_units
         ])
 
     write_csv(data, file_name, header_row)
