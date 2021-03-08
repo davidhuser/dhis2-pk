@@ -2,6 +2,12 @@
 CHANGELOG
 =========
 
+0.35.5 (Mar 2021)
+------------------
+- Feat: ``userinfo`` script: export UIDs when supplying `-i`` flag.
+- Feat: ``userinfo`` script: export email and Tracker Search Org units too
+- Fix: user-agent fixed
+
 0.35.4 (Feb 2021)
 ------------------
 - Fix: print message for duplicate option codes fixed
