@@ -247,7 +247,7 @@ def parse_args_userinfo(argv):
 
     parser = argparse.ArgumentParser(usage=usage, description=description)
     required, optional = standard_arguments(parser)
-    optional.add_argument('-i', dest='uid_export', action='store_true', required=False, help='Export UIDs instead of readable names')
+    optional.add_argument('-i', dest='uid_export', action='store_true', required=False, help='Additionally export UIDs')
     args = parser.parse_args(argv)
     return get_password(args)
 

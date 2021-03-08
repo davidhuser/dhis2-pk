@@ -18,5 +18,6 @@ required arguments:
   -u USERNAME  DHIS2 username
 
 optional arguments:
+  -i           Additionally export UIDs
   -p PASSWORD  DHIS2 password
 ```
