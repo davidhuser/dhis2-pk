@@ -246,7 +246,8 @@ def parse_args_userinfo(argv):
     usage = "\nExample: dhis2-pk userinfo -s play.dhis2.org/demo -u admin -p district"
 
     parser = argparse.ArgumentParser(usage=usage, description=description)
-    standard_arguments(parser)
+    required, optional = standard_arguments(parser)
+    optional.add_argument('-i', dest='uid_export', action='store_true', required=False, help='Export UIDs instead of readable names')
     args = parser.parse_args(argv)
     return get_password(args)
 
