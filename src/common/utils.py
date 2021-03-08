@@ -13,7 +13,7 @@ except (SystemError, ImportError):
 def create_api(server, username, password):
     """Return a fully configured dhis2.Dhis instance
     """
-    return Api(server=server, username=username, password=password, user_agent='dhis2-src/{}'.format(__version__))
+    return Api(server=server, username=username, password=password, user_agent='dhis2-pk/{}'.format(__version__))
 
 
 def write_csv(data, filename, header_row):
