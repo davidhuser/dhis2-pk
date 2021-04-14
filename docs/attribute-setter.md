@@ -29,7 +29,7 @@ but for many objects.
 ## Usage
 
 ```
-Example: dhis2-pk attribute-setter -s play.dhis2.org/dev -u admin -p district -c file.csv -t organisationUnits -a pt5Ll9bb2oP
+Example: dhis2-pk-attribute-setter -s play.dhis2.org/dev -u admin -p district -c file.csv -t organisationUnits -a pt5Ll9bb2oP
 
 CSV file structure:
 uid   | attributeValue
