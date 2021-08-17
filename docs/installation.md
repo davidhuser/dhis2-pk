@@ -66,7 +66,7 @@ Make sure you tick the box for "Add Python3.X to path" during the Python 3 insta
 Alternatively, download and run an executable file.
 
 * Download dhis2-pk from the
-[releases page.](https://github.com/davidhuser/dhis2-pk/releases)
+[releases page.](https://github.com/davidhuser/dhis2-pk/releases) under Assets > `dhis2-pk.zip`.
 * Extract the zip file
 * In Windows, search for the app *PowerShell* or the *Command Prompt* and change (`cd`) to the directory 
 where you downloaded and extracted the ZIP file.
