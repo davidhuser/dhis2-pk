@@ -5,7 +5,7 @@ CHANGELOG
 0.36.0 (Aug 2021)
 -----------------
 - Feat: ``data-integrity`` script: check for invalid keywords in Program Rules and Program Rule Variables
-
+- Task: Upgrade ``dhis2.py`` to 2.2.0
 
 0.35.5 (Mar 2021)
 ------------------

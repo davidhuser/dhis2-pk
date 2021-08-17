@@ -65,7 +65,7 @@ setup(
     keywords='dhis2',
     license='MIT',
     install_requires=[
-        'dhis2.py==2.1.2'
+        'dhis2.py==2.2.0'
     ],
     entry_points={
         'console_scripts': [
