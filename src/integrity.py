@@ -152,6 +152,31 @@ def check_category_combos(api):
                         "to any Data Element, Data Set Element, Program or Data Set".format(cc['name'], cc['id']))
 
 
+def check_program_rules(api):
+    program_rules = api.get('programRules', params={
+        'fields': 'id,name,condition',
+        'filter': ['condition:like: or ', 'condition:like: and ', 'condition:like: not '],
+        'rootJunction': 'OR',
+        'paging': False
+    }).json()['programRules']
+    program_rule_variables = api.get('programRuleVariables', params={
+        'fields': 'id,name,condition',
+        'filter': ['name:like: or ', 'name:like: and ', 'name:like: not '],
+        'rootJunction': 'OR',
+        'paging': False
+    }).json()['programRuleVariables']
+    logger.info("*** CHECKING PROGRAM RULES AND PROGRAM RULE VARIABLES... ***")
+
+    for pr in program_rules:
+        logger.warn("Program Rule '{}' ({}) contains invalid keyword (or, not, and) in its condition".format(
+            pr['name'], pr['id'])
+        )
+    for prv in program_rule_variables:
+        logger.warn("Program Rule Variable '{}' ({}) contains invalid keyword (or, not, and) in its name".format(
+                prv['name'], prv['id'])
+        )
+
+
 def main(args, password):
     setup_logger(include_caller=False)
 
@@ -162,3 +187,4 @@ def main(args, password):
     check_category_options(api)
     check_categories(api)
     check_category_combos(api)
+    check_program_rules(api)

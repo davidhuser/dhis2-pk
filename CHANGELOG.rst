@@ -2,6 +2,11 @@
 CHANGELOG
 =========
 
+0.36.0 (Aug 2021)
+-----------------
+- Feat: ``data-integrity`` script: check for invalid keywords in Program Rules and Program Rule Variables
+
+
 0.35.5 (Mar 2021)
 ------------------
 - Feat: ``userinfo`` script: export UIDs when supplying `-i`` flag.

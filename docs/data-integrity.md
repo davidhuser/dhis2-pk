@@ -11,6 +11,7 @@ To enhance the DHIS2 built-in data integrity, this script warns if the following
 * Category Options that are not in any Category
 * Category not in any Category Combo
 * Category Combo not in any Data Element, Data Set Element, Program or Data Set
+* Program Rules and Variables do not contain invalid keywords `` not `` / `` and `` / `` or``
 
 ## Usage
 
