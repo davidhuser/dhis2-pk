@@ -1,13 +1,19 @@
 # Mass sharing of objects via filtering
 
-Apply [sharing](https://docs.dhis2.org/master/en/user/html/sharing.html)
+Apply [sharing](https://docs.dhis2.org/en/full/use/user-guides/dhis-core-version-master/dhis2-user-manual.html#sharing)
 for DHIS2 metadata and data objects (dataElements, indicators, programs, ...) through 
-[metadata object filtering](https://docs.dhis2.org/master/en/developer/html/dhis2_developer_manual_full.html#webapi_metadata_object_filter)
+[metadata object filtering](https://docs.dhis2.org/en/full/develop/dhis-core-version-master/developer-manual.html#webapi_metadata_object_filter)
 (for both shareable objects and userGroups).
 
-It is now possible to share DATA access for object types data set,
-tracked entity type, program and program stage on DHIS2 instances 2.29+. Read more
-[here.](https://docs.dhis2.org/2.29/en/user/html/sharing.html)
+Depending on the object type it is required to set the DATA access to (who can enter data), particularly for the object types:
+
+* tracked entity type 
+* program
+* program stage
+* data set
+* category option
+
+More info in the [dhis2 docs on data sharing and access control](https://docs.dhis2.org/en/full/use/user-guides/dhis-core-version-master/dhis2-user-manual.html#data-sharing-and-access-control).
 
 **Script name:** `share`
 
@@ -50,7 +56,7 @@ optional arguments:
 
 ## Examples
 
-A few examples for a 2.29+ DHIS2 instance are below.
+A few examples are below (assuming a 2.29+ instance):
 
 ### Example 1: Data Elements
 
