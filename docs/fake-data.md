@@ -9,9 +9,6 @@
 ```
 Example: dhis2-pk fake-data -s=play.dhis2.org/dev -u=admin -p=district -i q04UBOqq3rp -n 100
 
-usage: 
-Example: dhis2-pk fake-data -s play.dhis2.org/demo -u admin -p district
-
 Import faked data for Event programs or Data Sets
 
 required arguments:
