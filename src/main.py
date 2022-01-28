@@ -40,6 +40,8 @@ except ImportError:
         pk_general_help
     )
 
+from dhis2 import RequestException, logger
+
 # valid scripts
 scripts = {
     'attribute-setter',
@@ -94,4 +96,9 @@ def pocketknife_run():
 
 
 if __name__ == '__main__':
-    pocketknife_run()
+    try:
+        pocketknife_run()
+    except RequestException as e:
+        logger.error(e)
+    except Exception as e:
+        logger.exception(e)
