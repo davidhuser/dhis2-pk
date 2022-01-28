@@ -32,6 +32,12 @@ pipenv run python src/main.py post-css -s ${URL} -u ${USERNAME} -p ${PW} -c test
 echo -e '\ndata-integrity'
 pipenv run python src/main.py data-integrity -s ${URL} -u ${USERNAME} -p ${PW}
 
+echo -e '\nfake-data'
+pipenv run python src/main.py fake-data -s ${URL} -u ${USERNAME} -p ${PW} -i q04UBOqq3rp -n 10
+pipenv run python src/main.py fake-data -s ${URL} -u ${USERNAME} -p ${PW} -i eZDhcZi6FLP -n 50
+
+
 echo -e '\nclean-up...'
 rm -f indicators-202*.csv
 rm -f userinfo-202*.csv
+rm -f fake_data_*.csv

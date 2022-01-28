@@ -251,3 +251,15 @@ def parse_args_userinfo(argv):
     args = parser.parse_args(argv)
     return get_password(args)
 
+
+def parse_args_fake_data(argv):
+    description = "Import faked data for Event programs or Data Sets"
+    usage = "\nExample: dhis2-pk fake-data -s play.dhis2.org/demo -u admin -p district"
+
+    parser = argparse.ArgumentParser(usage=usage, description=description)
+    required, optional = standard_arguments(parser)
+    required.add_argument('-i', dest='uid', required=True, help='UID for program or data set to import fake data for')
+    required.add_argument('-n', dest='amount', required=True, type=int, help='Amount of events or data values to fake')
+    args = parser.parse_args(argv)
+    return get_password(args)
+
