@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
-import json
 import datetime
-import random
-import uuid
+import json
 import os
+import random
+import sys
 import time
-from collections import namedtuple
+import uuid
 
-
-from dhis2 import Api, setup_logger, logger, is_valid_uid, RequestException, generate_uid, load_json
+from dhis2 import Api, setup_logger, logger, is_valid_uid, RequestException, generate_uid
 
 try:
     from common.utils import create_api, file_timestamp, write_csv
@@ -29,7 +27,6 @@ def random_year() -> list:
 
 def random_date():
     """Get a random date between January 1 of this year and today"""
-
     today = datetime.date.today()
     start_year = int(today.strftime("%Y"))
     start_date = datetime.date(start_year, 1, 1)
@@ -40,19 +37,19 @@ def random_date():
     return start_date + datetime.timedelta(days=random_number_of_days)
 
 
-def human_size(bytes_num: int, units=[' bytes','KB','MB','GB','TB', 'PB', 'EB']):
+def human_size(bytes_num: int, units=None):
     """ Returns a human readable string representation of bytes """
-    return str(bytes_num) + units[0] if bytes_num < 1024 else human_size(bytes_num>>10, units[1:])
+    units = [' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'] if units is None else units
+    return str(bytes_num) + units[0] if bytes_num < 1024 else human_size(bytes_num >> 10, units[1:])
 
 
 def get_today():
-    """Return today in YYYY-MM-DD format
-    """
+    """Return today in YYYY-MM-DD format"""
     return datetime.datetime.today().strftime('%Y-%m-%d')
 
 
 def fake_data_program(uid: str, amount: int, api: Api):
-
+    """Import fake events"""
     metadata = api.get(f'programs/{uid}', params={
         'fields': 'id,name,organisationUnits,'
                   'programStages[programStageDataElements[dataElement[id,valueType,optionSet[options[code]]]]]'}).json()
@@ -73,6 +70,14 @@ def fake_data_program(uid: str, amount: int, api: Api):
 
     org_units = {ou['id'] for ou in metadata['organisationUnits']}
 
+    aocs = {
+        coc['categoryOptions'][0]['id'] for coc
+        in api.get(
+            f'programs/{uid}',
+            params={'fields': 'id,name,categoryCombo[categoryOptionCombos[categoryOptions]]'}
+        ).json()['categoryCombo']['categoryOptionCombos']
+    }
+
     payload = {"events": []}
     for i in range(amount):
         event = {
@@ -83,6 +88,7 @@ def fake_data_program(uid: str, amount: int, api: Api):
             "status": "COMPLETED",
             "completedDate": get_today(),
             "dataValues": [],
+            "attributeCategoryOptions": random.choice(list(aocs))
             # "coordinate": {
             #     "latitude": round(random.uniform(4, 13), 3),
             #     "longitude": round(random.uniform(2.7, 14.5), 3), # Nigeria
@@ -95,7 +101,7 @@ def fake_data_program(uid: str, amount: int, api: Api):
             if de_uid in data_elements_options:
                 dv_value = random.choice(data_elements_options[de_uid])
             else:
-                if de_value_type == 'INTEGER_POSITIVE':
+                if de_value_type in ('INTEGER_POSITIVE', 'INTEGER'):
                     dv_value = random.randint(1, 300)
                 elif de_value_type == 'INTEGER_ZERO_OR_POSITIVE':
                     dv_value = random.randint(0, 300)
@@ -110,10 +116,13 @@ def fake_data_program(uid: str, amount: int, api: Api):
                         dv_value = 'true'
                 elif de_value_type == 'PERCENTAGE':
                     dv_value = random.randint(0, 100)
+                elif de_value_type == 'ORGANISATION_UNIT':
+                    dv_value = random.choice(list(org_units))
                 elif de_value_type == 'URL':
                     dv_value = "https://{}.com".format(uuid.uuid4())
                 else:
-                    raise ValueError(f"Not supported valueType: {de_value_type}")
+                    logger.warning(f"Not supported valueType: {de_value_type}")
+                    continue
             if dv_value:
                 event['dataValues'].append({
                     "dataElement": de_uid,
@@ -122,20 +131,36 @@ def fake_data_program(uid: str, amount: int, api: Api):
 
         payload["events"].append(event)
 
-    for index, ev in enumerate(payload["events"], 1):
+    amount = len(payload['events'])
+
+    filename = f'fake_data_events_{uid}_{get_today()}.json'
+    with open(filename, 'w') as f:
+        json.dump(payload, f)
+
+    logger.info("Fake data file stored: {}".format(filename))
+    logger.info("File has around {} events and a file size of ca. {}".format(amount, human_size(
+        os.path.getsize(filename))))
+
+    if amount < 5000:
+        logger.info("Importing data...")
         try:
-            api.post('events', data=ev)
+            r = api.post('events', data=payload)
         except RequestException as e:
             logger.error(e)
         else:
-            datavalues = len(ev['dataValues'])
-            event_date = ev['eventDate']
-            logger.info(f"{index}/{amount} Imported FAKE event {ev['event']} "
-                        f"with eventDate {event_date} and {datavalues} values")
+            logger.info(f"Imported {len(payload['events'])} FAKE events.")
+            logger.info(r.json().get('message'))
+            resp = r.json().get('response')
+            resp.pop('importOptions', None)
+            resp.pop('importSummaries', None)
+            logger.info(resp)
+    else:
+        logger.warning("Did not attempt to import due to large file size. "
+                       "Import via Import/Export app in DHIS2 or decrease the amount of events.")
 
 
 def fake_data_dataset(uid: str, amount: int, api: Api):
-
+    """Import fake data value sets"""
     data_elements = {
         de['id']: de['valueType']
         for de in api.get_paged(
@@ -165,10 +190,10 @@ def fake_data_dataset(uid: str, amount: int, api: Api):
     logger.info(f"Dataset: {dataset_name}")
 
     aocs = {
-        coc['id'] for coc
-        in api.get(f'dataSets/{uid}',
-                   params={'fields': 'id,name,categoryCombo[categoryOptionCombos]'}).json()['categoryCombo'][
-            'categoryOptionCombos']
+        coc['id'] for coc in api.get(
+            f'dataSets/{uid}',
+            params={'fields': 'id,name,categoryCombo[categoryOptionCombos]'}
+        ).json()['categoryCombo']['categoryOptionCombos']
     }
 
     for i in range(amount):
@@ -225,12 +250,13 @@ def fake_data_dataset(uid: str, amount: int, api: Api):
 
     amount = len(payload['dataValues'])
 
-    filename = f'fake_data_{uid}_{get_today()}.json'
+    filename = f'fake_data_dataset_{uid}_{get_today()}.json'
     with open(filename, 'w') as f:
         json.dump(payload, f)
 
     logger.info("Fake data file stored: {}".format(filename))
-    logger.info("File has around {} data values and a file size of ca. {}".format(amount, human_size(os.path.getsize(filename))))
+    logger.info("File has around {} data values and a file size of ca. {}".format(amount, human_size(
+        os.path.getsize(filename))))
 
     if amount < 100000:
         logger.info("Importing data...")
@@ -239,8 +265,8 @@ def fake_data_dataset(uid: str, amount: int, api: Api):
         except RequestException as e:
             logger.error(e)
         else:
-            logger.info(f"Imported FAKE dataValueSet {len(payload['dataValues'])} values.")
-            logger.info(r.text)
+            logger.info(r.json().get('description'))
+            logger.info(r.json().get('importCount'))
     else:
         logger.warning("Did not attempt to import due to large file size. "
                        "Import via Import/Export app in DHIS2 or decrease the amount of data values.")
@@ -256,7 +282,7 @@ def main(args, password):
         sys.exit(1)
 
     if not 0 < args.amount <= 100000:
-        logger.error(f"Amount can be between 1 and 100'000")
+        logger.error(f"Amount must be between 1 and 100'000")
         sys.exit(1)
 
     logger.warning(f"This script will import FAKE data to {api.base_url}")
@@ -283,7 +309,3 @@ def main(args, password):
         fake_data_program(uid=args.uid, api=api, amount=args.amount)
     else:
         fake_data_dataset(uid=args.uid, api=api, amount=args.amount)
-
-
-
-
