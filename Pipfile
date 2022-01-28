@@ -10,7 +10,7 @@ pytest-runner = "*"
 pyinstaller = "==3.6"
 
 [packages]
-"dhis2.py" = "==2.2.1"
+"dhis2.py" = "==2.3.0"
 
 [scripts]
 tests = "python -m pytest --cov=src --cov-report term-missing tests -vv"

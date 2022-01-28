@@ -10,6 +10,7 @@ try:
     from src.integrity import main as integrity_main
     from src.share import main as share_main
     from src.userinfo import main as userinfo_main
+    from src.fake_data import main as fake_data_main
     from src.cmdline_parser import (
         parse_args_share,
         parse_args_userinfo,
@@ -17,6 +18,7 @@ try:
         parse_args_indicators,
         parse_args_css,
         parse_args_attributes,
+        parse_args_fake_data,
         pk_general_help
     )
 except ImportError:
@@ -26,6 +28,7 @@ except ImportError:
     from integrity import main as integrity_main
     from share import main as share_main
     from userinfo import main as userinfo_main
+    from fake_data import main as fake_data_main
     from cmdline_parser import (
         parse_args_share,
         parse_args_userinfo,
@@ -33,6 +36,7 @@ except ImportError:
         parse_args_indicators,
         parse_args_css,
         parse_args_attributes,
+        parse_args_fake_data,
         pk_general_help
     )
 
@@ -43,7 +47,8 @@ scripts = {
     'indicator-definitions',
     'post-css',
     'share',
-    'userinfo'
+    'userinfo',
+    'fake-data'
 }
 
 
@@ -83,6 +88,9 @@ def pocketknife_run():
         if script_name == 'userinfo':
             args, password = parse_args_userinfo(args[2:])
             userinfo_main(args, password)
+        if script_name == 'fake-data':
+            args, password = parse_args_fake_data(args[2:])
+            fake_data_main(args, password)
 
 
 if __name__ == '__main__':

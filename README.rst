@@ -12,6 +12,7 @@ Command-line tools for `DHIS2 <https://dhis2.org>`__.
 -  Set **attribute values** with a CSV `(docs) <https://github.com/davidhuser/dhis2-pk/blob/master/docs/attribute-setter.md>`__
 -  Additional **data integrity** `(docs) <https://github.com/davidhuser/dhis2-pk/blob/master/docs/data-integrity.md>`__
 -  Post a **CSS** style sheet for the login page `(docs) <https://github.com/davidhuser/dhis2-pk/blob/master/docs/post-css.md>`__
+-  Import fake data for event programs and data sets `(docs) <https://github.com/davidhuser/dhis2-pk/blob/master/docs/fake-data.md>`__
 
 Installation
 -------------

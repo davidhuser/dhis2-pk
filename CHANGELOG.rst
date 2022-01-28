@@ -2,6 +2,12 @@
 CHANGELOG
 =========
 
+0.37.0 (Jan 2022)
+------------------
+- Feat: fake-data script
+- Task: bump ``dhis2.py`` to 2.3.0
+
+
 0.36.1 (Aug 2021)
 ------------------
 - Task: bump ``dhis2.py`` to 2.2.1
