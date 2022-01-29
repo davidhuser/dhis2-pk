@@ -18,17 +18,21 @@ except (SystemError, ImportError):
     from src.common.exceptions import PKClientException
 
 
-def random_year() -> list:
+def last_years(years: int = -2) -> list:
     """Return a list of years ending with this year"""
-    today = datetime.date.today()
-    start_year = int(today.strftime("%Y"))
-    return [start_year - 2, start_year - 1, start_year]
+    if years > 0:
+        raise ValueError("Years must be 0 or smaller")
+    this_year = int(datetime.date.today().strftime("%Y"))
+    year_list = [this_year]
+    for i in range(years, 0, 1):
+        year_list.append(this_year + i)
+    return sorted(year_list, reverse=True)
 
 
-def random_date():
-    """Get a random date between January 1 of this year and today"""
+def random_date() -> datetime.date:
+    """Get a random date between January 1 of last year and today"""
     today = datetime.date.today()
-    start_year = int(today.strftime("%Y"))
+    start_year = int(today.strftime("%Y")) - 1
     start_date = datetime.date(start_year, 1, 1)
     end_date = today
     time_between_dates = end_date - start_date
@@ -37,13 +41,73 @@ def random_date():
     return start_date + datetime.timedelta(days=random_number_of_days)
 
 
-def human_size(bytes_num: int, units=None):
+def random_time() -> datetime:
+    """Return random datetime up to 101 days ago"""
+    return datetime.datetime.now() - datetime.timedelta(
+        days=random.randint(1, 100),
+        hours=random.randint(1, 24),
+        minutes=random.randint(1, 60),
+        seconds=random.randint(1, 60)
+    )
+
+
+def random_data_value(value_type: str, org_units: set) -> str:
+    """Return a random data value based on the DHIS2 data element valueType"""
+    if value_type in ('INTEGER_POSITIVE', 'INTEGER'):
+        return str(random.randint(1, 1000))
+    elif value_type == 'INTEGER_ZERO_OR_POSITIVE':
+        return str(random.randint(0, 1000))
+    elif value_type == 'NUMBER':
+        return str(round(random.uniform(0, 100), 3))
+    elif value_type == 'BOOLEAN':
+        return str(random.choice([True, False])).lower()
+    elif value_type in ('LONG_TEXT', 'TEXT'):
+        return str(uuid.uuid4())[:8]
+    elif value_type == 'TRUE_ONLY':
+        return 'true' if random.choice([True, False]) else None
+    elif value_type == 'NEGATIVE_INTEGER':
+        return str(random.randint(-1000, -1))
+    elif value_type == 'PERCENTAGE':
+        return str(random.randint(0, 100))
+    elif value_type == 'UNIT_INTERVAL':
+        return str(round(random.uniform(0, 1), 4))
+    elif value_type == 'ORGANISATION_UNIT':
+        return random.choice(list(org_units))
+    elif value_type == 'URL':
+        return f"https://{str(uuid.uuid4())[:8]}.org/"
+    elif value_type == 'DATE':
+        return str(random_date().strftime('%Y-%m-%d'))
+    elif value_type == 'DATETIME':
+        return str(random_time().strftime('%Y-%m-%dT%H:%M:%S.000000'))
+    elif value_type == 'TIME':
+        return str(random_time().strftime('%H:%M:%S.000000'))
+    elif value_type == 'EMAIL':
+        return "mail@example.org"
+    else:
+        logger.warning(f"Not supported valueType: {value_type}")
+
+
+def random_period(period_type: str) -> str:
+    """Return a random period based on the DHIS2 period type"""
+    if period_type == 'Yearly':
+        return str(random.choice(last_years()))
+    elif period_type == 'Monthly':
+        return str(random_date().strftime('%Y%m'))
+    elif period_type == 'Quarterly':
+        quarter = random.choice([1, 2, 3, 4])
+        year = random.choice(last_years())
+        return f"{year}Q{quarter}"
+    else:
+        raise ValueError(f"Not yet supported period: {period_type}")
+
+
+def human_size(bytes_num: int, units=None) -> str:
     """ Returns a human readable string representation of bytes """
-    units = [' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'] if units is None else units
+    units = [' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'] if not units else units
     return str(bytes_num) + units[0] if bytes_num < 1024 else human_size(bytes_num >> 10, units[1:])
 
 
-def get_today():
+def get_today() -> str:
     """Return today in YYYY-MM-DD format"""
     return datetime.datetime.today().strftime('%Y-%m-%d')
 
@@ -54,7 +118,7 @@ def fake_data_program(uid: str, amount: int, api: Api):
         'fields': 'id,name,organisationUnits,'
                   'programStages[programStageDataElements[dataElement[id,valueType,optionSet[options[code]]]]]'}).json()
 
-    logger.info(f"Program: {metadata['name']}")
+    logger.info(f"Program: {metadata['name']} ({metadata['id']})")
     time.sleep(4)
 
     data_elements = {
@@ -70,7 +134,11 @@ def fake_data_program(uid: str, amount: int, api: Api):
 
     org_units = {ou['id'] for ou in metadata['organisationUnits']}
 
-    aocs = {
+    if not org_units:
+        logger.error("Data set is not assigned to any org unit")
+        sys.exit(1)
+
+    attribute_options = {
         coc['categoryOptions'][0]['id'] for coc
         in api.get(
             f'programs/{uid}',
@@ -79,7 +147,7 @@ def fake_data_program(uid: str, amount: int, api: Api):
     }
 
     payload = {"events": []}
-    for i in range(amount):
+    for _ in range(amount):
         event = {
             "event": generate_uid(),
             "program": uid,
@@ -88,75 +156,54 @@ def fake_data_program(uid: str, amount: int, api: Api):
             "status": "COMPLETED",
             "completedDate": get_today(),
             "dataValues": [],
-            "attributeCategoryOptions": random.choice(list(aocs))
-            # "coordinate": {
-            #     "latitude": round(random.uniform(4, 13), 3),
-            #     "longitude": round(random.uniform(2.7, 14.5), 3), # Nigeria
-            # }
+            "attributeCategoryOptions": random.choice(list(attribute_options)),
+            "coordinate": {  # Nigeria
+                "latitude": round(random.uniform(4, 13), 3),
+                "longitude": round(random.uniform(2.7, 14.5), 3)
+            }
         }
 
         for de_uid, de_value_type in data_elements.items():
-            dv_value = None
-
             if de_uid in data_elements_options:
+                # if DE has a optionSet, choose a random option
                 dv_value = random.choice(data_elements_options[de_uid])
             else:
-                if de_value_type in ('INTEGER_POSITIVE', 'INTEGER'):
-                    dv_value = random.randint(1, 300)
-                elif de_value_type == 'INTEGER_ZERO_OR_POSITIVE':
-                    dv_value = random.randint(0, 300)
-                elif de_value_type == 'NUMBER':
-                    dv_value = round(random.uniform(0, 100), 3)
-                elif de_value_type == 'BOOLEAN':
-                    dv_value = random.choice([True, False])
-                elif de_value_type in ('LONG_TEXT', 'TEXT'):
-                    dv_value = str(uuid.uuid4())
-                elif de_value_type == 'TRUE_ONLY':
-                    if random.choice([True, False]):
-                        dv_value = 'true'
-                elif de_value_type == 'PERCENTAGE':
-                    dv_value = random.randint(0, 100)
-                elif de_value_type == 'ORGANISATION_UNIT':
-                    dv_value = random.choice(list(org_units))
-                elif de_value_type == 'URL':
-                    dv_value = "https://{}.com".format(uuid.uuid4())
-                else:
-                    logger.warning(f"Not supported valueType: {de_value_type}")
-                    continue
+                dv_value = random_data_value(de_value_type, org_units)
             if dv_value:
-                event['dataValues'].append({
-                    "dataElement": de_uid,
-                    "value": dv_value
-                })
-
+                event['dataValues'].append({"dataElement": de_uid, "value": dv_value})
         payload["events"].append(event)
-
-    amount = len(payload['events'])
 
     filename = f'fake_data_events_{uid}_{get_today()}.json'
     with open(filename, 'w') as f:
         json.dump(payload, f)
 
-    logger.info("Fake data file stored: {}".format(filename))
-    logger.info("File has around {} events and a file size of ca. {}".format(amount, human_size(
-        os.path.getsize(filename))))
+    logger.info("File stored: {}".format(filename))
+    logger.info("Events: {} - file size: {}".format(
+        len(payload['events']),
+        human_size(os.path.getsize(filename))
+    ))
 
-    if amount < 5000:
-        logger.info("Importing data...")
-        try:
-            r = api.post('events', data=payload)
-        except RequestException as e:
-            logger.error(e)
-        else:
-            logger.info(f"Imported {len(payload['events'])} FAKE events.")
-            logger.info(r.json().get('message'))
-            resp = r.json().get('response')
-            resp.pop('importOptions', None)
-            resp.pop('importSummaries', None)
-            logger.info(resp)
-    else:
-        logger.warning("Did not attempt to import due to large file size. "
-                       "Import via Import/Export app in DHIS2 or decrease the amount of events.")
+    time.sleep(3)
+
+    job_uid = api.post(
+        'events',
+        data=payload,
+        params={'async': 'true', 'payloadFormat': 'json'}
+    ).json()['response']['id']
+    logger.info(f"Started async events import job {job_uid} - waiting...")
+    while True:
+        ping = api.get(f'system/tasks/EVENT_IMPORT/{job_uid}').json()
+        done = [item for item in ping if item['completed'] is True and 'Import done' in item['message']]
+        if done:
+            break
+        time.sleep(1)
+    summary = api.get(f'system/taskSummaries/EVENT_IMPORT/{job_uid}').json()
+    summary.pop('responseType', None)
+    summary.pop('importSummaries', None)
+    summary.pop('total', None)
+    status = summary.get('status', 'unknown')
+    summary.pop('status', None)
+    logger.info(f"{status.capitalize()} - {summary}")
 
 
 def fake_data_dataset(uid: str, amount: int, api: Api):
@@ -173,23 +220,23 @@ def fake_data_dataset(uid: str, amount: int, api: Api):
 
     dvs_template = api.get(f'dataSets/{uid}/dataValueSet').json()
 
-    assigned_org_units = {
+    org_units = {
         ou['id'] for ou in
         api.get(
             f'dataSets/{uid}',
             params={'fields': 'id,name,organisationUnits[id]'}
         ).json().get('organisationUnits', [])
     }
+    if not org_units:
+        logger.error("Data set is not assigned to any org unit")
+        sys.exit(1)
 
     payload = {"dataValues": []}
 
     metadata = api.get(f'dataSets/{uid}', params={'fields': 'id,name,periodType'}).json()
-    dataset_name = metadata['name']
-    period_type = metadata['periodType']
+    logger.info(f"Dataset: {metadata['name']} ({uid})")
 
-    logger.info(f"Dataset: {dataset_name}")
-
-    aocs = {
+    attribute_options = {
         coc['id'] for coc in api.get(
             f'dataSets/{uid}',
             params={'fields': 'id,name,categoryCombo[categoryOptionCombos]'}
@@ -198,78 +245,44 @@ def fake_data_dataset(uid: str, amount: int, api: Api):
 
     for i in range(amount):
         for dv in dvs_template['dataValues']:
-            dv_de = dv['dataElement']
-            dv_coc = dv['categoryOptionCombo']
-
-            de_value_type = data_elements[dv_de]
-            if de_value_type in ('INTEGER_POSITIVE', 'INTEGER'):
-                dv_value = random.randint(1, 30000)
-            elif de_value_type == 'INTEGER_ZERO_OR_POSITIVE':
-                dv_value = random.randint(0, 30000)
-            elif de_value_type == 'NUMBER':
-                dv_value = round(random.uniform(0, 100), 3)
-            elif de_value_type == 'BOOLEAN':
-                dv_value = random.choice([True, False])
-            elif de_value_type in ('LONG_TEXT', 'TEXT'):
-                dv_value = str(uuid.uuid4())
-            elif de_value_type == 'TRUE_ONLY':
-                if random.choice([True, False]):
-                    dv_value = True
-                else:
-                    continue
-            elif de_value_type == 'PERCENTAGE':
-                dv_value = random.randint(0, 100)
-            elif de_value_type == 'URL':
-                dv_value = "https://{}.com".format(uuid.uuid4())
-            else:
-                logger.warning(f"Not supported valueType: {de_value_type}")
-                continue
-
-            if period_type == 'Yearly':
-                dv_period = random.choice(random_year())
-            elif period_type == 'Monthly':
-                random_month = random_date().strftime('%Y%m')
-                dv_period = f"{random_month}"
-            elif period_type == 'Quarterly':
-                quarter = random.choice([1, 2, 3, 4])
-                year = random.choice(random_year())
-                dv_period = f"{year}Q{quarter}"
-            else:
-                raise ValueError(f"Not supported period: {period_type}")
-
+            de_uid = dv['dataElement']
+            de_value_type = data_elements[de_uid]
             payload['dataValues'].append(
                 {
-                    "dataElement": dv_de,
-                    "categoryOptionCombo": dv_coc,
-                    "period": dv_period,
-                    "value": dv_value,
-                    "orgUnit": random.choice(list(assigned_org_units)),
-                    "attributeOptionCombo": random.choice(list(aocs))
+                    "dataElement": de_uid,
+                    "categoryOptionCombo": dv['categoryOptionCombo'],
+                    "period": random_period(metadata['periodType']),
+                    "value": random_data_value(de_value_type, org_units),
+                    "orgUnit": random.choice(list(org_units)),
+                    "attributeOptionCombo": random.choice(list(attribute_options))
                 }
             )
-
-    amount = len(payload['dataValues'])
 
     filename = f'fake_data_dataset_{uid}_{get_today()}.json'
     with open(filename, 'w') as f:
         json.dump(payload, f)
 
-    logger.info("Fake data file stored: {}".format(filename))
-    logger.info("File has around {} data values and a file size of ca. {}".format(amount, human_size(
-        os.path.getsize(filename))))
+    logger.info("File stored: {}".format(filename))
+    logger.info("Data values: {} - file size: {}".format(
+        len(payload['dataValues']),
+        human_size(os.path.getsize(filename))
+    ))
 
-    if amount < 100000:
-        logger.info("Importing data...")
-        try:
-            r = api.post('dataValueSets', data=payload)
-        except RequestException as e:
-            logger.error(e)
-        else:
-            logger.info(r.json().get('description'))
-            logger.info(r.json().get('importCount'))
-    else:
-        logger.warning("Did not attempt to import due to large file size. "
-                       "Import via Import/Export app in DHIS2 or decrease the amount of data values.")
+    time.sleep(3)
+
+    job_uid = api.post(
+        'dataValueSets', data=payload,
+        params={'skipAudit': 'true', 'async': 'true', 'preheatCache': 'true'}
+    ).json()['response']['id']
+    logger.info(f"Started async aggregate data import job {job_uid} - waiting...")
+    while True:
+        ping = api.get(f'system/tasks/DATAVALUE_IMPORT/{job_uid}').json()
+        done = [item for item in ping if item['completed'] is True and item['message'] == 'Import done']
+        if done:
+            break
+        time.sleep(1)
+    summary = api.get(f'system/taskSummaries/DATAVALUE_IMPORT/{job_uid}').json()
+    logger.info(f"{summary.get('description')} - {summary.get('importCount')}")
 
 
 def main(args, password):
@@ -282,10 +295,10 @@ def main(args, password):
         sys.exit(1)
 
     if not 0 < args.amount <= 100000:
-        logger.error(f"Amount must be between 1 and 100'000")
+        logger.error(f"Amount must be between 1 and 100000")
         sys.exit(1)
 
-    logger.warning(f"This script will import FAKE data to {api.base_url}")
+    logger.warning(f"Importing FAKE data to {api.base_url}")
 
     uid = args.uid
     data_type = None
@@ -300,12 +313,17 @@ def main(args, password):
                 if program_info['programType'] != 'WITHOUT_REGISTRATION':
                     logger.error("Cannot support Tracker programs yet.")
                     sys.exit(1)
-                data_type = 'programs'
+                data_type = 'events'
             except RequestException as e:
                 if e.code == 404:
                     logger.error(f"Could not find dataSet or program with UID '{uid}'")
+        else:
+            logger.error(e)
+            sys.exit(1)
 
-    if data_type == 'programs':
+    if data_type == 'events':
         fake_data_program(uid=args.uid, api=api, amount=args.amount)
-    else:
+    elif data_type == 'dataSets':
         fake_data_dataset(uid=args.uid, api=api, amount=args.amount)
+    else:
+        raise ValueError("Not supported data type")
