@@ -3,7 +3,7 @@
 *.json
 *.xml
 *lock.*
-manual-pip.sh
+fake_data_runner.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

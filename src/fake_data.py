@@ -51,20 +51,20 @@ def random_time() -> datetime:
     )
 
 
-def random_data_value(value_type: str, org_units: set) -> str:
+def random_data_value(value_type: str, org_units: list) -> str:
     """Return a random data value based on the DHIS2 data element valueType"""
     if value_type in ('INTEGER_POSITIVE', 'INTEGER'):
-        return str(random.randint(1, 1000))
+        return str(abs(int(random.gauss(100, 49))))
     elif value_type == 'INTEGER_ZERO_OR_POSITIVE':
-        return str(random.randint(0, 1000))
+        return str(abs(int(random.gauss(200, 49))))
     elif value_type == 'NUMBER':
-        return str(round(random.uniform(0, 100), 3))
+        return str(int(random.gauss(100, 49)))
     elif value_type == 'BOOLEAN':
-        return str(random.choice([True, False])).lower()
+        return str(bool(random.getrandbits(1))).lower()
     elif value_type in ('LONG_TEXT', 'TEXT'):
         return str(uuid.uuid4())[:8]
     elif value_type == 'TRUE_ONLY':
-        return 'true' if random.choice([True, False]) else None
+        return 'true' if bool(random.getrandbits(1)) else None
     elif value_type == 'NEGATIVE_INTEGER':
         return str(random.randint(-1000, -1))
     elif value_type == 'PERCENTAGE':
@@ -72,7 +72,7 @@ def random_data_value(value_type: str, org_units: set) -> str:
     elif value_type == 'UNIT_INTERVAL':
         return str(round(random.uniform(0, 1), 4))
     elif value_type == 'ORGANISATION_UNIT':
-        return random.choice(list(org_units))
+        return random.choice(org_units)
     elif value_type == 'URL':
         return f"https://{str(uuid.uuid4())[:8]}.org/"
     elif value_type == 'DATE':
@@ -80,7 +80,7 @@ def random_data_value(value_type: str, org_units: set) -> str:
     elif value_type == 'DATETIME':
         return str(random_time().strftime('%Y-%m-%dT%H:%M:%S.000000'))
     elif value_type == 'TIME':
-        return str(random_time().strftime('%H:%M:%S.000000'))
+        return str(random_time().strftime('%M:%S'))
     elif value_type == 'EMAIL':
         return "mail@example.org"
     else:
@@ -114,56 +114,67 @@ def get_today() -> str:
 
 def fake_data_program(uid: str, amount: int, api: Api):
     """Import fake events"""
+
+    # load program metadata
     metadata = api.get(f'programs/{uid}', params={
         'fields': 'id,name,organisationUnits,'
                   'programStages[programStageDataElements[dataElement[id,valueType,optionSet[options[code]]]]]'}).json()
 
-    logger.info(f"Program: {metadata['name']} ({metadata['id']})")
-    time.sleep(4)
+    logger.info("Generating random fake data.")
+    logger.info(f"Event program: name='{metadata['name']}' uid='{metadata['id']}'")
 
-    data_elements = {
+    # map data element to its valueType
+    de_valuetype_map = {
         de['dataElement']['id']: de['dataElement']['valueType']
         for de in metadata['programStages'][0]['programStageDataElements']
     }
 
+    # map data elements to available options
     data_elements_options = {}
     for de in metadata['programStages'][0]['programStageDataElements']:
         if 'optionSet' in de['dataElement']:
             data_element_uid = de['dataElement']['id']
             data_elements_options[data_element_uid] = [o['code'] for o in de['dataElement']['optionSet']['options']]
 
-    org_units = {ou['id'] for ou in metadata['organisationUnits']}
-
+    # load the program's assigned metadata
+    org_units = [ou['id'] for ou in metadata['organisationUnits']]
     if not org_units:
         logger.error("Data set is not assigned to any org unit")
         sys.exit(1)
 
-    attribute_options = {
+    # load the program's category combo > attribute options
+    attribute_options = [
         coc['categoryOptions'][0]['id'] for coc
         in api.get(
             f'programs/{uid}',
             params={'fields': 'id,name,categoryCombo[categoryOptionCombos[categoryOptions]]'}
         ).json()['categoryCombo']['categoryOptionCombos']
-    }
+    ]
 
+    # create events (without data values yet)
     payload = {"events": []}
     for _ in range(amount):
         event = {
             "event": generate_uid(),
             "program": uid,
-            "orgUnit": random.choice(list(org_units)),
+            "orgUnit": random.choice(org_units),
             "eventDate": random_date().strftime('%Y-%m-%d'),
             "status": "COMPLETED",
+            "storedBy": "fake-data",
             "completedDate": get_today(),
             "dataValues": [],
-            "attributeCategoryOptions": random.choice(list(attribute_options)),
-            "coordinate": {  # Nigeria
-                "latitude": round(random.uniform(4, 13), 3),
-                "longitude": round(random.uniform(2.7, 14.5), 3)
+            "attributeCategoryOptions": random.choice(attribute_options),
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    str(round(random.uniform(4, 13), 3)),
+                    str(round(random.uniform(2.7, 14.5), 3))
+                ]
             }
         }
 
-        for de_uid, de_value_type in data_elements.items():
+        # create the event's data values
+        for de_uid, de_value_type in de_valuetype_map.items():
             if de_uid in data_elements_options:
                 # if DE has a optionSet, choose a random option
                 dv_value = random.choice(data_elements_options[de_uid])
@@ -177,23 +188,27 @@ def fake_data_program(uid: str, amount: int, api: Api):
     with open(filename, 'w') as f:
         json.dump(payload, f)
 
-    logger.info("File stored: {}".format(filename))
-    logger.info("Events: {} - file size: {}".format(
-        len(payload['events']),
-        human_size(os.path.getsize(filename))
-    ))
+    file_size = os.path.getsize(filename)
+    logger.info(f"Event count: {len(payload['events'])}")
+    logger.info(f"Event file: {filename}")
+    logger.info(f"Event file size: {human_size(file_size)}")
+
+    if file_size > 20 ** 7:
+        logger.warning("File size exceeds 20MB. Consider reducing the amount.")
 
     time.sleep(3)
 
+    # async event import
     job_uid = api.post(
         'events',
         data=payload,
         params={'async': 'true', 'payloadFormat': 'json'}
     ).json()['response']['id']
-    logger.info(f"Started async events import job {job_uid} - waiting...")
+    logger.info(f"Event import job started: {job_uid} - waiting...")
     while True:
-        ping = api.get(f'system/tasks/EVENT_IMPORT/{job_uid}').json()
-        done = [item for item in ping if item['completed'] is True and 'Import done' in item['message']]
+        ping = api.get(f'system/tasks/EVENT_IMPORT/{job_uid}')
+        ping.raise_for_status()
+        done = [item for item in ping.json() if item['completed'] is True and 'Import done' in item['message']]
         if done:
             break
         time.sleep(1)
@@ -208,53 +223,68 @@ def fake_data_program(uid: str, amount: int, api: Api):
 
 def fake_data_dataset(uid: str, amount: int, api: Api):
     """Import fake data value sets"""
-    data_elements = {
+
+    # load the data set name and periodType
+    metadata = api.get(f'dataSets/{uid}', params={'fields': 'id,name,periodType'}).json()
+    logger.info("Generating random fake data")
+    logger.info(f"Data Set: name='{metadata['name']}' uid='{metadata['id']}'")
+
+    # load the DataValueSet template
+    dvs_template = api.get(f'dataSets/{uid}/dataValueSet').json()
+
+    # load DE.uid : DE.valueType dict
+    de_valuetype_map = {
         de['id']: de['valueType']
         for de in api.get_paged(
             'dataElements',
-            params={'fields': 'id,name,valueType'},
+            params={'fields': 'id,name,valueType', 'filter': 'domainType:eq:AGGREGATE'},
             merge=True,
             page_size=300
         ).get('dataElements')
     }
 
-    dvs_template = api.get(f'dataSets/{uid}/dataValueSet').json()
-
-    org_units = {
+    # load the data set's org units
+    org_units = [
         ou['id'] for ou in
         api.get(
             f'dataSets/{uid}',
             params={'fields': 'id,name,organisationUnits[id]'}
         ).json().get('organisationUnits', [])
-    }
+    ]
     if not org_units:
         logger.error("Data set is not assigned to any org unit")
         sys.exit(1)
 
     payload = {"dataValues": []}
 
-    metadata = api.get(f'dataSets/{uid}', params={'fields': 'id,name,periodType'}).json()
-    logger.info(f"Dataset: {metadata['name']} ({uid})")
-
-    attribute_options = {
+    # load the data set's category combo > attribute options
+    attribute_option_combos = [
         coc['id'] for coc in api.get(
             f'dataSets/{uid}',
             params={'fields': 'id,name,categoryCombo[categoryOptionCombos]'}
         ).json()['categoryCombo']['categoryOptionCombos']
-    }
+    ]
 
-    for i in range(amount):
+    # log a warning in case of huge amount of data values
+    possible_data_values = amount * len(dvs_template['dataValues'])
+    if possible_data_values > 10000:
+        logger.warning(f"Lots of data values: {possible_data_values}. Consider reducing the amount.")
+        time.sleep(6)
+
+    # create as many data value set templates as given as argument
+    for _ in range(amount):
         for dv in dvs_template['dataValues']:
             de_uid = dv['dataElement']
-            de_value_type = data_elements[de_uid]
+            de_value_type = de_valuetype_map[de_uid]
             payload['dataValues'].append(
                 {
                     "dataElement": de_uid,
                     "categoryOptionCombo": dv['categoryOptionCombo'],
                     "period": random_period(metadata['periodType']),
                     "value": random_data_value(de_value_type, org_units),
-                    "orgUnit": random.choice(list(org_units)),
-                    "attributeOptionCombo": random.choice(list(attribute_options))
+                    "storedBy": "fake-data",
+                    "orgUnit": random.choice(org_units),
+                    "attributeOptionCombo": random.choice(attribute_option_combos)
                 }
             )
 
@@ -262,22 +292,29 @@ def fake_data_dataset(uid: str, amount: int, api: Api):
     with open(filename, 'w') as f:
         json.dump(payload, f)
 
-    logger.info("File stored: {}".format(filename))
-    logger.info("Data values: {} - file size: {}".format(
-        len(payload['dataValues']),
-        human_size(os.path.getsize(filename))
-    ))
+    dv_amount = len(payload['dataValues'])
+    file_size = os.path.getsize(filename)
+    logger.info(f"Amount (-n): {amount}")
+    logger.info(f"Data value count: {dv_amount}")
+    logger.info(f"Data file: {filename}")
+    logger.info(f"Data file size: {human_size(file_size)}")
+
+    if file_size > 20**7:
+        logger.warning("File size exceeds 20MB. Consider reducing the amount.")
 
     time.sleep(3)
 
+    preheat_cache = dv_amount > 3000
+    # async data import
     job_uid = api.post(
         'dataValueSets', data=payload,
-        params={'skipAudit': 'true', 'async': 'true', 'preheatCache': 'true'}
+        params={'skipAudit': 'true', 'async': 'true', 'preheatCache': str(preheat_cache).lower()}
     ).json()['response']['id']
-    logger.info(f"Started async aggregate data import job {job_uid} - waiting...")
+    logger.info(f"Data import job started: {job_uid} - waiting...")
     while True:
-        ping = api.get(f'system/tasks/DATAVALUE_IMPORT/{job_uid}').json()
-        done = [item for item in ping if item['completed'] is True and item['message'] == 'Import done']
+        ping = api.get(f'system/tasks/DATAVALUE_IMPORT/{job_uid}')
+        ping.raise_for_status()
+        done = [item for item in ping.json() if item['completed'] is True and item['message'] == 'Import done']
         if done:
             break
         time.sleep(1)
@@ -298,7 +335,7 @@ def main(args, password):
         logger.error(f"Amount must be between 1 and 100000")
         sys.exit(1)
 
-    logger.warning(f"Importing FAKE data to {api.base_url}")
+    logger.warning(f"URL: {api.base_url}")
 
     uid = args.uid
     data_type = None
@@ -317,6 +354,9 @@ def main(args, password):
             except RequestException as e:
                 if e.code == 404:
                     logger.error(f"Could not find dataSet or program with UID '{uid}'")
+                else:
+                    logger.error(e)
+                    sys.exit(1)
         else:
             logger.error(e)
             sys.exit(1)
