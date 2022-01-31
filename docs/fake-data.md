@@ -19,8 +19,8 @@ Import fake data for Event programs or Data Sets
 required arguments:
   -s SERVER    DHIS2 server URL
   -u USERNAME  DHIS2 username
-  -i UID       UID for program or data set to import fake data for. min: 1 - max: 100000
-  -n AMOUNT    Amount of events or dataValueSet templates
+  -i UID       UID for program or data set to import fake data for.
+  -n AMOUNT    Amount of events or dataValueSet templates.  min: 1 - max: 100000
 
 optional arguments:
   -p PASSWORD  DHIS2 password
