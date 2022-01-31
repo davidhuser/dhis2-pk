@@ -40,4 +40,4 @@ pipenv run python src/main.py fake-data -s ${URL} -u ${USERNAME} -p ${PW} -i eZD
 echo -e '\nclean-up...'
 rm -f indicators-202*.csv
 rm -f userinfo-202*.csv
-rm -f fake_data_*.csv
+rm -f fake_data_*.json

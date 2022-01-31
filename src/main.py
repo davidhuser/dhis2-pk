@@ -100,5 +100,8 @@ if __name__ == '__main__':
         pocketknife_run()
     except RequestException as e:
         logger.error(e)
+    except KeyboardInterrupt as e:
+        logger.warning("Aborted.")
+        sys.exit(1)
     except Exception as e:
         logger.exception(e)

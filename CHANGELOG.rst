@@ -2,9 +2,14 @@
 CHANGELOG
 =========
 
+0.37.1 (Jan 2022)
+------------------
+- Feat: ``fake-data`` script uses async data/events imports
+- Feat: ``fake-data`` to support more data element value types
+
 0.37.0 (Jan 2022)
 ------------------
-- Feat: fake-data script
+- Feat: ``fake-data`` script
 - Task: bump ``dhis2.py`` to 2.3.0
 
 
